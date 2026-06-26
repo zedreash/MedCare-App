@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ميدكير</string>
+
+    <string name="login">تسجيل الدخول</string>
+    <string name="register">إنشاء حساب</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="confirm_password">تأكيد كلمة المرور</string>
+    <string name="forgot_password">هل نسيت كلمة المرور؟</string>
+    <string name="no_account">ليس لديك حساب؟</string>
+    <string name="have_account">لديك حساب بالفعل؟</string>
+    <string name="logout">تسجيل الخروج</string>
+
+    <string name="profile">الملف الشخصي</string>
+    <string name="full_name">الاسم الكامل</string>
+    <string name="phone">رقم الهاتف</string>
+    <string name="date_of_birth">تاريخ الميلاد</string>
+    <string name="id_number">رقم الهوية (T.Z.)</string>
+    <string name="save">حفظ</string>
+    <string name="edit">تعديل</string>
+    <string name="cancel">إلغاء</string>
+    <string name="delete">حذف</string>
+
+    <string name="field_required">هذا الحقل مطلوب</string>
+    <string name="invalid_email">البريد الإلكتروني غير صالح</string>
+    <string name="password_mismatch">كلمتا المرور غير متطابقتين</string>
+    <string name="password_too_short">يجب أن تكون كلمة المرور 6 أحرف على الأقل</string>
+    <string name="invalid_phone">رقم الهاتف غير صالح</string>
+    <string name="success_saved">تم الحفظ بنجاح</string>
+    <string name="success_deleted">تم الحذف بنجاح</string>
+    <string name="error_generic">حدث خطأ ما</string>
+    <string name="login_invalid_credentials">البريد الإلكتروني أو كلمة المرور غير صحيحة</string>
+    <string name="email_already_registered">هذا البريد الإلكتروني مسجل بالفعل</string>
+    <string name="delete_account_confirm">هل أنت متأكد من حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.</string>
+</resources>

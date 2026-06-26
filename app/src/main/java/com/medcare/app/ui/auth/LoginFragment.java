@@ -91,8 +91,8 @@ public class LoginFragment extends Fragment {
             Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
             navigateToPatients();
         } else {
-            Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
-            passwordLayout.setError(getString(R.string.error_generic));
+            Snackbar.make(rootView, R.string.login_invalid_credentials, Snackbar.LENGTH_LONG).show();
+            passwordLayout.setError(getString(R.string.login_invalid_credentials));
         }
     }
 

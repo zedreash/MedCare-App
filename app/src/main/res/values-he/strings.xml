@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">מדקר</string>
+
+    <string name="login">התחברות</string>
+    <string name="register">הרשמה</string>
+    <string name="email">דוא"ל</string>
+    <string name="password">סיסמה</string>
+    <string name="confirm_password">אישור סיסמה</string>
+    <string name="forgot_password">שכחת סיסמה?</string>
+    <string name="no_account">אין לך חשבון?</string>
+    <string name="have_account">כבר יש לך חשבון?</string>
+    <string name="logout">התנתקות</string>
+
+    <string name="profile">פרופיל</string>
+    <string name="full_name">שם מלא</string>
+    <string name="phone">מספר טלפון</string>
+    <string name="date_of_birth">תאריך לידה</string>
+    <string name="id_number">מספר תעודת זהות (T.Z.)</string>
+    <string name="save">שמור</string>
+    <string name="edit">ערוך</string>
+    <string name="cancel">ביטול</string>
+    <string name="delete">מחק</string>
+
+    <string name="field_required">שדה חובה</string>
+    <string name="invalid_email">כתובת דוא"ל לא חוקית</string>
+    <string name="password_mismatch">הסיסמאות אינן תואמות</string>
+    <string name="password_too_short">הסיסמה חייבת להכיל לפחות 6 תווים</string>
+    <string name="invalid_phone">מספר טלפון לא חוקי</string>
+    <string name="success_saved">נשמר בהצלחה</string>
+    <string name="success_deleted">נמחק בהצלחה</string>
+    <string name="error_generic">משהו השתבש</string>
+    <string name="login_invalid_credentials">דוא"ל או סיסמה שגויים</string>
+    <string name="email_already_registered">דוא"ל זה כבר רשום</string>
+    <string name="delete_account_confirm">האם אתה בטוח שברצונך למחוק את חשבונך? לא ניתן לבטל פעולה זו.</string>
+</resources>

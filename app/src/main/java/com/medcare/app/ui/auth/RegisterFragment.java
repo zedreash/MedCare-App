@@ -137,7 +137,7 @@ public class RegisterFragment extends Fragment {
 
         User existingUser = userRepository.getUserByEmail(email);
         if (existingUser != null) {
-            emailLayout.setError(getString(R.string.invalid_email));
+            emailLayout.setError(getString(R.string.email_already_registered));
             emailInput.requestFocus();
             return;
         }

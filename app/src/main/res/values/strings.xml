@@ -62,6 +62,9 @@
     <string name="success_saved">Saved successfully</string>
     <string name="success_deleted">Deleted successfully</string>
     <string name="error_generic">Something went wrong</string>
+    <string name="login_invalid_credentials">Invalid email or password</string>
+    <string name="email_already_registered">This email is already registered</string>
+    <string name="delete_account_confirm">Are you sure you want to delete your account? This cannot be undone.</string>
 
     <!-- Location -->
     <string name="location_permission_denied">Location permission is required to show the clinic on map</string>
