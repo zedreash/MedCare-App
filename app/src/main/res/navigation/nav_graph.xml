@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.medcare.app.ui.auth.LoginFragment"
+        android:label="@string/login"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_login_to_patients"
+            app:destination="@id/patientListFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.medcare.app.ui.auth.RegisterFragment"
+        android:label="@string/register"
+        tools:layout="@layout/fragment_register">
+        <action
+            android:id="@+id/action_register_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.medcare.app.ui.profile.ProfileFragment"
+        android:label="@string/profile"
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profile_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/patientListFragment"
+        android:name="com.medcare.app.ui.patients.PatientListFragment"
+        android:label="@string/patients"
+        tools:layout="@layout/fragment_patient_list">
+        <action
+            android:id="@+id/action_patientList_to_patientForm"
+            app:destination="@id/patientFormFragment" />
+        <action
+            android:id="@+id/action_patientList_to_profile"
+            app:destination="@id/profileFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/patientFormFragment"
+        android:name="com.medcare.app.ui.patients.PatientFormFragment"
+        android:label="@string/add_patient"
+        tools:layout="@layout/fragment_patient_form">
+        <argument
+            android:name="patientId"
+            android:defaultValue="-1"
+            app:argType="integer" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/appointmentListFragment"
+        android:name="com.medcare.app.ui.appointments.AppointmentListFragment"
+        android:label="@string/appointments"
+        tools:layout="@layout/fragment_appointment_list">
+        <action
+            android:id="@+id/action_appointmentList_to_appointmentForm"
+            app:destination="@id/appointmentFormFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/appointmentFormFragment"
+        android:name="com.medcare.app.ui.appointments.AppointmentFormFragment"
+        android:label="@string/add_appointment"
+        tools:layout="@layout/fragment_appointment_form">
+        <argument
+            android:name="appointmentId"
+            android:defaultValue="-1"
+            app:argType="integer" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/clinicFragment"
+        android:name="com.medcare.app.ui.clinic.ClinicFragment"
+        android:label="@string/clinic_location"
+        tools:layout="@layout/fragment_clinic" />
+
+</navigation>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MedCare</string>
+
+    <!-- Auth -->
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="have_account">Already have an account?</string>
+    <string name="logout">Logout</string>
+
+    <!-- Profile -->
+    <string name="profile">Profile</string>
+    <string name="full_name">Full Name</string>
+    <string name="phone">Phone Number</string>
+    <string name="date_of_birth">Date of Birth</string>
+    <string name="id_number">ID Number (T.Z.)</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+
+    <!-- Patients -->
+    <string name="patients">Patients</string>
+    <string name="add_patient">Add Patient</string>
+    <string name="edit_patient">Edit Patient</string>
+    <string name="patient_name">Patient Name</string>
+    <string name="patient_phone">Patient Phone</string>
+    <string name="patient_diagnosis">Diagnosis</string>
+    <string name="no_patients">No patients yet</string>
+
+    <!-- Appointments -->
+    <string name="appointments">Appointments</string>
+    <string name="add_appointment">Add Appointment</string>
+    <string name="edit_appointment">Edit Appointment</string>
+    <string name="appointment_date">Date</string>
+    <string name="appointment_time">Time</string>
+    <string name="appointment_notes">Notes</string>
+    <string name="no_appointments">No appointments yet</string>
+
+    <!-- Clinic -->
+    <string name="clinic_location">Clinic Location</string>
+    <string name="get_directions">Get Directions</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_patients">Patients</string>
+    <string name="nav_appointments">Appointments</string>
+    <string name="nav_clinic">Clinic</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Validation -->
+    <string name="field_required">This field is required</string>
+    <string name="invalid_email">Invalid email address</string>
+    <string name="password_mismatch">Passwords do not match</string>
+    <string name="password_too_short">Password must be at least 6 characters</string>
+    <string name="invalid_phone">Invalid phone number</string>
+    <string name="success_saved">Saved successfully</string>
+    <string name="success_deleted">Deleted successfully</string>
+    <string name="error_generic">Something went wrong</string>
+
+    <!-- Location -->
+    <string name="location_permission_denied">Location permission is required to show the clinic on map</string>
+</resources>
