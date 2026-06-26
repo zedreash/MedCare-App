@@ -27,7 +27,8 @@ public abstract class AppDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "medcare_database"
-                    ).build();
+                    ).allowMainThreadQueries()
+                     .build();
                 }
             }
         }
