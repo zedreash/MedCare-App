@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,7 +24,8 @@ public class PatientListFragment extends Fragment {
 
     private PatientRepository patientRepository;
     private PatientAdapter adapter;
-    private List<Patient> patientList;
+    private RecyclerView recyclerView;
+    private TextView emptyStateText;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -37,7 +39,8 @@ public class PatientListFragment extends Fragment {
 
         patientRepository = new PatientRepository(requireContext());
 
-        RecyclerView recyclerView = view.findViewById(R.id.patient_recycler_view);
+        recyclerView = view.findViewById(R.id.patient_recycler_view);
+        emptyStateText = view.findViewById(R.id.empty_state_text);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         adapter = new PatientAdapter(this::onPatientClicked);
@@ -45,16 +48,39 @@ public class PatientListFragment extends Fragment {
 
         loadPatients();
 
-        view.findViewById(R.id.add_patient_button).setOnClickListener(v ->
-                Navigation.findNavController(view).navigate(R.id.action_patientList_to_patientForm));
+        view.findViewById(R.id.add_patient_button).setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putInt("patientId", -1);
+            Navigation.findNavController(view).navigate(R.id.action_patientList_to_patientForm, args);
+        });
 
         view.findViewById(R.id.profile_button).setOnClickListener(v ->
                 Navigation.findNavController(view).navigate(R.id.action_patientList_to_profile));
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadPatients();
+    }
+
     private void loadPatients() {
+        List<Patient> patients = patientRepository.getAllPatients();
+        adapter.setPatients(patients);
+
+        if (patients.isEmpty()) {
+            recyclerView.setVisibility(View.GONE);
+            emptyStateText.setVisibility(View.VISIBLE);
+        } else {
+            recyclerView.setVisibility(View.VISIBLE);
+            emptyStateText.setVisibility(View.GONE);
+        }
     }
 
     private void onPatientClicked(Patient patient) {
+        Bundle args = new Bundle();
+        args.putInt("patientId", (int) patient.getId());
+        Navigation.findNavController(requireView())
+                .navigate(R.id.action_patientList_to_patientForm, args);
     }
 }

@@ -64,6 +64,7 @@ public class ProfileFragment extends Fragment {
 
         loadUserProfile();
 
+        view.findViewById(R.id.back_button).setOnClickListener(v -> Navigation.findNavController(view).navigateUp());
         view.findViewById(R.id.save_button).setOnClickListener(v -> onSaveClicked());
         view.findViewById(R.id.logout_button).setOnClickListener(v -> onLogoutClicked());
         view.findViewById(R.id.delete_account_button).setOnClickListener(v -> onDeleteAccountClicked());
