@@ -2,6 +2,14 @@ plugins {
     id 'com.android.application'
 }
 
+def secretsFile = rootProject.file('secrets.properties')
+def mapsApiKey = ""
+if (secretsFile.exists()) {
+    def properties = new Properties()
+    properties.load(secretsFile.newDataInputStream())
+    mapsApiKey = properties['MAPS_API_KEY'] ?: ""
+}
+
 android {
     namespace 'com.medcare.app'
     compileSdk 34
@@ -12,6 +20,8 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
+
+        manifestPlaceholders = [googleMapsApiKey: mapsApiKey]
 
         javaCompileOptions {
             annotationProcessorOptions {
