@@ -55,6 +55,12 @@
 
     <string name="nav_patients">מטופלים</string>
     <string name="nav_appointments">תורים</string>
+    <string name="clinic_location">מיקום המרפאה</string>
+    <string name="clinic_address">המרכז הרפואי שיבא, תל השומר, רמת גן</string>
+    <string name="get_directions">קבל הנחיות</string>
+    <string name="your_location">המיקום שלך</string>
+    <string name="location_permission_denied">נדרשת הרשאת מיקום כדי להציג את המרפאה במפה</string>
+
     <string name="nav_clinic">מרפאה</string>
     <string name="nav_profile">פרופיל</string>
 </resources>

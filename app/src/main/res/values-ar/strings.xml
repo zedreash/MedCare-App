@@ -55,6 +55,12 @@
 
     <string name="nav_patients">المرضى</string>
     <string name="nav_appointments">المواعيد</string>
+    <string name="clinic_location">موقع العيادة</string>
+    <string name="clinic_address">مركز شيبا الطبي، تل هشومير، رمات غان</string>
+    <string name="get_directions">الحصول على الاتجاهات</string>
+    <string name="your_location">موقعك</string>
+    <string name="location_permission_denied">تصريح الموقع مطلوب لعرض العيادة على الخريطة</string>
+
     <string name="nav_clinic">العيادة</string>
     <string name="nav_profile">الملف الشخصي</string>
 </resources>

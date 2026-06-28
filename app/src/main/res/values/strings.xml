@@ -46,6 +46,7 @@
 
     <!-- Clinic -->
     <string name="clinic_location">Clinic Location</string>
+    <string name="clinic_address">Sheba Medical Center, Tel HaShomer, Ramat Gan</string>
     <string name="get_directions">Get Directions</string>
 
     <!-- Navigation -->
@@ -69,5 +70,6 @@
     <string name="delete_account_confirm">Are you sure you want to delete your account? This cannot be undone.</string>
 
     <!-- Location -->
+    <string name="your_location">Your Location</string>
     <string name="location_permission_denied">Location permission is required to show the clinic on map</string>
 </resources>
