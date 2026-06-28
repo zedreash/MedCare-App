@@ -12,11 +12,14 @@ import com.medcare.app.R;
 import com.medcare.app.data.entity.Appointment;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.AppointmentViewHolder> {
 
     private List<Appointment> appointments = new ArrayList<>();
+    private Map<Long, String> patientNames = new HashMap<>();
     private OnAppointmentClickListener listener;
 
     public interface OnAppointmentClickListener {
@@ -46,19 +49,22 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
         return appointments.size();
     }
 
-    public void setAppointments(List<Appointment> appointments) {
+    public void setAppointments(List<Appointment> appointments, Map<Long, String> patientNames) {
         this.appointments = appointments;
+        this.patientNames = patientNames;
         notifyDataSetChanged();
     }
 
     class AppointmentViewHolder extends RecyclerView.ViewHolder {
 
+        private TextView patientText;
         private TextView dateText;
         private TextView timeText;
         private TextView notesText;
 
         AppointmentViewHolder(@NonNull View itemView) {
             super(itemView);
+            patientText = itemView.findViewById(R.id.appointment_patient_text);
             dateText = itemView.findViewById(R.id.appointment_date_text);
             timeText = itemView.findViewById(R.id.appointment_time_text);
             notesText = itemView.findViewById(R.id.appointment_notes_text);
@@ -72,9 +78,12 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
         }
 
         void bind(Appointment appointment) {
+            String name = patientNames.get(appointment.getPatientId());
+            patientText.setText(name != null ? name : "Unknown");
             dateText.setText(appointment.getDate());
             timeText.setText(appointment.getTime());
-            notesText.setText(appointment.getNotes());
+            String notes = appointment.getNotes();
+            notesText.setText(notes != null && !notes.isEmpty() ? notes : null);
         }
     }
 }

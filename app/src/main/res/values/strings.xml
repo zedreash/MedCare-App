@@ -26,6 +26,8 @@
 
     <!-- Patients -->
     <string name="patients">Patients</string>
+    <string name="select_patient">Select patient</string>
+    <string name="search">Search</string>
     <string name="add_patient">Add Patient</string>
     <string name="edit_patient">Edit Patient</string>
     <string name="patient_name">Patient Name</string>

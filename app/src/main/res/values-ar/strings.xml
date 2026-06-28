@@ -33,4 +33,28 @@
     <string name="login_invalid_credentials">البريد الإلكتروني أو كلمة المرور غير صحيحة</string>
     <string name="email_already_registered">هذا البريد الإلكتروني مسجل بالفعل</string>
     <string name="delete_account_confirm">هل أنت متأكد من حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.</string>
+
+    <string name="patients">المرضى</string>
+    <string name="select_patient">اختر مريض</string>
+    <string name="search">بحث</string>
+    <string name="add_patient">إضافة مريض</string>
+    <string name="edit_patient">تعديل المريض</string>
+    <string name="patient_name">اسم المريض</string>
+    <string name="patient_phone">رقم هاتف المريض</string>
+    <string name="patient_diagnosis">التشخيص</string>
+    <string name="no_patients">لا يوجد مرضى بعد</string>
+    <string name="patient_notes">ملاحظات</string>
+
+    <string name="appointments">المواعيد</string>
+    <string name="add_appointment">إضافة موعد</string>
+    <string name="edit_appointment">تعديل الموعد</string>
+    <string name="appointment_date">التاريخ</string>
+    <string name="appointment_time">الوقت</string>
+    <string name="appointment_notes">ملاحظات</string>
+    <string name="no_appointments">لا توجد مواعيد بعد</string>
+
+    <string name="nav_patients">المرضى</string>
+    <string name="nav_appointments">المواعيد</string>
+    <string name="nav_clinic">العيادة</string>
+    <string name="nav_profile">الملف الشخصي</string>
 </resources>

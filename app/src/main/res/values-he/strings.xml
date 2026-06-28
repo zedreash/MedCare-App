@@ -33,4 +33,28 @@
     <string name="login_invalid_credentials">דוא"ל או סיסמה שגויים</string>
     <string name="email_already_registered">דוא"ל זה כבר רשום</string>
     <string name="delete_account_confirm">האם אתה בטוח שברצונך למחוק את חשבונך? לא ניתן לבטל פעולה זו.</string>
+
+    <string name="patients">מטופלים</string>
+    <string name="select_patient">בחר מטופל</string>
+    <string name="search">חיפוש</string>
+    <string name="add_patient">הוסף מטופל</string>
+    <string name="edit_patient">ערוך מטופל</string>
+    <string name="patient_name">שם המטופל</string>
+    <string name="patient_phone">טלפון המטופל</string>
+    <string name="patient_diagnosis">אבחון</string>
+    <string name="no_patients">אין מטופלים עדיין</string>
+    <string name="patient_notes">הערות</string>
+
+    <string name="appointments">תורים</string>
+    <string name="add_appointment">הוסף תור</string>
+    <string name="edit_appointment">ערוך תור</string>
+    <string name="appointment_date">תאריך</string>
+    <string name="appointment_time">שעה</string>
+    <string name="appointment_notes">הערות</string>
+    <string name="no_appointments">אין תורים עדיין</string>
+
+    <string name="nav_patients">מטופלים</string>
+    <string name="nav_appointments">תורים</string>
+    <string name="nav_clinic">מרפאה</string>
+    <string name="nav_profile">פרופיל</string>
 </resources>
