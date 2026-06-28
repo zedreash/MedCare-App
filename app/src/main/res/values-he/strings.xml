@@ -42,6 +42,8 @@
     <string name="patient_name">שם המטופל</string>
     <string name="patient_phone">טלפון המטופל</string>
     <string name="patient_diagnosis">אבחון</string>
+    <string name="search_patients">חפש מטופלים</string>
+    <string name="no_search_results">לא נמצאו מטופלים תואמים</string>
     <string name="no_patients">אין מטופלים עדיין</string>
     <string name="patient_notes">הערות</string>
 
@@ -51,6 +53,7 @@
     <string name="appointment_date">תאריך</string>
     <string name="appointment_time">שעה</string>
     <string name="appointment_notes">הערות</string>
+    <string name="search_appointments">חפש תורים</string>
     <string name="no_appointments">אין תורים עדיין</string>
 
     <string name="nav_patients">מטופלים</string>

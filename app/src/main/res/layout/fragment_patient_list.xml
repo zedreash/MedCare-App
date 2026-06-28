@@ -34,6 +34,27 @@
 
     </LinearLayout>
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/search_bar"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:endIconMode="clear_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/top_bar">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/search_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/search_patients"
+            android:inputType="textFilter"
+            android:maxLines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
     <TextView
         android:id="@+id/empty_state_text"
         android:layout_width="wrap_content"
@@ -45,18 +66,18 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_bar" />
+        app:layout_constraintTop_toBottomOf="@id/search_bar" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/patient_recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:clipToPadding="false"
         android:paddingBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_bar" />
+        app:layout_constraintTop_toBottomOf="@id/search_bar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

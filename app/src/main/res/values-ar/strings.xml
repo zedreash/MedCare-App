@@ -42,6 +42,8 @@
     <string name="patient_name">اسم المريض</string>
     <string name="patient_phone">رقم هاتف المريض</string>
     <string name="patient_diagnosis">التشخيص</string>
+    <string name="search_patients">ابحث عن مرضى</string>
+    <string name="no_search_results">لا يوجد مرضى يطابقون بحثك</string>
     <string name="no_patients">لا يوجد مرضى بعد</string>
     <string name="patient_notes">ملاحظات</string>
 
@@ -51,6 +53,7 @@
     <string name="appointment_date">التاريخ</string>
     <string name="appointment_time">الوقت</string>
     <string name="appointment_notes">ملاحظات</string>
+    <string name="search_appointments">ابحث عن مواعيد</string>
     <string name="no_appointments">لا توجد مواعيد بعد</string>
 
     <string name="nav_patients">المرضى</string>
