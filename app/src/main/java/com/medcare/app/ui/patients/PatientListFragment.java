@@ -53,9 +53,6 @@ public class PatientListFragment extends Fragment {
             args.putInt("patientId", -1);
             Navigation.findNavController(view).navigate(R.id.action_patientList_to_patientForm, args);
         });
-
-        view.findViewById(R.id.profile_button).setOnClickListener(v ->
-                Navigation.findNavController(view).navigate(R.id.action_patientList_to_profile));
     }
 
     @Override

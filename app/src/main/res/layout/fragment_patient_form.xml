@@ -36,8 +36,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="@string/add_patient"
-                android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
-                android:textColor="?attr/colorPrimary"
+                android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
                 android:textStyle="bold" />
 
         </LinearLayout>
@@ -105,6 +104,18 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/diagnosis_layout" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/delete_button"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/delete"
+            android:textColor="@color/error"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/save_button" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

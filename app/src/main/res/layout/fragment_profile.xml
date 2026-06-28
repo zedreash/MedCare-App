@@ -20,24 +20,12 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <ImageButton
-                android:id="@+id/back_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/cancel"
-                android:padding="8dp"
-                android:src="@android:drawable/ic_menu_revert"
-                app:tint="?attr/colorPrimary" />
-
             <TextView
                 android:id="@+id/profile_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:text="@string/profile"
-                android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
-                android:textColor="?attr/colorPrimary"
+                android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
                 android:textStyle="bold" />
 
         </LinearLayout>
