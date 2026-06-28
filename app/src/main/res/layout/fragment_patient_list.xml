@@ -24,6 +24,14 @@
             android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/sort_button"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/sort"
+            app:icon="@drawable/ic_sort" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/add_patient_button"
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"

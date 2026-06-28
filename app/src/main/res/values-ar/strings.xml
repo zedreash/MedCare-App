@@ -67,4 +67,15 @@
 
     <string name="nav_clinic">العيادة</string>
     <string name="nav_profile">الملف الشخصي</string>
+
+    <string name="sort">ترتيب</string>
+    <string name="sort_by">ترتيب حسب</string>
+    <string name="sort_newest_first">الأحدث أولاً</string>
+    <string name="sort_oldest_first">الأقدم أولاً</string>
+    <string name="sort_name_az">الاسم أ-ي</string>
+    <string name="sort_name_za">الاسم ي-أ</string>
+    <string name="sort_date_asc">التاريخ تصاعدياً</string>
+    <string name="sort_date_desc">التاريخ تنازلياً</string>
+    <string name="sort_time_asc">الوقت تصاعدياً</string>
+    <string name="sort_time_desc">الوقت تنازلياً</string>
 </resources>

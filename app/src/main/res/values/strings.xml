@@ -60,6 +60,18 @@
     <string name="nav_clinic">Clinic</string>
     <string name="nav_profile">Profile</string>
 
+    <!-- Sort -->
+    <string name="sort">Sort</string>
+    <string name="sort_by">Sort by</string>
+    <string name="sort_newest_first">Newest first</string>
+    <string name="sort_oldest_first">Oldest first</string>
+    <string name="sort_name_az">Name A-Z</string>
+    <string name="sort_name_za">Name Z-A</string>
+    <string name="sort_date_asc">Date ascending</string>
+    <string name="sort_date_desc">Date descending</string>
+    <string name="sort_time_asc">Time ascending</string>
+    <string name="sort_time_desc">Time descending</string>
+
     <!-- Validation -->
     <string name="field_required">This field is required</string>
     <string name="invalid_email">Invalid email address</string>

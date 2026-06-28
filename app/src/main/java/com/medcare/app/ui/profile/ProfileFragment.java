@@ -118,14 +118,14 @@ public class ProfileFragment extends Fragment {
     private void loadUserProfile() {
         long userId = preferencesManager.getLoggedInUserId();
         if (userId == -1) {
-            Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
+            preferencesManager.clearSession();
             navigateToLogin();
             return;
         }
 
         currentUser = userRepository.getUserById(userId);
         if (currentUser == null) {
-            Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
+            preferencesManager.clearSession();
             navigateToLogin();
             return;
         }

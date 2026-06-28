@@ -30,6 +30,15 @@ import java.util.Map;
 
 public class AppointmentListFragment extends Fragment {
 
+    private static final int SORT_NEWEST = 0;
+    private static final int SORT_OLDEST = 1;
+    private static final int SORT_NAME_AZ = 2;
+    private static final int SORT_NAME_ZA = 3;
+    private static final int SORT_DATE_ASC = 4;
+    private static final int SORT_DATE_DESC = 5;
+    private static final int SORT_TIME_ASC = 6;
+    private static final int SORT_TIME_DESC = 7;
+
     private AppointmentRepository appointmentRepository;
     private PatientRepository patientRepository;
     private AppointmentAdapter adapter;
@@ -38,6 +47,7 @@ public class AppointmentListFragment extends Fragment {
     private EditText searchEditText;
     private List<Appointment> allAppointments = new ArrayList<>();
     private Map<Long, String> patientNames = new HashMap<>();
+    private int currentSortMode = SORT_NEWEST;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -75,6 +85,7 @@ public class AppointmentListFragment extends Fragment {
             public void afterTextChanged(Editable s) {}
         });
 
+        view.findViewById(R.id.sort_button).setOnClickListener(v -> showSortDialog());
         view.findViewById(R.id.add_appointment_button).setOnClickListener(v -> {
             Bundle args = new Bundle();
             args.putInt("appointmentId", -1);
@@ -101,7 +112,79 @@ public class AppointmentListFragment extends Fragment {
             }
         }
 
+        sortAppointments();
         filterAppointments(searchEditText.getText().toString());
+    }
+
+    private void showSortDialog() {
+        String[] options = {
+                getString(R.string.sort_newest_first),
+                getString(R.string.sort_oldest_first),
+                getString(R.string.sort_name_az),
+                getString(R.string.sort_name_za),
+                getString(R.string.sort_date_asc),
+                getString(R.string.sort_date_desc),
+                getString(R.string.sort_time_asc),
+                getString(R.string.sort_time_desc)
+        };
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.sort_by)
+                .setSingleChoiceItems(options, currentSortMode, (dialog, which) -> {
+                    currentSortMode = which;
+                    sortAppointments();
+                    filterAppointments(searchEditText.getText().toString());
+                    dialog.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private long getDateSortKey(String date) {
+        if (date == null) return 0;
+        String[] parts = date.split("/");
+        if (parts.length != 3) return 0;
+        try {
+            return Long.parseLong(parts[2]) * 10000 + Long.parseLong(parts[1]) * 100 + Long.parseLong(parts[0]);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private void sortAppointments() {
+        switch (currentSortMode) {
+            case SORT_NEWEST:
+                allAppointments.sort((a, b) -> Long.compare(b.getCreatedAt(), a.getCreatedAt()));
+                break;
+            case SORT_OLDEST:
+                allAppointments.sort((a, b) -> Long.compare(a.getCreatedAt(), b.getCreatedAt()));
+                break;
+            case SORT_NAME_AZ:
+                allAppointments.sort((a, b) -> {
+                    String na = patientNames.get(a.getPatientId());
+                    String nb = patientNames.get(b.getPatientId());
+                    return na.compareToIgnoreCase(nb);
+                });
+                break;
+            case SORT_NAME_ZA:
+                allAppointments.sort((a, b) -> {
+                    String na = patientNames.get(a.getPatientId());
+                    String nb = patientNames.get(b.getPatientId());
+                    return nb.compareToIgnoreCase(na);
+                });
+                break;
+            case SORT_DATE_ASC:
+                allAppointments.sort((a, b) -> Long.compare(getDateSortKey(a.getDate()), getDateSortKey(b.getDate())));
+                break;
+            case SORT_DATE_DESC:
+                allAppointments.sort((a, b) -> Long.compare(getDateSortKey(b.getDate()), getDateSortKey(a.getDate())));
+                break;
+            case SORT_TIME_ASC:
+                allAppointments.sort((a, b) -> a.getTime().compareTo(b.getTime()));
+                break;
+            case SORT_TIME_DESC:
+                allAppointments.sort((a, b) -> b.getTime().compareTo(a.getTime()));
+                break;
+        }
     }
 
     private void filterAppointments(String query) {

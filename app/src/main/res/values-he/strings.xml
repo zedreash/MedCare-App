@@ -67,4 +67,15 @@
 
     <string name="nav_clinic">מרפאה</string>
     <string name="nav_profile">פרופיל</string>
+
+    <string name="sort">מיין</string>
+    <string name="sort_by">מיין לפי</string>
+    <string name="sort_newest_first">החדש ביותר</string>
+    <string name="sort_oldest_first">הישן ביותר</string>
+    <string name="sort_name_az">שם א-ת</string>
+    <string name="sort_name_za">שם ת-א</string>
+    <string name="sort_date_asc">תאריך עולה</string>
+    <string name="sort_date_desc">תאריך יורד</string>
+    <string name="sort_time_asc">שעה עולה</string>
+    <string name="sort_time_desc">שעה יורדת</string>
 </resources>

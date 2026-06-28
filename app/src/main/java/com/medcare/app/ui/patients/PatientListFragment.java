@@ -26,12 +26,18 @@ import java.util.List;
 
 public class PatientListFragment extends Fragment {
 
+    private static final int SORT_NEWEST = 0;
+    private static final int SORT_OLDEST = 1;
+    private static final int SORT_NAME_AZ = 2;
+    private static final int SORT_NAME_ZA = 3;
+
     private PatientRepository patientRepository;
     private PatientAdapter adapter;
     private RecyclerView recyclerView;
     private TextView emptyStateText;
     private EditText searchEditText;
     private List<Patient> allPatients = new ArrayList<>();
+    private int currentSortMode = SORT_NEWEST;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -68,6 +74,7 @@ public class PatientListFragment extends Fragment {
             public void afterTextChanged(Editable s) {}
         });
 
+        view.findViewById(R.id.sort_button).setOnClickListener(v -> showSortDialog());
         view.findViewById(R.id.add_patient_button).setOnClickListener(v -> {
             Bundle args = new Bundle();
             args.putInt("patientId", -1);
@@ -83,7 +90,44 @@ public class PatientListFragment extends Fragment {
 
     private void loadPatients() {
         allPatients = patientRepository.getAllPatients();
+        sortPatients();
         filterPatients(searchEditText.getText().toString());
+    }
+
+    private void showSortDialog() {
+        String[] options = {
+                getString(R.string.sort_newest_first),
+                getString(R.string.sort_oldest_first),
+                getString(R.string.sort_name_az),
+                getString(R.string.sort_name_za)
+        };
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.sort_by)
+                .setSingleChoiceItems(options, currentSortMode, (dialog, which) -> {
+                    currentSortMode = which;
+                    sortPatients();
+                    filterPatients(searchEditText.getText().toString());
+                    dialog.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void sortPatients() {
+        switch (currentSortMode) {
+            case SORT_NEWEST:
+                allPatients.sort((a, b) -> Long.compare(b.getCreatedAt(), a.getCreatedAt()));
+                break;
+            case SORT_OLDEST:
+                allPatients.sort((a, b) -> Long.compare(a.getCreatedAt(), b.getCreatedAt()));
+                break;
+            case SORT_NAME_AZ:
+                allPatients.sort((a, b) -> a.getFullName().compareToIgnoreCase(b.getFullName()));
+                break;
+            case SORT_NAME_ZA:
+                allPatients.sort((a, b) -> b.getFullName().compareToIgnoreCase(a.getFullName()));
+                break;
+        }
     }
 
     private void filterPatients(String query) {
