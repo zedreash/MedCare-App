@@ -22,6 +22,9 @@ public class Appointment {
     @ColumnInfo(name = "patient_id")
     private long patientId;
 
+    @ColumnInfo(name = "name")
+    private String name;
+
     @ColumnInfo(name = "date")
     private String date;
 
@@ -34,8 +37,9 @@ public class Appointment {
     @ColumnInfo(name = "created_at")
     private long createdAt;
 
-    public Appointment(long patientId, String date, String time, String notes, long createdAt) {
+    public Appointment(long patientId, String name, String date, String time, String notes, long createdAt) {
         this.patientId = patientId;
+        this.name = name;
         this.date = date;
         this.time = time;
         this.notes = notes;
@@ -47,6 +51,9 @@ public class Appointment {
 
     public long getPatientId() { return patientId; }
     public void setPatientId(long patientId) { this.patientId = patientId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
     public String getDate() { return date; }
     public void setDate(String date) { this.date = date; }

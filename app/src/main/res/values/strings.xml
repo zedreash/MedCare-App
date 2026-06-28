@@ -39,6 +39,7 @@
 
     <!-- Appointments -->
     <string name="appointments">Appointments</string>
+    <string name="appointment_name">Appointment Name</string>
     <string name="add_appointment">Add Appointment</string>
     <string name="edit_appointment">Edit Appointment</string>
     <string name="appointment_date">Date</string>

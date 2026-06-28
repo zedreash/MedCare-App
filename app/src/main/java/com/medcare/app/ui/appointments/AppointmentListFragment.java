@@ -115,7 +115,8 @@ public class AppointmentListFragment extends Fragment {
             filtered = new ArrayList<>();
             for (Appointment a : allAppointments) {
                 String patientName = patientNames.get(a.getPatientId());
-                if ((patientName != null && patientName.toLowerCase().contains(query)) ||
+                if ((a.getName() != null && a.getName().toLowerCase().contains(query)) ||
+                    (patientName != null && patientName.toLowerCase().contains(query)) ||
                     (a.getDate() != null && a.getDate().toLowerCase().contains(query)) ||
                     (a.getTime() != null && a.getTime().toLowerCase().contains(query)) ||
                     (a.getNotes() != null && a.getNotes().toLowerCase().contains(query))) {

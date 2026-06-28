@@ -48,6 +48,7 @@
     <string name="patient_notes">הערות</string>
 
     <string name="appointments">תורים</string>
+    <string name="appointment_name">שם התור</string>
     <string name="add_appointment">הוסף תור</string>
     <string name="edit_appointment">ערוך תור</string>
     <string name="appointment_date">תאריך</string>

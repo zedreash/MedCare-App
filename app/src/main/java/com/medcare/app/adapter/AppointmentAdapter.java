@@ -57,6 +57,7 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
 
     class AppointmentViewHolder extends RecyclerView.ViewHolder {
 
+        private TextView nameText;
         private TextView patientText;
         private TextView dateText;
         private TextView timeText;
@@ -64,6 +65,7 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
 
         AppointmentViewHolder(@NonNull View itemView) {
             super(itemView);
+            nameText = itemView.findViewById(R.id.appointment_name_text);
             patientText = itemView.findViewById(R.id.appointment_patient_text);
             dateText = itemView.findViewById(R.id.appointment_date_text);
             timeText = itemView.findViewById(R.id.appointment_time_text);
@@ -78,8 +80,9 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
         }
 
         void bind(Appointment appointment) {
-            String name = patientNames.get(appointment.getPatientId());
-            patientText.setText(name != null ? name : "Unknown");
+            String n = patientNames.get(appointment.getPatientId());
+            nameText.setText(appointment.getName());
+            patientText.setText(n != null ? n : "Unknown");
             dateText.setText(appointment.getDate());
             timeText.setText(appointment.getTime());
             String notes = appointment.getNotes();

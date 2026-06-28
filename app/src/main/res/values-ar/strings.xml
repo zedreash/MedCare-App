@@ -48,6 +48,7 @@
     <string name="patient_notes">ملاحظات</string>
 
     <string name="appointments">المواعيد</string>
+    <string name="appointment_name">اسم الموعد</string>
     <string name="add_appointment">إضافة موعد</string>
     <string name="edit_appointment">تعديل الموعد</string>
     <string name="appointment_date">التاريخ</string>

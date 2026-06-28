@@ -45,11 +45,13 @@ public class AppointmentFormFragment extends Fragment {
     private long selectedPatientId = -1;
     private String selectedPatientName;
 
+    private TextInputLayout nameLayout;
     private TextInputLayout patientLayout;
     private TextInputLayout dateLayout;
     private TextInputLayout timeLayout;
     private TextInputLayout notesLayout;
 
+    private EditText nameInput;
     private EditText patientInput;
     private EditText dateInput;
     private EditText timeInput;
@@ -100,11 +102,13 @@ public class AppointmentFormFragment extends Fragment {
         formTitle = view.findViewById(R.id.form_title);
         deleteButton = view.findViewById(R.id.delete_button);
 
+        nameLayout = view.findViewById(R.id.name_layout);
         patientLayout = view.findViewById(R.id.patient_layout);
         dateLayout = view.findViewById(R.id.date_layout);
         timeLayout = view.findViewById(R.id.time_layout);
         notesLayout = view.findViewById(R.id.notes_layout);
 
+        nameInput = view.findViewById(R.id.name_input);
         patientInput = view.findViewById(R.id.patient_input);
         dateInput = view.findViewById(R.id.date_input);
         timeInput = view.findViewById(R.id.time_input);
@@ -295,6 +299,7 @@ public class AppointmentFormFragment extends Fragment {
             patientInput.setText(selectedPatientName);
         }
 
+        nameInput.setText(currentAppointment.getName());
         dateInput.setText(currentAppointment.getDate());
         timeInput.setText(currentAppointment.getTime());
         notesInput.setText(currentAppointment.getNotes());
@@ -305,17 +310,19 @@ public class AppointmentFormFragment extends Fragment {
             return;
         }
 
+        String nameValue = nameInput.getText().toString().trim();
         String date = dateInput.getText().toString().trim();
         String time = timeInput.getText().toString().trim();
         String notes = notesInput.getText().toString().trim();
 
         if (appointmentId == -1) {
-            Appointment appointment = new Appointment(selectedPatientId, date, time, notes,
+            Appointment appointment = new Appointment(selectedPatientId, nameValue, date, time, notes,
                     DateUtils.getCurrentTimestamp());
             appointmentRepository.insert(appointment);
             Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
         } else {
             currentAppointment.setPatientId(selectedPatientId);
+            currentAppointment.setName(nameValue);
             currentAppointment.setDate(date);
             currentAppointment.setTime(time);
             currentAppointment.setNotes(notes);
@@ -341,6 +348,13 @@ public class AppointmentFormFragment extends Fragment {
 
     private boolean validateInputs() {
         boolean valid = true;
+
+        if (TextUtils.isEmpty(nameInput.getText())) {
+            nameLayout.setError(getString(R.string.field_required));
+            valid = false;
+        } else {
+            nameLayout.setError(null);
+        }
 
         if (selectedPatientId == -1) {
             patientLayout.setError(getString(R.string.field_required));
