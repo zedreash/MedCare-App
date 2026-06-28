@@ -98,6 +98,10 @@
         android:id="@+id/clinicFragment"
         android:name="com.medcare.app.ui.clinic.ClinicFragment"
         android:label="@string/clinic_location"
-        tools:layout="@layout/fragment_clinic" />
+        tools:layout="@layout/fragment_clinic">
+        <action
+            android:id="@+id/action_clinic_to_patientForm"
+            app:destination="@id/patientFormFragment" />
+    </fragment>
 
 </navigation>

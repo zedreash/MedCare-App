@@ -22,14 +22,24 @@ public class Patient {
     @ColumnInfo(name = "notes")
     private String notes;
 
+    @ColumnInfo(name = "address")
+    private String address;
+
+    @ColumnInfo(name = "latitude")
+    private double latitude;
+
+    @ColumnInfo(name = "longitude")
+    private double longitude;
+
     @ColumnInfo(name = "created_at")
     private long createdAt;
 
-    public Patient(String fullName, String phone, String diagnosis, String notes, long createdAt) {
+    public Patient(String fullName, String phone, String diagnosis, String notes, String address, long createdAt) {
         this.fullName = fullName;
         this.phone = phone;
         this.diagnosis = diagnosis;
         this.notes = notes;
+        this.address = address;
         this.createdAt = createdAt;
     }
 
@@ -47,6 +57,15 @@ public class Patient {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public double getLatitude() { return latitude; }
+    public void setLatitude(double latitude) { this.latitude = latitude; }
+
+    public double getLongitude() { return longitude; }
+    public void setLongitude(double longitude) { this.longitude = longitude; }
 
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }

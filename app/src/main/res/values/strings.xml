@@ -32,6 +32,10 @@
     <string name="edit_patient">Edit Patient</string>
     <string name="patient_name">Patient Name</string>
     <string name="patient_phone">Patient Phone</string>
+    <string name="address">Address</string>
+    <string name="locating">Locating address…</string>
+    <string name="location_found">Address located</string>
+    <string name="location_not_found">Could not locate address</string>
     <string name="patient_diagnosis">Diagnosis</string>
     <string name="search_patients">Search patients</string>
     <string name="no_search_results">No patients match your search</string>
@@ -52,6 +56,7 @@
     <string name="clinic_location">Clinic Location</string>
     <string name="clinic_address">Sheba Medical Center, Tel HaShomer, Ramat Gan</string>
     <string name="get_directions">Get Directions</string>
+    <string name="view_patient">View Patient</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>

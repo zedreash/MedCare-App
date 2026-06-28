@@ -1,6 +1,7 @@
 package com.medcare.app.ui.clinic;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -16,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.navigation.Navigation;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -30,10 +32,15 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.snackbar.Snackbar;
 
 import com.medcare.app.R;
+import com.medcare.app.data.entity.Patient;
+import com.medcare.app.data.repository.PatientRepository;
+
+import java.util.List;
 
 public class ClinicFragment extends Fragment implements OnMapReadyCallback {
 
@@ -46,12 +53,14 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
 
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
+    private PatientRepository patientRepository;
     private View rootView;
     private Location userLocation;
 
     private boolean locationPermissionDenied = false;
 
     private LocationCallback locationCallback;
+    private Marker clinicMarker;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -65,6 +74,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
 
         rootView = view;
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
+        patientRepository = new PatientRepository(requireContext());
 
         view.findViewById(R.id.directions_button).setOnClickListener(v -> openDirections());
 
@@ -189,25 +199,97 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
                 .title(getString(R.string.your_location))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
 
-        googleMap.addMarker(new MarkerOptions()
+        clinicMarker = googleMap.addMarker(new MarkerOptions()
                 .position(CLINIC_LOCATION)
                 .title(getString(R.string.clinic_location))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+
+        addPatientMarkers();
     }
 
     private void showClinicOnly() {
-        googleMap.addMarker(new MarkerOptions()
+        clinicMarker = googleMap.addMarker(new MarkerOptions()
                 .position(CLINIC_LOCATION)
                 .title(getString(R.string.clinic_location)));
+
+        addPatientMarkers();
 
         if (locationPermissionDenied) {
             Snackbar.make(rootView, R.string.location_permission_denied, Snackbar.LENGTH_LONG).show();
         }
     }
 
+    private void addPatientMarkers() {
+        List<Patient> patients = patientRepository.getAllPatients();
+        if (patients.isEmpty()) return;
+
+        for (Patient patient : patients) {
+            if (patient.getLatitude() == 0.0 && patient.getLongitude() == 0.0) continue;
+
+            LatLng position = new LatLng(patient.getLatitude(), patient.getLongitude());
+            String snippet = patient.getPhone();
+            if (patient.getAddress() != null && !patient.getAddress().isEmpty()) {
+                snippet = patient.getAddress() + " | " + snippet;
+            }
+
+            Marker marker = googleMap.addMarker(new MarkerOptions()
+                    .position(position)
+                    .title(patient.getFullName())
+                    .snippet(snippet)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+            marker.setTag(patient.getId());
+        }
+
+        googleMap.setOnMarkerClickListener(marker -> {
+            Object tag = marker.getTag();
+            if (tag instanceof Long) {
+                long patientId = (Long) tag;
+                Patient patient = patientRepository.getPatientById(patientId);
+                if (patient != null) {
+                    showPatientDialog(patient);
+                }
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void showPatientDialog(Patient patient) {
+        String phone = patient.getPhone() != null ? patient.getPhone() : "";
+        String address = patient.getAddress() != null && !patient.getAddress().isEmpty() ? patient.getAddress() : "";
+        String diagnosis = patient.getDiagnosis() != null && !patient.getDiagnosis().isEmpty() ? patient.getDiagnosis() : "";
+
+        StringBuilder message = new StringBuilder();
+        message.append(getString(R.string.phone)).append(": ").append(phone);
+        if (!address.isEmpty()) {
+            message.append("\n").append(getString(R.string.address)).append(": ").append(address);
+        }
+        if (!diagnosis.isEmpty()) {
+            message.append("\n").append(getString(R.string.patient_diagnosis)).append(": ").append(diagnosis);
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle(patient.getFullName())
+                .setMessage(message.toString())
+                .setPositiveButton(R.string.get_directions, (d, w) ->
+                        openDirections(patient.getLatitude(), patient.getLongitude()))
+                .setNeutralButton(R.string.view_patient, (d, w) -> {
+                    Bundle args = new Bundle();
+                    args.putInt("patientId", (int) patient.getId());
+                    Navigation.findNavController(rootView)
+                            .navigate(R.id.action_clinic_to_patientForm, args);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
     private void openDirections() {
+        openDirections(CLINIC_LOCATION.latitude, CLINIC_LOCATION.longitude);
+    }
+
+    private void openDirections(double destLat, double destLng) {
         String uri = "https://www.google.com/maps/dir/?api=1&destination="
-                + CLINIC_LOCATION.latitude + "," + CLINIC_LOCATION.longitude;
+                + destLat + "," + destLng;
 
         if (userLocation != null) {
             uri += "&origin=" + userLocation.getLatitude() + "," + userLocation.getLongitude();

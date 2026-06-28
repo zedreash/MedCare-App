@@ -56,12 +56,14 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
         private TextView nameText;
         private TextView phoneText;
         private TextView diagnosisText;
+        private TextView addressText;
 
         PatientViewHolder(@NonNull View itemView) {
             super(itemView);
             nameText = itemView.findViewById(R.id.patient_name_text);
             phoneText = itemView.findViewById(R.id.patient_phone_text);
             diagnosisText = itemView.findViewById(R.id.patient_diagnosis_text);
+            addressText = itemView.findViewById(R.id.patient_address_text);
 
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
@@ -75,6 +77,8 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
             nameText.setText(patient.getFullName());
             phoneText.setText(patient.getPhone());
             diagnosisText.setText(patient.getDiagnosis());
+            String address = patient.getAddress();
+            addressText.setText(address != null && !address.isEmpty() ? address : null);
         }
     }
 }

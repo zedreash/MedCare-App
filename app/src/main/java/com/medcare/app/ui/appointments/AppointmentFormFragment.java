@@ -217,6 +217,9 @@ public class AppointmentFormFragment extends Fragment {
             TextView infoText = convertView.findViewById(R.id.patient_info);
             nameText.setText(patient.getFullName());
             String info = patient.getPhone();
+            if (patient.getAddress() != null && !patient.getAddress().isEmpty()) {
+                info += " | " + patient.getAddress();
+            }
             if (patient.getDiagnosis() != null && !patient.getDiagnosis().isEmpty()) {
                 info += " | " + getContext().getString(R.string.patient_diagnosis) + ": " + patient.getDiagnosis();
             }
@@ -239,10 +242,11 @@ public class AppointmentFormFragment extends Fragment {
                     } else {
                         String query = constraint.toString().toLowerCase();
                         List<Patient> filtered = new ArrayList<>();
-                        for (Patient p : originalList) {
-                            if (p.getFullName().toLowerCase().contains(query)
-                                    || p.getPhone().toLowerCase().contains(query)
-                                    || (p.getDiagnosis() != null && p.getDiagnosis().toLowerCase().contains(query))) {
+                    for (Patient p : originalList) {
+                        if (p.getFullName().toLowerCase().contains(query)
+                                || p.getPhone().toLowerCase().contains(query)
+                                || (p.getDiagnosis() != null && p.getDiagnosis().toLowerCase().contains(query))
+                                || (p.getAddress() != null && p.getAddress().toLowerCase().contains(query))) {
                                 filtered.add(p);
                             }
                         }

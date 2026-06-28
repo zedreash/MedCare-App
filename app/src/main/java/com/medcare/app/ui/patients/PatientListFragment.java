@@ -142,7 +142,8 @@ public class PatientListFragment extends Fragment {
             for (Patient p : allPatients) {
                 if (p.getFullName().toLowerCase().contains(query) ||
                     (p.getPhone() != null && p.getPhone().toLowerCase().contains(query)) ||
-                    (p.getDiagnosis() != null && p.getDiagnosis().toLowerCase().contains(query))) {
+                    (p.getDiagnosis() != null && p.getDiagnosis().toLowerCase().contains(query)) ||
+                    (p.getAddress() != null && p.getAddress().toLowerCase().contains(query))) {
                     filtered.add(p);
                 }
             }

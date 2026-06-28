@@ -46,6 +46,10 @@
     <string name="no_search_results">לא נמצאו מטופלים תואמים</string>
     <string name="no_patients">אין מטופלים עדיין</string>
     <string name="patient_notes">הערות</string>
+    <string name="address">כתובת</string>
+    <string name="locating">מאתר כתובת…</string>
+    <string name="location_found">הכתובת אותרה</string>
+    <string name="location_not_found">לא ניתן לאתר את הכתובת</string>
 
     <string name="appointments">תורים</string>
     <string name="appointment_name">שם התור</string>
@@ -62,6 +66,7 @@
     <string name="clinic_location">מיקום המרפאה</string>
     <string name="clinic_address">המרכז הרפואי שיבא, תל השומר, רמת גן</string>
     <string name="get_directions">קבל הנחיות</string>
+    <string name="view_patient">הצג מטופל</string>
     <string name="your_location">המיקום שלך</string>
     <string name="location_permission_denied">נדרשת הרשאת מיקום כדי להציג את המרפאה במפה</string>
 
