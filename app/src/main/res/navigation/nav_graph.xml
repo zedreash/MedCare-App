@@ -61,8 +61,28 @@
             android:id="@+id/action_patientList_to_patientForm"
             app:destination="@id/patientFormFragment" />
         <action
+            android:id="@+id/action_patientList_to_patientDetail"
+            app:destination="@id/patientDetailFragment" />
+        <action
             android:id="@+id/action_patientList_to_profile"
             app:destination="@id/profileFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/patientDetailFragment"
+        android:name="com.medcare.app.ui.patients.PatientDetailFragment"
+        android:label="@string/patient_detail"
+        tools:layout="@layout/fragment_patient_detail">
+        <argument
+            android:name="patientId"
+            android:defaultValue="-1"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_patientDetail_to_patientForm"
+            app:destination="@id/patientFormFragment" />
+        <action
+            android:id="@+id/action_patientDetail_to_appointmentDetail"
+            app:destination="@id/appointmentDetailFragment" />
     </fragment>
 
     <fragment
@@ -84,6 +104,26 @@
         <action
             android:id="@+id/action_appointmentList_to_appointmentForm"
             app:destination="@id/appointmentFormFragment" />
+        <action
+            android:id="@+id/action_appointmentList_to_appointmentDetail"
+            app:destination="@id/appointmentDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/appointmentDetailFragment"
+        android:name="com.medcare.app.ui.appointments.AppointmentDetailFragment"
+        android:label="@string/appointment_detail"
+        tools:layout="@layout/fragment_appointment_detail">
+        <argument
+            android:name="appointmentId"
+            android:defaultValue="-1"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_appointmentDetail_to_appointmentForm"
+            app:destination="@id/appointmentFormFragment" />
+        <action
+            android:id="@+id/action_appointmentDetail_to_patientDetail"
+            app:destination="@id/patientDetailFragment" />
     </fragment>
 
     <fragment

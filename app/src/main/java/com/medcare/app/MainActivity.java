@@ -1,34 +1,25 @@
 package com.medcare.app;
-
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.View;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
 import com.medcare.app.utils.PreferencesManager;
-
 import java.util.Locale;
-
 public class MainActivity extends AppCompatActivity {
-
     private NavController navController;
     private BottomNavigationView bottomNav;
-
     private final int[] mainDestinations = {
             R.id.patientListFragment,
             R.id.appointmentListFragment,
             R.id.clinicFragment,
             R.id.profileFragment
     };
-
     private static Locale resolveLocale(String lang) {
         if ("system".equals(lang)) {
             String systemLang = Locale.getDefault().getLanguage();
@@ -43,30 +34,23 @@ public class MainActivity extends AppCompatActivity {
         }
         return new Locale(lang);
     }
-
     @Override
     protected void attachBaseContext(Context newBase) {
         PreferencesManager prefs = new PreferencesManager(newBase);
         Locale locale = resolveLocale(prefs.getLanguage());
-
         if (locale == null) {
             super.attachBaseContext(newBase);
             return;
         }
-
         Locale.setDefault(locale);
-
         Configuration config = new Configuration();
         config.setLocale(locale);
-
         Context localizedContext = newBase.createConfigurationContext(config);
         super.attachBaseContext(localizedContext);
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         PreferencesManager prefs = new PreferencesManager(this);
-
         switch (prefs.getThemeMode()) {
             case "light":
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -78,19 +62,15 @@ public class MainActivity extends AppCompatActivity {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
                 break;
         }
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
         navController = navHostFragment.getNavController();
-
         bottomNav = findViewById(R.id.bottom_navigation);
         if (bottomNav != null) {
             NavigationUI.setupWithNavController(bottomNav, navController);
         }
-
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             boolean isMain = false;
             for (int id : mainDestinations) {
@@ -105,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
             bottomNav.setVisibility(isMain ? View.VISIBLE : View.GONE);
         });
     }
-
     @Override
     public boolean onSupportNavigateUp() {
         return navController.navigateUp() || super.onSupportNavigateUp();

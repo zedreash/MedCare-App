@@ -1,5 +1,4 @@
 package com.medcare.app.ui.patients;
-
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -8,30 +7,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.medcare.app.R;
 import com.medcare.app.adapter.PatientAdapter;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.utils.PreferencesManager;
-
 import java.util.ArrayList;
 import java.util.List;
-
 public class PatientListFragment extends Fragment {
-
     private static final int SORT_NEWEST = 0;
     private static final int SORT_OLDEST = 1;
     private static final int SORT_NAME_AZ = 2;
     private static final int SORT_NAME_ZA = 3;
-
     private PatientRepository patientRepository;
     private PatientAdapter adapter;
     private RecyclerView recyclerView;
@@ -40,44 +33,34 @@ public class PatientListFragment extends Fragment {
     private List<Patient> allPatients = new ArrayList<>();
     private int currentSortMode = SORT_NEWEST;
     private PreferencesManager preferencesManager;
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_patient_list, container, false);
     }
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         patientRepository = new PatientRepository(requireContext());
         preferencesManager = new PreferencesManager(requireContext());
         currentSortMode = preferencesManager.getPatientSortMode(SORT_NEWEST);
-
         recyclerView = view.findViewById(R.id.patient_recycler_view);
         emptyStateText = view.findViewById(R.id.empty_state_text);
         searchEditText = view.findViewById(R.id.search_edit_text);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
         adapter = new PatientAdapter(this::onPatientClicked);
         recyclerView.setAdapter(adapter);
-
         loadPatients();
-
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterPatients(s.toString());
             }
-
             @Override
             public void afterTextChanged(Editable s) {}
         });
-
         view.findViewById(R.id.sort_button).setOnClickListener(v -> showSortDialog());
         view.findViewById(R.id.add_patient_button).setOnClickListener(v -> {
             Bundle args = new Bundle();
@@ -85,19 +68,16 @@ public class PatientListFragment extends Fragment {
             Navigation.findNavController(view).navigate(R.id.action_patientList_to_patientForm, args);
         });
     }
-
     @Override
     public void onResume() {
         super.onResume();
         loadPatients();
     }
-
     private void loadPatients() {
         allPatients = patientRepository.getAllPatients();
         sortPatients();
         filterPatients(searchEditText.getText().toString());
     }
-
     private void showSortDialog() {
         String[] options = {
                 getString(R.string.sort_newest_first),
@@ -117,7 +97,6 @@ public class PatientListFragment extends Fragment {
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }
-
     private void sortPatients() {
         switch (currentSortMode) {
             case SORT_NEWEST:
@@ -134,11 +113,9 @@ public class PatientListFragment extends Fragment {
                 break;
         }
     }
-
     private void filterPatients(String query) {
         if (query == null) query = "";
         query = query.trim().toLowerCase();
-
         List<Patient> filtered;
         if (query.isEmpty()) {
             filtered = allPatients;
@@ -153,9 +130,7 @@ public class PatientListFragment extends Fragment {
                 }
             }
         }
-
         adapter.setPatients(filtered);
-
         if (filtered.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
             emptyStateText.setVisibility(View.VISIBLE);
@@ -169,11 +144,10 @@ public class PatientListFragment extends Fragment {
             emptyStateText.setVisibility(View.GONE);
         }
     }
-
     private void onPatientClicked(Patient patient) {
         Bundle args = new Bundle();
         args.putInt("patientId", (int) patient.getId());
         Navigation.findNavController(requireView())
-                .navigate(R.id.action_patientList_to_patientForm, args);
+                .navigate(R.id.action_patientList_to_patientDetail, args);
     }
 }

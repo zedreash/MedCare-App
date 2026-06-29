@@ -1,5 +1,4 @@
 package com.medcare.app.ui.appointments;
-
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -8,14 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.medcare.app.R;
 import com.medcare.app.adapter.AppointmentAdapter;
 import com.medcare.app.data.entity.Appointment;
@@ -23,14 +20,11 @@ import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.utils.PreferencesManager;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 public class AppointmentListFragment extends Fragment {
-
     private static final int SORT_NEWEST = 0;
     private static final int SORT_OLDEST = 1;
     private static final int SORT_NAME_AZ = 2;
@@ -39,7 +33,6 @@ public class AppointmentListFragment extends Fragment {
     private static final int SORT_DATE_DESC = 5;
     private static final int SORT_TIME_ASC = 6;
     private static final int SORT_TIME_DESC = 7;
-
     private AppointmentRepository appointmentRepository;
     private PatientRepository patientRepository;
     private AppointmentAdapter adapter;
@@ -50,45 +43,35 @@ public class AppointmentListFragment extends Fragment {
     private Map<Long, String> patientNames = new HashMap<>();
     private int currentSortMode = SORT_NEWEST;
     private PreferencesManager preferencesManager;
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_appointment_list, container, false);
     }
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         appointmentRepository = new AppointmentRepository(requireContext());
         patientRepository = new PatientRepository(requireContext());
         preferencesManager = new PreferencesManager(requireContext());
         currentSortMode = preferencesManager.getAppointmentSortMode(SORT_NEWEST);
-
         recyclerView = view.findViewById(R.id.appointment_recycler_view);
         emptyStateText = view.findViewById(R.id.empty_state_text);
         searchEditText = view.findViewById(R.id.search_edit_text);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
         adapter = new AppointmentAdapter(this::onAppointmentClicked);
         recyclerView.setAdapter(adapter);
-
         loadAppointments();
-
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterAppointments(s.toString());
             }
-
             @Override
             public void afterTextChanged(Editable s) {}
         });
-
         view.findViewById(R.id.sort_button).setOnClickListener(v -> showSortDialog());
         view.findViewById(R.id.add_appointment_button).setOnClickListener(v -> {
             Bundle args = new Bundle();
@@ -97,16 +80,13 @@ public class AppointmentListFragment extends Fragment {
                     R.id.action_appointmentList_to_appointmentForm, args);
         });
     }
-
     @Override
     public void onResume() {
         super.onResume();
         loadAppointments();
     }
-
     private void loadAppointments() {
         allAppointments = appointmentRepository.getAllAppointments();
-
         patientNames.clear();
         for (Appointment appointment : allAppointments) {
             if (!patientNames.containsKey(appointment.getPatientId())) {
@@ -115,11 +95,9 @@ public class AppointmentListFragment extends Fragment {
                         patient != null ? patient.getFullName() : "Unknown");
             }
         }
-
         sortAppointments();
         filterAppointments(searchEditText.getText().toString());
     }
-
     private void showSortDialog() {
         String[] options = {
                 getString(R.string.sort_newest_first),
@@ -143,7 +121,6 @@ public class AppointmentListFragment extends Fragment {
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }
-
     private long getDateSortKey(String date) {
         if (date == null) return 0;
         String[] parts = date.split("/");
@@ -154,7 +131,6 @@ public class AppointmentListFragment extends Fragment {
             return 0;
         }
     }
-
     private void sortAppointments() {
         switch (currentSortMode) {
             case SORT_NEWEST:
@@ -191,11 +167,9 @@ public class AppointmentListFragment extends Fragment {
                 break;
         }
     }
-
     private void filterAppointments(String query) {
         if (query == null) query = "";
         query = query.trim().toLowerCase();
-
         List<Appointment> filtered;
         if (query.isEmpty()) {
             filtered = allAppointments;
@@ -212,9 +186,7 @@ public class AppointmentListFragment extends Fragment {
                 }
             }
         }
-
         adapter.setAppointments(filtered, patientNames);
-
         if (filtered.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
             emptyStateText.setVisibility(View.VISIBLE);
@@ -228,11 +200,10 @@ public class AppointmentListFragment extends Fragment {
             emptyStateText.setVisibility(View.GONE);
         }
     }
-
     private void onAppointmentClicked(Appointment appointment) {
         Bundle args = new Bundle();
         args.putInt("appointmentId", (int) appointment.getId());
         Navigation.findNavController(requireView())
-                .navigate(R.id.action_appointmentList_to_appointmentForm, args);
+                .navigate(R.id.action_appointmentList_to_appointmentDetail, args);
     }
 }

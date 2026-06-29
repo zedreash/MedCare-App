@@ -130,4 +130,8 @@
         <item>@string/sort_time_asc</item>
         <item>@string/sort_time_desc</item>
     </string-array>
+
+    <string name="patient_detail">المريض</string>
+    <string name="appointment_detail">الموعد</string>
+    <string name="appointments_history">المواعيد</string>
 </resources>
