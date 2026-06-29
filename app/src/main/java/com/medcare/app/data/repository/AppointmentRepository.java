@@ -31,4 +31,10 @@ public class AppointmentRepository {
     public List<Appointment> getAppointmentsByDate(String date) {
         return appointmentDao.getAppointmentsByDate(date);
     }
+    public int getAppointmentCount() {
+        return appointmentDao.getAppointmentCount();
+    }
+    public int getAppointmentCountByDate(String date) {
+        return appointmentDao.getAppointmentCountByDate(date);
+    }
 }

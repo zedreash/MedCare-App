@@ -21,4 +21,6 @@ public interface PatientDao {
     Patient getPatientById(long id);
     @Query("SELECT * FROM patients WHERE full_name LIKE '%' || :query || '%' OR phone LIKE '%' || :query || '%'")
     List<Patient> searchPatients(String query);
+    @Query("SELECT COUNT(*) FROM patients")
+    int getPatientCount();
 }

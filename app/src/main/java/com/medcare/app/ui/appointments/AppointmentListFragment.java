@@ -1,4 +1,6 @@
 package com.medcare.app.ui.appointments;
+import android.app.DatePickerDialog;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -6,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.medcare.app.R;
 import com.medcare.app.adapter.AppointmentAdapter;
@@ -21,9 +25,13 @@ import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.utils.PreferencesManager;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 public class AppointmentListFragment extends Fragment {
     private static final int SORT_NEWEST = 0;
@@ -40,9 +48,13 @@ public class AppointmentListFragment extends Fragment {
     private RecyclerView recyclerView;
     private TextView emptyStateText;
     private EditText searchEditText;
+    private MaterialButton filterDateButton;
+    private LinearLayout filterChipContainer;
+    private TextView filterChipText;
     private List<Appointment> allAppointments = new ArrayList<>();
     private Map<Long, String> patientNames = new HashMap<>();
     private int currentSortMode = SORT_NEWEST;
+    private String selectedFilterDate;
     private PreferencesManager preferencesManager;
     private View rootView;
     @Override
@@ -61,6 +73,9 @@ public class AppointmentListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.appointment_recycler_view);
         emptyStateText = view.findViewById(R.id.empty_state_text);
         searchEditText = view.findViewById(R.id.search_edit_text);
+        filterDateButton = view.findViewById(R.id.filter_date_button);
+        filterChipContainer = view.findViewById(R.id.filter_chip_container);
+        filterChipText = view.findViewById(R.id.filter_chip_text);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new AppointmentAdapter(this::onAppointmentClicked, this::onAppointmentDeleteClicked);
         recyclerView.setAdapter(adapter);
@@ -72,6 +87,9 @@ public class AppointmentListFragment extends Fragment {
                 }
             }
         });
+        if (getArguments() != null) {
+            selectedFilterDate = getArguments().getString("filterDate");
+        }
         loadAppointments();
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -90,6 +108,9 @@ public class AppointmentListFragment extends Fragment {
             Navigation.findNavController(view).navigate(
                     R.id.action_appointmentList_to_appointmentForm, args);
         });
+        filterDateButton.setOnClickListener(v -> showDateFilterDialog());
+        view.findViewById(R.id.filter_chip_clear).setOnClickListener(v -> clearDateFilter());
+        updateFilterChip();
     }
     @Override
     public void onResume() {
@@ -108,6 +129,49 @@ public class AppointmentListFragment extends Fragment {
         }
         sortAppointments();
         filterAppointments(searchEditText.getText().toString());
+    }
+    private void showDateFilterDialog() {
+        Calendar cal = Calendar.getInstance();
+        if (selectedFilterDate != null) {
+            try {
+                String[] parts = selectedFilterDate.split("/");
+                cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(parts[0]));
+                cal.set(Calendar.MONTH, Integer.parseInt(parts[1]) - 1);
+                cal.set(Calendar.YEAR, Integer.parseInt(parts[2]));
+            } catch (Exception ignored) {}
+        }
+        DatePickerDialog dialog = new DatePickerDialog(requireContext(),
+                (view, year, month, dayOfMonth) -> {
+                    Calendar selected = Calendar.getInstance();
+                    selected.set(Calendar.YEAR, year);
+                    selected.set(Calendar.MONTH, month);
+                    selected.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                    selectedFilterDate = sdf.format(selected.getTime());
+                    updateFilterChip();
+                    filterAppointments(searchEditText.getText().toString());
+                },
+                cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+        dialog.show();
+    }
+    private void clearDateFilter() {
+        selectedFilterDate = null;
+        updateFilterChip();
+        filterAppointments(searchEditText.getText().toString());
+    }
+    private void updateFilterChip() {
+        if (selectedFilterDate != null) {
+            filterChipContainer.setVisibility(View.VISIBLE);
+            filterChipText.setText(selectedFilterDate);
+            filterDateButton.setIconTint(ColorStateList.valueOf(
+                    com.google.android.material.color.MaterialColors.getColor(
+                    filterDateButton, com.google.android.material.R.attr.colorPrimary)));
+        } else {
+            filterChipContainer.setVisibility(View.GONE);
+            filterDateButton.setIconTint(ColorStateList.valueOf(
+                    com.google.android.material.color.MaterialColors.getColor(
+                    filterDateButton, com.google.android.material.R.attr.colorOnSurfaceVariant)));
+        }
     }
     private void showSortDialog() {
         String[] options = {
@@ -181,12 +245,14 @@ public class AppointmentListFragment extends Fragment {
     private void filterAppointments(String query) {
         if (query == null) query = "";
         query = query.trim().toLowerCase();
-        List<Appointment> filtered;
-        if (query.isEmpty()) {
-            filtered = allAppointments;
-        } else {
-            filtered = new ArrayList<>();
-            for (Appointment a : allAppointments) {
+        List<Appointment> filtered = new ArrayList<>();
+        for (Appointment a : allAppointments) {
+            boolean matchesDate = selectedFilterDate == null
+                    || (a.getDate() != null && a.getDate().equals(selectedFilterDate));
+            if (!matchesDate) continue;
+            if (query.isEmpty()) {
+                filtered.add(a);
+            } else {
                 String patientName = patientNames.get(a.getPatientId());
                 if ((a.getName() != null && a.getName().toLowerCase().contains(query)) ||
                     (patientName != null && patientName.toLowerCase().contains(query)) ||
@@ -203,6 +269,8 @@ public class AppointmentListFragment extends Fragment {
             emptyStateText.setVisibility(View.VISIBLE);
             if (allAppointments.isEmpty()) {
                 emptyStateText.setText(R.string.no_appointments);
+            } else if (selectedFilterDate != null) {
+                emptyStateText.setText(getString(R.string.no_appointments_filter, selectedFilterDate));
             } else {
                 emptyStateText.setText(R.string.no_search_results);
             }

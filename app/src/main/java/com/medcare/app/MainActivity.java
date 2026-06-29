@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.medcare.app.utils.PreferencesManager;
 import java.util.Locale;
@@ -15,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
     private NavController navController;
     private BottomNavigationView bottomNav;
     private final int[] mainDestinations = {
+            R.id.dashboardFragment,
             R.id.patientListFragment,
             R.id.appointmentListFragment,
             R.id.clinicFragment,
@@ -69,13 +69,21 @@ public class MainActivity extends AppCompatActivity {
         navController = navHostFragment.getNavController();
         bottomNav = findViewById(R.id.bottom_navigation);
         if (bottomNav != null) {
-            NavigationUI.setupWithNavController(bottomNav, navController);
+            bottomNav.setOnItemSelectedListener(item -> {
+                int itemId = item.getItemId();
+                if (itemId != navController.getCurrentDestination().getId()) {
+                    navController.navigate(itemId);
+                }
+                return true;
+            });
         }
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             boolean isMain = false;
+            int matchedId = -1;
             for (int id : mainDestinations) {
                 if (destination.getId() == id) {
                     isMain = true;
+                    matchedId = id;
                     break;
                 }
             }
@@ -83,6 +91,9 @@ public class MainActivity extends AppCompatActivity {
                 isMain = false;
             }
             bottomNav.setVisibility(isMain ? View.VISIBLE : View.GONE);
+            if (matchedId != -1) {
+                bottomNav.setSelectedItemId(matchedId);
+            }
         });
     }
     @Override

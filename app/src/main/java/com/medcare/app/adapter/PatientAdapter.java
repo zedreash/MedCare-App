@@ -2,6 +2,7 @@ package com.medcare.app.adapter;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -80,6 +81,7 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
         private int deleteActionWidth;
         private float startX;
         private boolean isRevealed;
+        private int touchSlop;
         PatientViewHolder(@NonNull View itemView) {
             super(itemView);
             cardView = itemView.findViewById(R.id.card_content);
@@ -89,6 +91,7 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
             diagnosisText = itemView.findViewById(R.id.patient_diagnosis_text);
             addressText = itemView.findViewById(R.id.patient_address_text);
             deleteActionWidth = (int) (96 * itemView.getResources().getDisplayMetrics().density);
+            touchSlop = ViewConfiguration.get(itemView.getContext()).getScaledTouchSlop();
             deleteAction.setOnClickListener(v -> {
                 int position = getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION && deleteListener != null) {
@@ -105,44 +108,47 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
                         return true;
                     case MotionEvent.ACTION_MOVE:
                         float dx = event.getRawX() - startX;
-                        float maxReveal = deleteActionWidth;
-                        float offset = isRevealed ? -maxReveal : 0;
-                        float translation = Math.max(-maxReveal, Math.min(0, dx + offset));
-                        cardView.setTranslationX(translation);
+                        if (Math.abs(dx) > touchSlop) {
+                            float maxReveal = deleteActionWidth;
+                            float offset = isRevealed ? -maxReveal : 0;
+                            float translation = Math.max(-maxReveal, Math.min(0, dx + offset));
+                            cardView.setTranslationX(translation);
+                        }
                         return true;
                     case MotionEvent.ACTION_UP:
-                        float delta = event.getRawX() - startX;
+                        float totalDx = event.getRawX() - startX;
                         float currentTranslation = cardView.getTranslationX();
-                        if (isRevealed) {
-                            if (delta > 20) {
+                        if (Math.abs(totalDx) < touchSlop) {
+                            if (isRevealed) {
                                 snapCard(0, false);
                             } else {
-                                snapCard(-deleteActionWidth, true);
+                                int position = getAdapterPosition();
+                                if (position != RecyclerView.NO_POSITION && listener != null) {
+                                    listener.onPatientClick(patients.get(position));
+                                }
                             }
                         } else {
-                            if (currentTranslation < -deleteActionWidth * 0.4f) {
-                                snapCard(-deleteActionWidth, true);
-                                if (previouslyRevealed != -1 && previouslyRevealed != getAdapterPosition()) {
-                                    notifyItemChanged(previouslyRevealed);
+                            if (isRevealed) {
+                                if (totalDx > 20) {
+                                    snapCard(0, false);
+                                } else {
+                                    snapCard(-deleteActionWidth, true);
                                 }
-                                previouslyRevealed = getAdapterPosition();
                             } else {
-                                snapCard(0, false);
+                                if (currentTranslation < -deleteActionWidth * 0.4f) {
+                                    snapCard(-deleteActionWidth, true);
+                                    if (previouslyRevealed != -1 && previouslyRevealed != getAdapterPosition()) {
+                                        notifyItemChanged(previouslyRevealed);
+                                    }
+                                    previouslyRevealed = getAdapterPosition();
+                                } else {
+                                    snapCard(0, false);
+                                }
                             }
                         }
                         return true;
                 }
                 return false;
-            });
-            cardView.setOnClickListener(v -> {
-                if (isRevealed) {
-                    snapCard(0, false);
-                } else {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION && listener != null) {
-                        listener.onPatientClick(patients.get(position));
-                    }
-                }
             });
         }
         private void snapCard(float targetX, boolean revealed) {

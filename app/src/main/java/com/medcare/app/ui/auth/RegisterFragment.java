@@ -149,7 +149,7 @@ public class RegisterFragment extends Fragment {
             preferencesManager.setLoggedInUserId(userId);
             Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
             Navigation.findNavController(rootView)
-                    .navigate(R.id.action_register_to_patients);
+                    .navigate(R.id.action_register_to_dashboard);
         } else {
             Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
         }

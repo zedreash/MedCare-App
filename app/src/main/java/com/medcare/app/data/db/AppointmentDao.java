@@ -23,4 +23,8 @@ public interface AppointmentDao {
     List<Appointment> getAppointmentsByPatientId(long patientId);
     @Query("SELECT * FROM appointments WHERE date = :date ORDER BY time ASC")
     List<Appointment> getAppointmentsByDate(String date);
+    @Query("SELECT COUNT(*) FROM appointments")
+    int getAppointmentCount();
+    @Query("SELECT COUNT(*) FROM appointments WHERE date = :date")
+    int getAppointmentCountByDate(String date);
 }

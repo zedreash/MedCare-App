@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/loginFragment">
+    app:startDestination="@id/dashboardFragment">
 
     <fragment
         android:id="@+id/loginFragment"
@@ -14,8 +14,8 @@
             android:id="@+id/action_login_to_register"
             app:destination="@id/registerFragment" />
         <action
-            android:id="@+id/action_login_to_patients"
-            app:destination="@id/patientListFragment"
+            android:id="@+id/action_login_to_dashboard"
+            app:destination="@id/dashboardFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
     </fragment>
@@ -31,8 +31,8 @@
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
         <action
-            android:id="@+id/action_register_to_patients"
-            app:destination="@id/patientListFragment"
+            android:id="@+id/action_register_to_dashboard"
+            app:destination="@id/dashboardFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
     </fragment>
@@ -101,6 +101,11 @@
         android:name="com.medcare.app.ui.appointments.AppointmentListFragment"
         android:label="@string/appointments"
         tools:layout="@layout/fragment_appointment_list">
+        <argument
+            android:name="filterDate"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
         <action
             android:id="@+id/action_appointmentList_to_appointmentForm"
             app:destination="@id/appointmentFormFragment" />
@@ -145,6 +150,22 @@
         <action
             android:id="@+id/action_clinic_to_patientForm"
             app:destination="@id/patientFormFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.medcare.app.ui.dashboard.DashboardFragment"
+        android:label="@string/nav_dashboard"
+        tools:layout="@layout/fragment_dashboard">
+        <action
+            android:id="@+id/action_dashboard_to_patientList"
+            app:destination="@id/patientListFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_appointmentList"
+            app:destination="@id/appointmentListFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_appointmentDetail"
+            app:destination="@id/appointmentDetailFragment" />
     </fragment>
 
     <fragment

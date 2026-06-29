@@ -28,4 +28,7 @@ public class PatientRepository {
     public List<Patient> searchPatients(String query) {
         return patientDao.searchPatients(query);
     }
+    public int getPatientCount() {
+        return patientDao.getPatientCount();
+    }
 }

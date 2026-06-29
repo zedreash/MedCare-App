@@ -131,6 +131,15 @@
         <item>@string/sort_time_desc</item>
     </string-array>
 
+    <string name="welcome_back">مرحبًا بعودتك، %s!</string>
+    <string name="nav_dashboard">لوحة التحكم</string>
+    <string name="total_patients">إجمالي المرضى</string>
+    <string name="today_appointments">مواعيد اليوم</string>
+    <string name="total_appointments">إجمالي المواعيد</string>
+    <string name="today_schedule">جدول اليوم</string>
+    <string name="no_appointments_today">لا توجد مواعيد اليوم</string>
+    <string name="now">الآن</string>
+    <string name="view_all">عرض الكل (%d)</string>
     <string name="deleted">تم الحذف</string>
     <string name="undo">تراجع</string>
     <string name="delete_patient_message">حذف هذا المريض؟ سيتم حذف جميع المواعيد المرتبطة به أيضًا.</string>
@@ -139,4 +148,8 @@
     <string name="patient_detail">المريض</string>
     <string name="appointment_detail">الموعد</string>
     <string name="appointments_history">المواعيد</string>
+
+    <string name="filter_by_date">تصفية حسب التاريخ</string>
+    <string name="clear_filter">مسح التصفية</string>
+    <string name="no_appointments_filter">لا توجد مواعيد لـ %s</string>
 </resources>

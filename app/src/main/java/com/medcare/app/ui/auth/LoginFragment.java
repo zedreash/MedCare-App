@@ -38,7 +38,7 @@ public class LoginFragment extends Fragment {
         initViews(view);
         setupErrorClearListeners();
         if (preferencesManager.isLoggedIn()) {
-            navigateToPatients();
+            navigateToDashboard();
             return;
         }
         view.findViewById(R.id.login_button).setOnClickListener(v -> onLoginClicked());
@@ -69,7 +69,7 @@ public class LoginFragment extends Fragment {
         if (user != null) {
             preferencesManager.setLoggedInUserId(user.getId());
             Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
-            navigateToPatients();
+            navigateToDashboard();
         } else {
             Snackbar.make(rootView, R.string.login_invalid_credentials, Snackbar.LENGTH_LONG).show();
             passwordLayout.setError(getString(R.string.login_invalid_credentials));
@@ -99,8 +99,8 @@ public class LoginFragment extends Fragment {
         }
         return valid;
     }
-    private void navigateToPatients() {
+    private void navigateToDashboard() {
         Navigation.findNavController(rootView)
-                .navigate(R.id.action_login_to_patients);
+                .navigate(R.id.action_login_to_dashboard);
     }
 }

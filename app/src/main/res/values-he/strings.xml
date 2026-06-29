@@ -131,6 +131,15 @@
         <item>@string/sort_time_desc</item>
     </string-array>
 
+    <string name="welcome_back">שלום, %s!</string>
+    <string name="nav_dashboard">לוח בקרה</string>
+    <string name="total_patients">סך הכל מטופלים</string>
+    <string name="today_appointments">תורים להיום</string>
+    <string name="total_appointments">סך הכל תורים</string>
+    <string name="today_schedule">לוח זמנים להיום</string>
+    <string name="no_appointments_today">אין תורים מתוכננים להיום</string>
+    <string name="now">עכשיו</string>
+    <string name="view_all">הצג הכל (%d)</string>
     <string name="deleted">נמחק</string>
     <string name="undo">בטל</string>
     <string name="delete_patient_message">למחוק מטופל זה? כל התורים המקושרים יימחקו גם כן.</string>
@@ -139,4 +148,8 @@
     <string name="patient_detail">מטופל</string>
     <string name="appointment_detail">תור</string>
     <string name="appointments_history">תורים</string>
+
+    <string name="filter_by_date">סנן לפי תאריך</string>
+    <string name="clear_filter">נקה סינון</string>
+    <string name="no_appointments_filter">אין תורים עבור %s</string>
 </resources>

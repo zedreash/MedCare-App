@@ -130,6 +130,15 @@
         <item>@string/sort_time_desc</item>
     </string-array>
 
+    <string name="welcome_back">Welcome back, %s!</string>
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="total_patients">Total Patients</string>
+    <string name="today_appointments">Today\'s Appointments</string>
+    <string name="total_appointments">Total Appointments</string>
+    <string name="today_schedule">Today\'s Schedule</string>
+    <string name="no_appointments_today">No appointments scheduled today</string>
+    <string name="now">Now</string>
+    <string name="view_all">View all (%d)</string>
     <string name="deleted">Deleted</string>
     <string name="undo">Undo</string>
     <string name="delete_patient_message">Delete this patient? All linked appointments will also be deleted.</string>
@@ -141,4 +150,8 @@
 
     <string name="your_location">Your Location</string>
     <string name="location_permission_denied">Location permission is required to show the clinic on map</string>
+
+    <string name="filter_by_date">Filter by date</string>
+    <string name="clear_filter">Clear filter</string>
+    <string name="no_appointments_filter">No appointments for %s</string>
 </resources>

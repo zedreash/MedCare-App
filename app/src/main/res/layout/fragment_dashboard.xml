@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_medium">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/nav_dashboard"
+            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/welcome_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+        <LinearLayout
+            android:id="@+id/cards_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_large"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/total_patients_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardCornerRadius="@dimen/corner_radius"
+                app:cardElevation="@dimen/elevation_card"
+                app:contentPadding="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"
+                        android:background="?attr/colorPrimary" />
+
+                    <LinearLayout
+                        android:id="@+id/total_patients_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="@dimen/margin_medium">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:adjustViewBounds="true"
+                            android:contentDescription="@string/total_patients"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_people"
+                            app:tint="?attr/colorPrimary" />
+
+                        <TextView
+                            android:id="@+id/total_patients_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+                            android:textColor="?attr/colorPrimary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/total_patients_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center_horizontal"
+                            android:maxLines="1"
+                            android:text="@string/total_patients"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/today_count_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardCornerRadius="@dimen/corner_radius"
+                app:cardElevation="@dimen/elevation_card"
+                app:contentPadding="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"
+                        android:background="?attr/colorTertiary" />
+
+                    <LinearLayout
+                        android:id="@+id/today_count_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="@dimen/margin_medium">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:adjustViewBounds="true"
+                            android:contentDescription="@string/today_appointments"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_calendar"
+                            app:tint="?attr/colorTertiary" />
+
+                        <TextView
+                            android:id="@+id/today_count_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+                            android:textColor="?attr/colorTertiary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/today_count_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center_horizontal"
+                            android:maxLines="1"
+                            android:text="@string/today_appointments"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/total_appointments_card"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardCornerRadius="@dimen/corner_radius"
+                app:cardElevation="@dimen/elevation_card"
+                app:contentPadding="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"
+                        android:background="?attr/colorSecondary" />
+
+                    <LinearLayout
+                        android:id="@+id/total_appointments_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="@dimen/margin_medium">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:adjustViewBounds="true"
+                            android:contentDescription="@string/total_appointments"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_list"
+                            app:tint="?attr/colorSecondary" />
+
+                        <TextView
+                            android:id="@+id/total_appointments_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+                            android:textColor="?attr/colorSecondary"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/total_appointments_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center_horizontal"
+                            android:maxLines="1"
+                            android:text="@string/total_appointments"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/schedule_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_large"
+            android:text="@string/today_schedule"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/no_appointments_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_medium"
+            android:text="@string/no_appointments_today"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/schedule_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:orientation="vertical" />
+
+    </LinearLayout>
+</ScrollView>
