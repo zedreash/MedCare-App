@@ -23,6 +23,7 @@ import com.medcare.app.utils.PreferencesManager;
 import com.medcare.app.utils.ValidationUtils;
 
 import java.util.Calendar;
+import java.util.Locale;
 
 public class ProfileFragment extends Fragment {
 
@@ -67,6 +68,9 @@ public class ProfileFragment extends Fragment {
         view.findViewById(R.id.save_button).setOnClickListener(v -> onSaveClicked());
         view.findViewById(R.id.logout_button).setOnClickListener(v -> onLogoutClicked());
         view.findViewById(R.id.delete_account_button).setOnClickListener(v -> onDeleteAccountClicked());
+        view.findViewById(R.id.settings_button).setOnClickListener(v ->
+                Navigation.findNavController(view)
+                        .navigate(R.id.action_profile_to_settings));
     }
 
     private void initViews(View view) {
@@ -93,10 +97,21 @@ public class ProfileFragment extends Fragment {
     }
 
     private void showDatePicker() {
+        Locale locale = resolveAppLocale();
+        if (locale != null) {
+            Locale.setDefault(locale);
+        }
+
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        Calendar maxDate = Calendar.getInstance();
+        maxDate.add(Calendar.YEAR, -18);
+
+        Calendar minDate = Calendar.getInstance();
+        minDate.add(Calendar.YEAR, -120);
 
         DatePickerDialog datePicker = new DatePickerDialog(requireContext(),
                 (view, selectedYear, selectedMonth, selectedDay) -> {
@@ -105,7 +120,25 @@ public class ProfileFragment extends Fragment {
                     dobInput.setText(formattedDate);
                     dobLayout.setError(null);
                 }, year, month, day);
+        datePicker.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
+        datePicker.getDatePicker().setMinDate(minDate.getTimeInMillis());
         datePicker.show();
+    }
+
+    private Locale resolveAppLocale() {
+        String lang = preferencesManager.getLanguage();
+        if ("system".equals(lang)) {
+            String sysLang = Locale.getDefault().getLanguage();
+            if (!sysLang.equals("en") && !sysLang.equals("ar")
+                    && !sysLang.equals("iw") && !sysLang.equals("he")) {
+                return new Locale("iw", "IL");
+            }
+            return null;
+        }
+        if ("he".equals(lang)) {
+            return new Locale("iw", "IL");
+        }
+        return new Locale(lang);
     }
 
     private void setupErrorClearListeners() {

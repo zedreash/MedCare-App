@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ميدكير</string>
+    <string name="app_name">MedCare</string>
 
     <string name="login">تسجيل الدخول</string>
     <string name="register">إنشاء حساب</string>
@@ -83,4 +83,51 @@
     <string name="sort_date_desc">التاريخ تنازلياً</string>
     <string name="sort_time_asc">الوقت تصاعدياً</string>
     <string name="sort_time_desc">الوقت تنازلياً</string>
+
+    <string name="settings">الإعدادات</string>
+    <string name="appearance">المظهر</string>
+    <string name="theme_system">إعدادات النظام</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="language_section">اللغة</string>
+    <string name="lang_system">إعدادات النظام</string>
+    <string name="lang_english">English</string>
+    <string name="lang_arabic">العربية</string>
+    <string name="lang_hebrew">עברית</string>
+    <string name="appointments_section">المواعيد</string>
+    <string name="default_duration">المدة الافتراضية (دقائق)</string>
+    <string name="data_section">البيانات</string>
+    <string name="clear_all_data">مسح جميع البيانات</string>
+    <string name="clear_data_confirm">سيؤدي هذا إلى حذف جميع المرضى والمواعيد وحسابك. لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="data_cleared">تم مسح جميع البيانات</string>
+    <string name="next">التالي</string>
+    <string name="confirm">تأكيد</string>
+    <string name="password_incorrect">كلمة المرور غير صحيحة</string>
+    <string name="confirmation_mismatch">النص غير متطابق</string>
+    <string name="clear_data_password_title">أدخل كلمة المرور</string>
+    <string name="clear_data_password_hint">كلمة المرور</string>
+    <string name="clear_data_type_to_confirm">اكتب %s للتأكيد</string>
+    <string name="clear_data_confirm_word">حذف الكل</string>
+    <string name="appointment_duration">المدة (دقيقة)</string>
+    <string name="sorting_section">الترتيب</string>
+    <string name="default_patient_sort">الترتيب الافتراضي للمرضى</string>
+    <string name="default_appointment_sort">الترتيب الافتراضي للمواعيد</string>
+
+    <string-array name="patient_sort_options">
+        <item>@string/sort_newest_first</item>
+        <item>@string/sort_oldest_first</item>
+        <item>@string/sort_name_az</item>
+        <item>@string/sort_name_za</item>
+    </string-array>
+
+    <string-array name="appointment_sort_options">
+        <item>@string/sort_newest_first</item>
+        <item>@string/sort_oldest_first</item>
+        <item>@string/sort_name_az</item>
+        <item>@string/sort_name_za</item>
+        <item>@string/sort_date_asc</item>
+        <item>@string/sort_date_desc</item>
+        <item>@string/sort_time_asc</item>
+        <item>@string/sort_time_desc</item>
+    </string-array>
 </resources>

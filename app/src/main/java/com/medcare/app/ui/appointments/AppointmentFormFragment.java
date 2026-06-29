@@ -31,10 +31,12 @@ import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.utils.DateUtils;
+import com.medcare.app.utils.PreferencesManager;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class AppointmentFormFragment extends Fragment {
 
@@ -50,16 +52,24 @@ public class AppointmentFormFragment extends Fragment {
     private TextInputLayout dateLayout;
     private TextInputLayout timeLayout;
     private TextInputLayout notesLayout;
+    private TextInputLayout durationLayout;
 
     private EditText nameInput;
     private EditText patientInput;
     private EditText dateInput;
     private EditText timeInput;
+    private EditText durationInput;
     private EditText notesInput;
 
     private TextView formTitle;
     private View deleteButton;
     private View rootView;
+
+    private void initDurationField() {
+        PreferencesManager prefs = new PreferencesManager(requireContext());
+        int defaultDuration = prefs.getDefaultAppointmentDuration();
+        durationInput.setText(String.valueOf(defaultDuration));
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,6 +94,7 @@ public class AppointmentFormFragment extends Fragment {
         patientRepository = new PatientRepository(requireContext());
 
         initViews(view);
+        initDurationField();
         setupPickers();
         setupErrorClearListeners();
 
@@ -107,11 +118,13 @@ public class AppointmentFormFragment extends Fragment {
         dateLayout = view.findViewById(R.id.date_layout);
         timeLayout = view.findViewById(R.id.time_layout);
         notesLayout = view.findViewById(R.id.notes_layout);
+        durationLayout = view.findViewById(R.id.duration_layout);
 
         nameInput = view.findViewById(R.id.name_input);
         patientInput = view.findViewById(R.id.patient_input);
         dateInput = view.findViewById(R.id.date_input);
         timeInput = view.findViewById(R.id.time_input);
+        durationInput = view.findViewById(R.id.duration_input);
         notesInput = view.findViewById(R.id.notes_input);
     }
 
@@ -266,6 +279,11 @@ public class AppointmentFormFragment extends Fragment {
     }
 
     private void showDatePicker() {
+        Locale locale = resolveAppLocale();
+        if (locale != null) {
+            Locale.setDefault(locale);
+        }
+
         Calendar calendar = Calendar.getInstance();
         DatePickerDialog datePicker = new DatePickerDialog(requireContext(),
                 (view, year, month, day) -> {
@@ -274,7 +292,25 @@ public class AppointmentFormFragment extends Fragment {
                     dateLayout.setError(null);
                 }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH));
+        datePicker.getDatePicker().setMinDate(calendar.getTimeInMillis());
         datePicker.show();
+    }
+
+    private Locale resolveAppLocale() {
+        PreferencesManager prefs = new PreferencesManager(requireContext());
+        String lang = prefs.getLanguage();
+        if ("system".equals(lang)) {
+            String sysLang = Locale.getDefault().getLanguage();
+            if (!sysLang.equals("en") && !sysLang.equals("ar")
+                    && !sysLang.equals("iw") && !sysLang.equals("he")) {
+                return new Locale("iw", "IL");
+            }
+            return null;
+        }
+        if ("he".equals(lang)) {
+            return new Locale("iw", "IL");
+        }
+        return new Locale(lang);
     }
 
     private void showTimePicker() {
@@ -306,6 +342,7 @@ public class AppointmentFormFragment extends Fragment {
         nameInput.setText(currentAppointment.getName());
         dateInput.setText(currentAppointment.getDate());
         timeInput.setText(currentAppointment.getTime());
+        durationInput.setText(String.valueOf(currentAppointment.getDuration()));
         notesInput.setText(currentAppointment.getNotes());
     }
 
@@ -317,10 +354,11 @@ public class AppointmentFormFragment extends Fragment {
         String nameValue = nameInput.getText().toString().trim();
         String date = dateInput.getText().toString().trim();
         String time = timeInput.getText().toString().trim();
+        int duration = Integer.parseInt(durationInput.getText().toString().trim());
         String notes = notesInput.getText().toString().trim();
 
         if (appointmentId == -1) {
-            Appointment appointment = new Appointment(selectedPatientId, nameValue, date, time, notes,
+            Appointment appointment = new Appointment(selectedPatientId, nameValue, date, time, duration, notes,
                     DateUtils.getCurrentTimestamp());
             appointmentRepository.insert(appointment);
             Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
@@ -329,6 +367,7 @@ public class AppointmentFormFragment extends Fragment {
             currentAppointment.setName(nameValue);
             currentAppointment.setDate(date);
             currentAppointment.setTime(time);
+            currentAppointment.setDuration(duration);
             currentAppointment.setNotes(notes);
             appointmentRepository.update(currentAppointment);
             Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
@@ -379,6 +418,24 @@ public class AppointmentFormFragment extends Fragment {
             valid = false;
         } else {
             timeLayout.setError(null);
+        }
+
+        if (TextUtils.isEmpty(durationInput.getText())) {
+            durationLayout.setError(getString(R.string.field_required));
+            valid = false;
+        } else {
+            try {
+                int d = Integer.parseInt(durationInput.getText().toString().trim());
+                if (d <= 0) {
+                    durationLayout.setError(getString(R.string.field_required));
+                    valid = false;
+                } else {
+                    durationLayout.setError(null);
+                }
+            } catch (NumberFormatException e) {
+                durationLayout.setError(getString(R.string.field_required));
+                valid = false;
+            }
         }
 
         return valid;

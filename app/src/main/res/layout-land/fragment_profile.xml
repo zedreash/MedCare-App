@@ -9,17 +9,36 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/margin_large">
 
-        <TextView
-            android:id="@+id/profile_title"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/top_bar"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/profile"
-            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
-            android:textStyle="bold"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/profile_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/profile"
+                android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/settings_button"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/settings"
+                app:icon="@drawable/ic_settings"
+                app:iconTint="?attr/colorOnPrimary" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/form_row1"
@@ -29,7 +48,7 @@
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/profile_title">
+            app:layout_constraintTop_toBottomOf="@id/top_bar">
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tz_layout"

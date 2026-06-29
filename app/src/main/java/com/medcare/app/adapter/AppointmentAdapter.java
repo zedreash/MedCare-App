@@ -61,6 +61,7 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
         private TextView patientText;
         private TextView dateText;
         private TextView timeText;
+        private TextView durationText;
         private TextView notesText;
 
         AppointmentViewHolder(@NonNull View itemView) {
@@ -69,6 +70,7 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
             patientText = itemView.findViewById(R.id.appointment_patient_text);
             dateText = itemView.findViewById(R.id.appointment_date_text);
             timeText = itemView.findViewById(R.id.appointment_time_text);
+            durationText = itemView.findViewById(R.id.appointment_duration_text);
             notesText = itemView.findViewById(R.id.appointment_notes_text);
 
             itemView.setOnClickListener(v -> {
@@ -85,6 +87,7 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
             patientText.setText(n != null ? n : "Unknown");
             dateText.setText(appointment.getDate());
             timeText.setText(appointment.getTime());
+            durationText.setText(appointment.getDuration() + "m");
             String notes = appointment.getNotes();
             notesText.setText(notes != null && !notes.isEmpty() ? notes : null);
         }

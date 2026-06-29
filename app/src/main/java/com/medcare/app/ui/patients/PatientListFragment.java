@@ -20,6 +20,7 @@ import com.medcare.app.R;
 import com.medcare.app.adapter.PatientAdapter;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.PatientRepository;
+import com.medcare.app.utils.PreferencesManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class PatientListFragment extends Fragment {
     private EditText searchEditText;
     private List<Patient> allPatients = new ArrayList<>();
     private int currentSortMode = SORT_NEWEST;
+    private PreferencesManager preferencesManager;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -50,6 +52,8 @@ public class PatientListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         patientRepository = new PatientRepository(requireContext());
+        preferencesManager = new PreferencesManager(requireContext());
+        currentSortMode = preferencesManager.getPatientSortMode(SORT_NEWEST);
 
         recyclerView = view.findViewById(R.id.patient_recycler_view);
         emptyStateText = view.findViewById(R.id.empty_state_text);
@@ -105,6 +109,7 @@ public class PatientListFragment extends Fragment {
                 .setTitle(R.string.sort_by)
                 .setSingleChoiceItems(options, currentSortMode, (dialog, which) -> {
                     currentSortMode = which;
+                    preferencesManager.setPatientSortMode(currentSortMode);
                     sortPatients();
                     filterPatients(searchEditText.getText().toString());
                     dialog.dismiss();

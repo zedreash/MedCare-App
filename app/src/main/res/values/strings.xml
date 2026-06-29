@@ -39,6 +39,7 @@
     <string name="patient_diagnosis">Diagnosis</string>
     <string name="search_patients">Search patients</string>
     <string name="no_search_results">No patients match your search</string>
+    <string name="patient_notes">Notes</string>
     <string name="no_patients">No patients yet</string>
 
     <!-- Appointments -->
@@ -59,7 +60,6 @@
     <string name="view_patient">View Patient</string>
 
     <!-- Navigation -->
-    <string name="nav_home">Home</string>
     <string name="nav_patients">Patients</string>
     <string name="nav_appointments">Appointments</string>
     <string name="nav_clinic">Clinic</string>
@@ -89,6 +89,56 @@
     <string name="login_invalid_credentials">Invalid email or password</string>
     <string name="email_already_registered">This email is already registered</string>
     <string name="delete_account_confirm">Are you sure you want to delete your account? This cannot be undone.</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="appearance">Appearance</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="language_section">Language</string>
+    <string name="lang_system">System default</string>
+    <string name="lang_english">English</string>
+    <string name="lang_arabic">العربية</string>
+    <string name="lang_hebrew">עברית</string>
+    <string name="appointments_section">Appointments</string>
+    <string name="default_duration">Default duration (minutes)</string>
+    <string name="data_section">Data</string>
+    <string name="clear_all_data">Clear all data</string>
+    <string name="clear_data_confirm">This will delete all patients, appointments, and your account. This cannot be undone.</string>
+    <string name="data_cleared">All data cleared</string>
+    <string name="next">Next</string>
+    <string name="confirm">Confirm</string>
+    <string name="password_incorrect">Incorrect password</string>
+    <string name="confirmation_mismatch">Text does not match</string>
+    <string name="clear_data_password_title">Enter Password</string>
+    <string name="clear_data_password_hint">Password</string>
+    <string name="clear_data_type_to_confirm">Type %s to confirm</string>
+    <string name="clear_data_confirm_word">DELETE ALL</string>
+    <string name="appointment_duration">Duration (min)</string>
+
+    <!-- Sorting -->
+    <string name="sorting_section">Sorting</string>
+    <string name="default_patient_sort">Default patient sort</string>
+    <string name="default_appointment_sort">Default appointment sort</string>
+
+    <string-array name="patient_sort_options">
+        <item>@string/sort_newest_first</item>
+        <item>@string/sort_oldest_first</item>
+        <item>@string/sort_name_az</item>
+        <item>@string/sort_name_za</item>
+    </string-array>
+
+    <string-array name="appointment_sort_options">
+        <item>@string/sort_newest_first</item>
+        <item>@string/sort_oldest_first</item>
+        <item>@string/sort_name_az</item>
+        <item>@string/sort_name_za</item>
+        <item>@string/sort_date_asc</item>
+        <item>@string/sort_date_desc</item>
+        <item>@string/sort_time_asc</item>
+        <item>@string/sort_time_desc</item>
+    </string-array>
 
     <!-- Location -->
     <string name="your_location">Your Location</string>

@@ -271,7 +271,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
         new AlertDialog.Builder(requireContext())
                 .setTitle(patient.getFullName())
                 .setMessage(message.toString())
-                .setPositiveButton(R.string.get_directions, (d, w) ->
+                .setNegativeButton(R.string.get_directions, (d, w) ->
                         openDirections(patient.getLatitude(), patient.getLongitude()))
                 .setNeutralButton(R.string.view_patient, (d, w) -> {
                     Bundle args = new Bundle();
@@ -279,7 +279,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
                     Navigation.findNavController(rootView)
                             .navigate(R.id.action_clinic_to_patientForm, args);
                 })
-                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.cancel, null)
                 .show();
     }
 

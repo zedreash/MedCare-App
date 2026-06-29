@@ -22,6 +22,7 @@ import com.medcare.app.data.entity.Appointment;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
+import com.medcare.app.utils.PreferencesManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ public class AppointmentListFragment extends Fragment {
     private List<Appointment> allAppointments = new ArrayList<>();
     private Map<Long, String> patientNames = new HashMap<>();
     private int currentSortMode = SORT_NEWEST;
+    private PreferencesManager preferencesManager;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -61,6 +63,8 @@ public class AppointmentListFragment extends Fragment {
 
         appointmentRepository = new AppointmentRepository(requireContext());
         patientRepository = new PatientRepository(requireContext());
+        preferencesManager = new PreferencesManager(requireContext());
+        currentSortMode = preferencesManager.getAppointmentSortMode(SORT_NEWEST);
 
         recyclerView = view.findViewById(R.id.appointment_recycler_view);
         emptyStateText = view.findViewById(R.id.empty_state_text);
@@ -131,6 +135,7 @@ public class AppointmentListFragment extends Fragment {
                 .setTitle(R.string.sort_by)
                 .setSingleChoiceItems(options, currentSortMode, (dialog, which) -> {
                     currentSortMode = which;
+                    preferencesManager.setAppointmentSortMode(currentSortMode);
                     sortAppointments();
                     filterAppointments(searchEditText.getText().toString());
                     dialog.dismiss();
