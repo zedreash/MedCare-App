@@ -15,16 +15,16 @@ public interface AppointmentDao {
     void update(Appointment appointment);
     @Delete
     void delete(Appointment appointment);
-    @Query("SELECT * FROM appointments ORDER BY date DESC, time DESC")
-    List<Appointment> getAllAppointments();
-    @Query("SELECT * FROM appointments WHERE id = :id LIMIT 1")
-    Appointment getAppointmentById(long id);
-    @Query("SELECT * FROM appointments WHERE patient_id = :patientId ORDER BY date DESC")
-    List<Appointment> getAppointmentsByPatientId(long patientId);
-    @Query("SELECT * FROM appointments WHERE date = :date ORDER BY time ASC")
-    List<Appointment> getAppointmentsByDate(String date);
-    @Query("SELECT COUNT(*) FROM appointments")
-    int getAppointmentCount();
-    @Query("SELECT COUNT(*) FROM appointments WHERE date = :date")
-    int getAppointmentCountByDate(String date);
+    @Query("SELECT * FROM appointments WHERE owner_id = :ownerId ORDER BY date DESC, time DESC")
+    List<Appointment> getAllAppointments(long ownerId);
+    @Query("SELECT * FROM appointments WHERE id = :id AND owner_id = :ownerId LIMIT 1")
+    Appointment getAppointmentById(long id, long ownerId);
+    @Query("SELECT * FROM appointments WHERE patient_id = :patientId AND owner_id = :ownerId ORDER BY date DESC")
+    List<Appointment> getAppointmentsByPatientId(long patientId, long ownerId);
+    @Query("SELECT * FROM appointments WHERE date = :date AND owner_id = :ownerId ORDER BY time ASC")
+    List<Appointment> getAppointmentsByDate(String date, long ownerId);
+    @Query("SELECT COUNT(*) FROM appointments WHERE owner_id = :ownerId")
+    int getAppointmentCount(long ownerId);
+    @Query("SELECT COUNT(*) FROM appointments WHERE date = :date AND owner_id = :ownerId")
+    int getAppointmentCountByDate(String date, long ownerId);
 }

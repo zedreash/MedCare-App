@@ -143,6 +143,16 @@
             app:layout_constraintTop_toBottomOf="@id/dob_layout" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/change_password_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/change_password"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/save_button" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/logout_button"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="0dp"
@@ -152,7 +162,7 @@
             android:textColor="@color/error"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/save_button" />
+            app:layout_constraintTop_toBottomOf="@id/change_password_button" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/delete_account_button"

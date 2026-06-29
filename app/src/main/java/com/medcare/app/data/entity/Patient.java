@@ -20,6 +20,8 @@ public class Patient {
     private double latitude;
     @ColumnInfo(name = "longitude")
     private double longitude;
+    @ColumnInfo(name = "owner_id")
+    private long ownerId;
     @ColumnInfo(name = "created_at")
     private long createdAt;
     public Patient(String fullName, String phone, String diagnosis, String notes, String address, long createdAt) {
@@ -46,6 +48,8 @@ public class Patient {
     public void setLatitude(double latitude) { this.latitude = latitude; }
     public double getLongitude() { return longitude; }
     public void setLongitude(double longitude) { this.longitude = longitude; }
+    public long getOwnerId() { return ownerId; }
+    public void setOwnerId(long ownerId) { this.ownerId = ownerId; }
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
 }

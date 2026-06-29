@@ -85,7 +85,7 @@ public class PatientListFragment extends Fragment {
         loadPatients();
     }
     private void loadPatients() {
-        allPatients = patientRepository.getAllPatients();
+        allPatients = patientRepository.getAllPatients(preferencesManager.getLoggedInUserId());
         sortPatients();
         filterPatients(searchEditText.getText().toString());
     }
@@ -170,6 +170,7 @@ public class PatientListFragment extends Fragment {
                     loadPatients();
                     Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
                             .setAction(R.string.undo, v -> {
+                                patient.setOwnerId(preferencesManager.getLoggedInUserId());
                                 patientRepository.insert(patient);
                                 loadPatients();
                             })

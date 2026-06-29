@@ -3,6 +3,7 @@ import android.content.Context;
 import com.medcare.app.data.db.AppDatabase;
 import com.medcare.app.data.db.UserDao;
 import com.medcare.app.data.entity.User;
+import com.medcare.app.utils.PasswordUtils;
 import java.util.List;
 public class UserRepository {
     private final UserDao userDao;
@@ -26,7 +27,11 @@ public class UserRepository {
         return userDao.getUserById(id);
     }
     public User login(String email, String password) {
-        return userDao.login(email, password);
+        User user = userDao.getUserByEmail(email);
+        if (user != null && PasswordUtils.verify(password, email, user.getPassword())) {
+            return user;
+        }
+        return null;
     }
     public List<User> getAllUsers() {
         return userDao.getAllUsers();

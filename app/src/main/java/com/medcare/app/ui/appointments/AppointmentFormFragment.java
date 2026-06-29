@@ -10,6 +10,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Filter;
@@ -35,6 +36,7 @@ import java.util.Locale;
 public class AppointmentFormFragment extends Fragment {
     private AppointmentRepository appointmentRepository;
     private PatientRepository patientRepository;
+    private PreferencesManager preferencesManager;
     private long appointmentId = -1;
     private Appointment currentAppointment;
     private long selectedPatientId = -1;
@@ -77,6 +79,7 @@ public class AppointmentFormFragment extends Fragment {
         rootView = view;
         appointmentRepository = new AppointmentRepository(requireContext());
         patientRepository = new PatientRepository(requireContext());
+        preferencesManager = new PreferencesManager(requireContext());
         initViews(view);
         initDurationField();
         setupPickers();
@@ -86,9 +89,21 @@ public class AppointmentFormFragment extends Fragment {
             deleteButton.setVisibility(View.VISIBLE);
             loadAppointment();
         }
-        view.findViewById(R.id.back_button).setOnClickListener(v -> Navigation.findNavController(view).navigateUp());
+        view.findViewById(R.id.back_button).setOnClickListener(v -> {
+            hideKeyboard();
+            Navigation.findNavController(view).navigateUp();
+        });
         view.findViewById(R.id.save_button).setOnClickListener(v -> onSaveClicked());
         deleteButton.setOnClickListener(v -> onDeleteClicked());
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new androidx.activity.OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        hideKeyboard();
+                        Navigation.findNavController(requireView()).navigateUp();
+                    }
+                });
     }
     private void initViews(View view) {
         formTitle = view.findViewById(R.id.form_title);
@@ -127,7 +142,7 @@ public class AppointmentFormFragment extends Fragment {
         timeInput.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) timeLayout.setError(null); });
     }
     private void showPatientPicker() {
-        List<Patient> patients = patientRepository.getAllPatients();
+        List<Patient> patients = patientRepository.getAllPatients(preferencesManager.getLoggedInUserId());
         if (patients.isEmpty()) {
             Snackbar.make(rootView, R.string.no_patients, Snackbar.LENGTH_SHORT).show();
             return;
@@ -249,6 +264,9 @@ public class AppointmentFormFragment extends Fragment {
                 }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH));
         datePicker.getDatePicker().setMinDate(calendar.getTimeInMillis());
+        Calendar maxCalendar = Calendar.getInstance();
+        maxCalendar.add(Calendar.YEAR, 1);
+        datePicker.getDatePicker().setMaxDate(maxCalendar.getTimeInMillis());
         datePicker.show();
     }
     private Locale resolveAppLocale() {
@@ -278,13 +296,13 @@ public class AppointmentFormFragment extends Fragment {
         timePicker.show();
     }
     private void loadAppointment() {
-        currentAppointment = appointmentRepository.getAppointmentById(appointmentId);
+        currentAppointment = appointmentRepository.getAppointmentById(appointmentId, preferencesManager.getLoggedInUserId());
         if (currentAppointment == null) {
             Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
             Navigation.findNavController(rootView).navigateUp();
             return;
         }
-        Patient patient = patientRepository.getPatientById(currentAppointment.getPatientId());
+        Patient patient = patientRepository.getPatientById(currentAppointment.getPatientId(), preferencesManager.getLoggedInUserId());
         if (patient != null) {
             selectedPatientId = patient.getId();
             selectedPatientName = patient.getFullName();
@@ -308,6 +326,7 @@ public class AppointmentFormFragment extends Fragment {
         if (appointmentId == -1) {
             Appointment appointment = new Appointment(selectedPatientId, nameValue, date, time, duration, notes,
                     DateUtils.getCurrentTimestamp());
+            appointment.setOwnerId(preferencesManager.getLoggedInUserId());
             appointmentRepository.insert(appointment);
             Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
         } else {
@@ -334,6 +353,14 @@ public class AppointmentFormFragment extends Fragment {
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }
+    private void hideKeyboard() {
+        View focused = requireActivity().getCurrentFocus();
+        if (focused != null) {
+            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+        }
+    }
+
     private boolean validateInputs() {
         boolean valid = true;
         if (TextUtils.isEmpty(nameInput.getText())) {

@@ -1,5 +1,6 @@
 package com.medcare.app.ui.patients;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListPopupWindow;
@@ -32,12 +34,14 @@ import com.medcare.app.R;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.utils.DateUtils;
+import com.medcare.app.utils.PreferencesManager;
 import com.medcare.app.utils.ValidationUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 public class PatientFormFragment extends Fragment {
     private PatientRepository patientRepository;
+    private PreferencesManager preferencesManager;
     private PlacesClient placesClient;
     private long patientId = -1;
     private Patient currentPatient;
@@ -78,6 +82,7 @@ public class PatientFormFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         rootView = view;
         patientRepository = new PatientRepository(requireContext());
+        preferencesManager = new PreferencesManager(requireContext());
         initPlaces();
         initViews(view);
         setupAutocomplete();
@@ -87,9 +92,21 @@ public class PatientFormFragment extends Fragment {
             deleteButton.setVisibility(View.VISIBLE);
             loadPatient();
         }
-        view.findViewById(R.id.back_button).setOnClickListener(v -> Navigation.findNavController(view).navigateUp());
+        view.findViewById(R.id.back_button).setOnClickListener(v -> {
+            hideKeyboard();
+            Navigation.findNavController(view).navigateUp();
+        });
         view.findViewById(R.id.save_button).setOnClickListener(v -> onSaveClicked());
         deleteButton.setOnClickListener(v -> onDeleteClicked());
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new androidx.activity.OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        hideKeyboard();
+                        Navigation.findNavController(requireView()).navigateUp();
+                    }
+                });
     }
     private void initPlaces() {
         if (!Places.isInitialized()) {
@@ -98,7 +115,7 @@ public class PatientFormFragment extends Fragment {
                         .getApplicationInfo(requireContext().getPackageName(), PackageManager.GET_META_DATA);
                 String apiKey = appInfo.metaData.getString("com.google.android.geo.API_KEY");
                 if (apiKey != null && !apiKey.isEmpty()) {
-                    Places.initialize(requireContext(), apiKey);
+                    Places.initialize(requireContext().getApplicationContext(), apiKey);
                 }
             } catch (PackageManager.NameNotFoundException e) {
             }
@@ -173,7 +190,11 @@ public class PatientFormFragment extends Fragment {
                         popup.dismiss();
                     }
                 })
-                .addOnFailureListener(e -> {});
+                .addOnFailureListener(e -> {
+                    if (isAdded()) {
+                        Snackbar.make(rootView, R.string.error_location, Snackbar.LENGTH_SHORT).show();
+                    }
+                });
     }
     private void selectPrediction(AutocompletePrediction prediction) {
         popup.dismiss();
@@ -203,7 +224,7 @@ public class PatientFormFragment extends Fragment {
         diagnosisInput.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) diagnosisLayout.setError(null); });
     }
     private void loadPatient() {
-        currentPatient = patientRepository.getPatientById(patientId);
+        currentPatient = patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId());
         if (currentPatient == null) {
             Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
             Navigation.findNavController(rootView).navigateUp();
@@ -230,6 +251,7 @@ public class PatientFormFragment extends Fragment {
             Patient patient = new Patient(name, phone, diagnosis, "", address, DateUtils.getCurrentTimestamp());
             patient.setLatitude(pendingLat);
             patient.setLongitude(pendingLng);
+            patient.setOwnerId(preferencesManager.getLoggedInUserId());
             patientRepository.insert(patient);
             Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
         } else {
@@ -276,5 +298,13 @@ public class PatientFormFragment extends Fragment {
             phoneLayout.setError(null);
         }
         return valid;
+    }
+
+    private void hideKeyboard() {
+        View focused = requireActivity().getCurrentFocus();
+        if (focused != null) {
+            InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+        }
     }
 }

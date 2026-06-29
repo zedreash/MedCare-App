@@ -35,6 +35,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.PatientRepository;
+import com.medcare.app.utils.PreferencesManager;
 import java.util.List;
 public class ClinicFragment extends Fragment implements OnMapReadyCallback {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
@@ -46,6 +47,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
     private PatientRepository patientRepository;
+    private PreferencesManager preferencesManager;
     private View rootView;
     private Location userLocation;
     private boolean locationPermissionDenied = false;
@@ -62,6 +64,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
         rootView = view;
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
         patientRepository = new PatientRepository(requireContext());
+        preferencesManager = new PreferencesManager(requireContext());
         view.findViewById(R.id.directions_button).setOnClickListener(v -> openDirections());
         checkLocationPermission();
     }
@@ -185,7 +188,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
         }
     }
     private void addPatientMarkers() {
-        List<Patient> patients = patientRepository.getAllPatients();
+        List<Patient> patients = patientRepository.getAllPatients(preferencesManager.getLoggedInUserId());
         if (patients.isEmpty()) return;
         for (Patient patient : patients) {
             if (patient.getLatitude() == 0.0 && patient.getLongitude() == 0.0) continue;
@@ -205,7 +208,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
             Object tag = marker.getTag();
             if (tag instanceof Long) {
                 long patientId = (Long) tag;
-                Patient patient = patientRepository.getPatientById(patientId);
+                Patient patient = patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId());
                 if (patient != null) {
                     showPatientDialog(patient);
                 }
@@ -235,7 +238,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
                     Bundle args = new Bundle();
                     args.putInt("patientId", (int) patient.getId());
                     Navigation.findNavController(rootView)
-                            .navigate(R.id.action_clinic_to_patientForm, args);
+                            .navigate(R.id.action_clinic_to_patientDetail, args);
                 })
                 .setPositiveButton(R.string.cancel, null)
                 .show();

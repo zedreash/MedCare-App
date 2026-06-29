@@ -27,6 +27,8 @@ public class Appointment {
     private String notes;
     @ColumnInfo(name = "duration", defaultValue = "30")
     private int duration;
+    @ColumnInfo(name = "owner_id")
+    private long ownerId;
     @ColumnInfo(name = "created_at")
     private long createdAt;
     public Appointment(long patientId, String name, String date, String time, int duration, String notes, long createdAt) {
@@ -52,6 +54,8 @@ public class Appointment {
     public void setNotes(String notes) { this.notes = notes; }
     public int getDuration() { return duration; }
     public void setDuration(int duration) { this.duration = duration; }
+    public long getOwnerId() { return ownerId; }
+    public void setOwnerId(long ownerId) { this.ownerId = ownerId; }
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
 }

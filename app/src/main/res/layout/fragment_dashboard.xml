@@ -224,14 +224,30 @@
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/schedule_label"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_large"
-            android:text="@string/today_schedule"
-            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/schedule_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/today_schedule"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/open_calendar_button"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/open_calendar" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/no_appointments_text"
@@ -242,12 +258,12 @@
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
             android:visibility="gone" />
 
-        <LinearLayout
-            android:id="@+id/schedule_container"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/schedule_recycler"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
-            android:orientation="vertical" />
+            android:nestedScrollingEnabled="false" />
 
     </LinearLayout>
 </ScrollView>

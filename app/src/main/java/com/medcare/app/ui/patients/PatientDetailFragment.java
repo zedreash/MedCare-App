@@ -16,6 +16,7 @@ import com.medcare.app.data.entity.Appointment;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
+import com.medcare.app.utils.PreferencesManager;
 import java.util.List;
 public class PatientDetailFragment extends Fragment {
     private static final String ARG_PATIENT_ID = "patientId";
@@ -25,8 +26,10 @@ public class PatientDetailFragment extends Fragment {
     private TextView addressText;
     private TextView notesText;
     private RecyclerView appointmentsRecycler;
+    private TextView noAppointmentsText;
     private PatientRepository patientRepository;
     private AppointmentRepository appointmentRepository;
+    private PreferencesManager preferencesManager;
     private PatientAppointmentAdapter adapter;
     private long patientId;
     private Patient patient;
@@ -47,12 +50,14 @@ public class PatientDetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         patientRepository = new PatientRepository(requireContext());
         appointmentRepository = new AppointmentRepository(requireContext());
+        preferencesManager = new PreferencesManager(requireContext());
         nameText = view.findViewById(R.id.patient_name_text);
         phoneText = view.findViewById(R.id.patient_phone_text);
         diagnosisText = view.findViewById(R.id.patient_diagnosis_text);
         addressText = view.findViewById(R.id.patient_address_text);
         notesText = view.findViewById(R.id.patient_notes_text);
         appointmentsRecycler = view.findViewById(R.id.appointments_recycler_view);
+        noAppointmentsText = view.findViewById(R.id.no_appointments_text);
         appointmentsRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         view.findViewById(R.id.back_button).setOnClickListener(v ->
                 Navigation.findNavController(view).navigateUp());
@@ -66,7 +71,7 @@ public class PatientDetailFragment extends Fragment {
     }
     private void loadPatient() {
         if (patientId == -1) return;
-        patient = patientRepository.getPatientById(patientId);
+        patient = patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId());
         if (patient == null) {
             Navigation.findNavController(requireView()).navigateUp();
             return;
@@ -78,7 +83,7 @@ public class PatientDetailFragment extends Fragment {
         addressText.setText(address != null && !address.isEmpty() ? address : null);
         String notes = patient.getNotes();
         notesText.setText(notes != null && !notes.isEmpty() ? notes : null);
-        List<Appointment> appointments = appointmentRepository.getAppointmentsByPatientId(patientId);
+        List<Appointment> appointments = appointmentRepository.getAppointmentsByPatientId(patientId, preferencesManager.getLoggedInUserId());
         adapter = new PatientAppointmentAdapter(appointment -> {
             Bundle args = new Bundle();
             args.putInt("appointmentId", (int) appointment.getId());
@@ -87,5 +92,13 @@ public class PatientDetailFragment extends Fragment {
         });
         appointmentsRecycler.setAdapter(adapter);
         adapter.setAppointments(appointments);
+
+        if (appointments.isEmpty()) {
+            appointmentsRecycler.setVisibility(View.GONE);
+            noAppointmentsText.setVisibility(View.VISIBLE);
+        } else {
+            appointmentsRecycler.setVisibility(View.VISIBLE);
+            noAppointmentsText.setVisibility(View.GONE);
+        }
     }
 }

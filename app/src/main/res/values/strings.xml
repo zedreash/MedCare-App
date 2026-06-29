@@ -72,8 +72,9 @@
 
     <string name="field_required">This field is required</string>
     <string name="invalid_email">Invalid email address</string>
+    <string name="invalid_id">Invalid ID number</string>
     <string name="password_mismatch">Passwords do not match</string>
-    <string name="password_too_short">Password must be at least 6 characters</string>
+    <string name="password_too_short">Password must be at least 8 characters with uppercase, lowercase, digit, and special character</string>
     <string name="invalid_phone">Invalid phone number</string>
     <string name="success_saved">Saved successfully</string>
     <string name="success_deleted">Deleted successfully</string>
@@ -81,6 +82,9 @@
     <string name="login_invalid_credentials">Invalid email or password</string>
     <string name="email_already_registered">This email is already registered</string>
     <string name="delete_account_confirm">Are you sure you want to delete your account? This cannot be undone.</string>
+    <string name="logout_confirm">Are you sure you want to log out?</string>
+    <string name="no_appointments_for_patient">No appointments for this patient</string>
+    <string name="error_location">Could not find address suggestions</string>
 
     <string name="settings">Settings</string>
     <string name="appearance">Appearance</string>
@@ -102,6 +106,10 @@
     <string name="next">Next</string>
     <string name="confirm">Confirm</string>
     <string name="password_incorrect">Incorrect password</string>
+    <string name="change_password">Change Password</string>
+    <string name="current_password">Current Password</string>
+    <string name="new_password">New Password</string>
+    <string name="password_changed">Password changed successfully</string>
     <string name="confirmation_mismatch">Text does not match</string>
     <string name="clear_data_password_title">Enter Password</string>
     <string name="clear_data_password_hint">Password</string>
@@ -154,4 +162,31 @@
     <string name="filter_by_date">Filter by date</string>
     <string name="clear_filter">Clear filter</string>
     <string name="no_appointments_filter">No appointments for %s</string>
+
+    <string name="security">Security</string>
+    <string name="biometric_lock">Biometric Lock</string>
+    <string name="biometric_lock_subtitle">Lock the app with biometrics on resume</string>
+    <string name="biometric_timeout">Lock timeout</string>
+    <string name="timeout_immediate">Immediately</string>
+    <string name="timeout_1min">After 1 minute</string>
+    <string name="timeout_5min">After 5 minutes</string>
+    <string name="timeout_15min">After 15 minutes</string>
+    <string name="yes">Yes</string>
+    <string name="later">Later</string>
+    <string name="enable_biometric_prompt">Would you like to enable biometric lock to secure the app?</string>
+    <string name="biometric_unlock">Unlock MedCare</string>
+    <string name="biometric_prompt_subtitle">Authenticate to access the app</string>
+    <string name="use_password_fallback">Use password</string>
+    <string name="biometric_not_available">Biometric authentication is not available on this device</string>
+    <string name="biometric_failed">Fingerprint not recognized. Try again.</string>
+
+    <string name="nav_calendar">Calendar</string>
+    <string name="open_calendar">Open Calendar</string>
+    <string name="calendar_today">Today</string>
+    <string name="view_day">Day</string>
+    <string name="view_six_days">6-Day</string>
+    <string name="view_month">Month</string>
+    <string name="no_appointments_day">No appointments on this day</string>
+    <string name="calendar_expand">▼ +%d</string>
+    <string name="calendar_collapse">▲</string>
 </resources>

@@ -10,6 +10,10 @@ public class PreferencesManager {
     private static final String KEY_PATIENT_SORT = "patient_sort";
     private static final String KEY_APPOINTMENT_SORT = "appointment_sort";
     private static final String KEY_DEFAULT_DURATION = "default_duration";
+    private static final String KEY_BIOMETRIC_ENABLED = "biometric_enabled";
+    private static final String KEY_BIOMETRIC_TIMEOUT = "biometric_timeout";
+    private static final String KEY_LAST_BACKGROUND_TIME = "last_background_time";
+    private static final String KEY_LAST_UNLOCK_TIME = "last_unlock_time";
     private final SharedPreferences preferences;
     public PreferencesManager(Context context) {
         preferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
@@ -25,7 +29,11 @@ public class PreferencesManager {
         return preferences.getBoolean(KEY_IS_LOGGED_IN, false);
     }
     public void clearSession() {
+        String theme = getThemeMode();
+        String lang = getLanguage();
         preferences.edit().clear().commit();
+        setThemeMode(theme);
+        setLanguage(lang);
     }
     public String getThemeMode() {
         return preferences.getString(KEY_THEME_MODE, "system");
@@ -56,5 +64,37 @@ public class PreferencesManager {
     }
     public void setDefaultAppointmentDuration(int minutes) {
         preferences.edit().putInt(KEY_DEFAULT_DURATION, minutes).apply();
+    }
+
+    public boolean isBiometricEnabled() {
+        return preferences.getBoolean(KEY_BIOMETRIC_ENABLED, false);
+    }
+
+    public void setBiometricEnabled(boolean enabled) {
+        preferences.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).commit();
+    }
+
+    public String getBiometricTimeout() {
+        return preferences.getString(KEY_BIOMETRIC_TIMEOUT, "immediate");
+    }
+
+    public void setBiometricTimeout(String timeout) {
+        preferences.edit().putString(KEY_BIOMETRIC_TIMEOUT, timeout).commit();
+    }
+
+    public long getLastBackgroundTime() {
+        return preferences.getLong(KEY_LAST_BACKGROUND_TIME, 0);
+    }
+
+    public void setLastBackgroundTime(long time) {
+        preferences.edit().putLong(KEY_LAST_BACKGROUND_TIME, time).commit();
+    }
+
+    public long getLastUnlockTime() {
+        return preferences.getLong(KEY_LAST_UNLOCK_TIME, 0);
+    }
+
+    public void setLastUnlockTime(long time) {
+        preferences.edit().putLong(KEY_LAST_UNLOCK_TIME, time).commit();
     }
 }

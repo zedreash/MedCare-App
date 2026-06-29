@@ -1,8 +1,6 @@
 package com.medcare.app.ui.dashboard;
-import android.graphics.Paint;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,30 +8,35 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.graphics.Paint;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
 import com.medcare.app.R;
+import com.medcare.app.adapter.TodayAppointmentAdapter;
 import com.medcare.app.data.entity.Appointment;
+import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.entity.User;
 import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.data.repository.UserRepository;
 import com.medcare.app.utils.PreferencesManager;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class DashboardFragment extends Fragment {
     private PatientRepository patientRepository;
     private AppointmentRepository appointmentRepository;
     private UserRepository userRepository;
     private PreferencesManager preferencesManager;
-    private Handler autoRefreshHandler;
     private Runnable autoRefreshRunnable;
     private TextView welcomeText;
     private TextView totalPatientsText;
@@ -45,7 +48,8 @@ public class DashboardFragment extends Fragment {
     private MaterialCardView totalPatientsCard;
     private MaterialCardView todayCountCard;
     private MaterialCardView totalAppointmentsCard;
-    private LinearLayout scheduleContainer;
+    private RecyclerView scheduleRecycler;
+    private TodayAppointmentAdapter scheduleAdapter;
     private TextView noAppointmentsText;
     private View rootView;
 
@@ -79,7 +83,16 @@ public class DashboardFragment extends Fragment {
         totalPatientsCard = view.findViewById(R.id.total_patients_card);
         todayCountCard = view.findViewById(R.id.today_count_card);
         totalAppointmentsCard = view.findViewById(R.id.total_appointments_card);
-        scheduleContainer = view.findViewById(R.id.schedule_container);
+        scheduleRecycler = view.findViewById(R.id.schedule_recycler);
+        scheduleRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        scheduleAdapter = new TodayAppointmentAdapter(appointment -> {
+            Bundle args = new Bundle();
+            args.putInt("appointmentId", (int) appointment.getId());
+            Navigation.findNavController(rootView)
+                    .navigate(R.id.action_dashboard_to_appointmentDetail, args);
+        });
+        scheduleRecycler.setAdapter(scheduleAdapter);
+        scheduleRecycler.setNestedScrollingEnabled(false);
         noAppointmentsText = view.findViewById(R.id.no_appointments_text);
     }
 
@@ -96,6 +109,9 @@ public class DashboardFragment extends Fragment {
             Navigation.findNavController(rootView)
                     .navigate(R.id.action_dashboard_to_appointmentList, args);
         });
+        view.findViewById(R.id.open_calendar_button).setOnClickListener(v ->
+                Navigation.findNavController(rootView)
+                        .navigate(R.id.action_dashboard_to_calendar));
     }
 
     @Override
@@ -120,95 +136,31 @@ public class DashboardFragment extends Fragment {
             welcomeText.setVisibility(View.GONE);
         }
 
-        int patientCount = patientRepository.getPatientCount();
-        int appointmentCount = appointmentRepository.getAppointmentCount();
+        long ownerId = preferencesManager.getLoggedInUserId();
+        int patientCount = patientRepository.getPatientCount(ownerId);
+        int appointmentCount = appointmentRepository.getAppointmentCount(ownerId);
         String today = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
-        int todayCount = appointmentRepository.getAppointmentCountByDate(today);
-        List<Appointment> todayAppointments = appointmentRepository.getAppointmentsByDate(today);
+        int todayCount = appointmentRepository.getAppointmentCountByDate(today, ownerId);
+        List<Appointment> todayAppointments = appointmentRepository.getAppointmentsByDate(today, ownerId);
 
         totalPatientsText.setText(String.valueOf(patientCount));
         totalAppointmentsText.setText(String.valueOf(appointmentCount));
         todayCountText.setText(String.valueOf(todayCount));
 
-        scheduleContainer.removeAllViews();
+        Map<Long, String> nameMap = new HashMap<>();
+        for (Appointment a : todayAppointments) {
+            if (!nameMap.containsKey(a.getPatientId())) {
+                Patient p = patientRepository.getPatientById(a.getPatientId(), preferencesManager.getLoggedInUserId());
+                nameMap.put(a.getPatientId(), p != null ? p.getFullName() : "Unknown");
+            }
+        }
+        scheduleAdapter.setAppointments(todayAppointments, nameMap);
         if (todayAppointments.isEmpty()) {
             noAppointmentsText.setVisibility(View.VISIBLE);
+            scheduleRecycler.setVisibility(View.GONE);
         } else {
             noAppointmentsText.setVisibility(View.GONE);
-            for (Appointment appointment : todayAppointments) {
-                View itemView = LayoutInflater.from(requireContext())
-                        .inflate(R.layout.item_appointment_minimal, scheduleContainer, false);
-                TextView nameText = itemView.findViewById(R.id.appointment_name_text);
-                TextView dateText = itemView.findViewById(R.id.appointment_date_text);
-                TextView timeText = itemView.findViewById(R.id.appointment_time_text);
-                String patientName = getPatientName(appointment.getPatientId());
-                String apptName = appointment.getName();
-                if (apptName != null && !apptName.isEmpty()) {
-                    nameText.setText(apptName + " \u00B7 " + patientName);
-                } else {
-                    nameText.setText(patientName);
-                }
-                String time = appointment.getTime() != null ? appointment.getTime() : "";
-                String durationStr = appointment.getDuration() > 0
-                        ? appointment.getDuration() + " min"
-                        : "";
-                int durationInt = appointment.getDuration();
-
-                dateText.setText(time);
-
-                boolean isPast = isPastAppointment(time, durationInt);
-                boolean isNow = false;
-                String statusText = "";
-
-                if (!isPast && !time.isEmpty()) {
-                    Calendar apptCal = parseToCalendar(time);
-                    if (apptCal != null) {
-                        Calendar now = Calendar.getInstance();
-                        if (!now.before(apptCal)) {
-                            Calendar endCal = (Calendar) apptCal.clone();
-                            endCal.add(Calendar.MINUTE, Math.max(durationInt, 0));
-                            if (now.before(endCal)) {
-                                isNow = true;
-                            }
-                        }
-                    }
-                }
-
-                if (isNow) {
-                    timeText.setText(formatTimeLine(durationStr, getString(R.string.now)));
-                    timeText.setTextColor(requireContext().getColor(R.color.success));
-                } else {
-                    timeText.setTextColor(requireContext().getColor(R.color.text_secondary));
-                    if (!isPast) {
-                        statusText = computeTimeUntil(time);
-                    }
-                    timeText.setText(formatTimeLine(durationStr, statusText));
-                }
-
-                if (isPast) {
-                    nameText.setAlpha(0.5f);
-                    dateText.setAlpha(0.5f);
-                    timeText.setAlpha(0.5f);
-                    nameText.setPaintFlags(nameText.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-                    dateText.setPaintFlags(dateText.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-                    timeText.setPaintFlags(timeText.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-                } else {
-                    nameText.setAlpha(1f);
-                    dateText.setAlpha(1f);
-                    timeText.setAlpha(1f);
-                    nameText.setPaintFlags(nameText.getPaintFlags() & ~android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-                    dateText.setPaintFlags(dateText.getPaintFlags() & ~android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-                    timeText.setPaintFlags(timeText.getPaintFlags() & ~android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-                }
-
-                itemView.setOnClickListener(v -> {
-                    Bundle args = new Bundle();
-                    args.putInt("appointmentId", (int) appointment.getId());
-                    Navigation.findNavController(rootView)
-                            .navigate(R.id.action_dashboard_to_appointmentDetail, args);
-                });
-                scheduleContainer.addView(itemView);
-            }
+            scheduleRecycler.setVisibility(View.VISIBLE);
         }
 
         rootView.post(() -> {
@@ -227,76 +179,25 @@ public class DashboardFragment extends Fragment {
         });
     }
 
-    private String formatTimeLine(String duration, String timeUntil) {
-        if (duration.isEmpty() && timeUntil.isEmpty()) return "";
-        if (duration.isEmpty()) return timeUntil;
-        if (timeUntil.isEmpty()) return duration;
-        return duration + " \u00B7 " + timeUntil;
-    }
-
-    private String computeTimeUntil(String appointmentTime) {
-        Calendar apptCal = parseToCalendar(appointmentTime);
-        if (apptCal == null) return "";
-
-        Calendar now = Calendar.getInstance();
-        if (apptCal.before(now)) return "";
-
-        long diffMs = apptCal.getTimeInMillis() - now.getTimeInMillis();
-        long diffMin = diffMs / 60000;
-
-        if (diffMin < 1) return "";
-        if (diffMin < 60) return "In " + diffMin + " min";
-
-        long hours = diffMin / 60;
-        long mins = diffMin % 60;
-
-        if (mins == 0) return "In " + hours + "h";
-        return "In " + hours + "h " + mins + "min";
-    }
-
-    private boolean isPastAppointment(String time, int duration) {
-        Calendar apptCal = parseToCalendar(time);
-        if (apptCal == null) return true;
-
-        Calendar endCal = (Calendar) apptCal.clone();
-        endCal.add(Calendar.MINUTE, Math.max(duration, 0));
-        return Calendar.getInstance().after(endCal);
-    }
-
-    private Calendar parseToCalendar(String time) {
-        if (time == null || time.isEmpty()) return null;
-        String[] parts = time.split(":");
-        if (parts.length < 2) return null;
-        try {
-            Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(parts[0]));
-            cal.set(Calendar.MINUTE, Integer.parseInt(parts[1]));
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
-            return cal;
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
     private void startAutoRefresh() {
         stopAutoRefresh();
-        autoRefreshHandler = new Handler(Looper.getMainLooper());
-        autoRefreshRunnable = () -> {
-            if (isAdded()) {
+        if (rootView == null) return;
+        autoRefreshRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!isAdded() || rootView == null) return;
                 loadData();
-                startAutoRefresh();
+                rootView.postDelayed(this, 30000);
             }
         };
-        autoRefreshHandler.postDelayed(autoRefreshRunnable, 30000);
+        rootView.postDelayed(autoRefreshRunnable, 30000);
     }
 
     private void stopAutoRefresh() {
-        if (autoRefreshHandler != null) {
-            autoRefreshHandler.removeCallbacks(autoRefreshRunnable);
-            autoRefreshHandler = null;
-            autoRefreshRunnable = null;
+        if (rootView != null && autoRefreshRunnable != null) {
+            rootView.removeCallbacks(autoRefreshRunnable);
         }
+        autoRefreshRunnable = null;
     }
 
     private void equalizeCardHeights() {
@@ -358,8 +259,4 @@ public class DashboardFragment extends Fragment {
         return currentSizeSp * availableWidth / textWidth;
     }
 
-    private String getPatientName(long patientId) {
-        com.medcare.app.data.entity.Patient patient = patientRepository.getPatientById(patientId);
-        return patient != null ? patient.getFullName() : "";
-    }
 }

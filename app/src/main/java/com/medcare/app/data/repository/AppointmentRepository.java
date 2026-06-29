@@ -19,22 +19,22 @@ public class AppointmentRepository {
     public void delete(Appointment appointment) {
         appointmentDao.delete(appointment);
     }
-    public List<Appointment> getAllAppointments() {
-        return appointmentDao.getAllAppointments();
+    public List<Appointment> getAllAppointments(long ownerId) {
+        return appointmentDao.getAllAppointments(ownerId);
     }
-    public Appointment getAppointmentById(long id) {
-        return appointmentDao.getAppointmentById(id);
+    public Appointment getAppointmentById(long id, long ownerId) {
+        return appointmentDao.getAppointmentById(id, ownerId);
     }
-    public List<Appointment> getAppointmentsByPatientId(long patientId) {
-        return appointmentDao.getAppointmentsByPatientId(patientId);
+    public List<Appointment> getAppointmentsByPatientId(long patientId, long ownerId) {
+        return appointmentDao.getAppointmentsByPatientId(patientId, ownerId);
     }
-    public List<Appointment> getAppointmentsByDate(String date) {
-        return appointmentDao.getAppointmentsByDate(date);
+    public List<Appointment> getAppointmentsByDate(String date, long ownerId) {
+        return appointmentDao.getAppointmentsByDate(date, ownerId);
     }
-    public int getAppointmentCount() {
-        return appointmentDao.getAppointmentCount();
+    public int getAppointmentCount(long ownerId) {
+        return appointmentDao.getAppointmentCount(ownerId);
     }
-    public int getAppointmentCountByDate(String date) {
-        return appointmentDao.getAppointmentCountByDate(date);
+    public int getAppointmentCountByDate(String date, long ownerId) {
+        return appointmentDao.getAppointmentCountByDate(date, ownerId);
     }
 }

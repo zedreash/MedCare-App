@@ -118,11 +118,11 @@ public class AppointmentListFragment extends Fragment {
         loadAppointments();
     }
     private void loadAppointments() {
-        allAppointments = appointmentRepository.getAllAppointments();
+        allAppointments = appointmentRepository.getAllAppointments(preferencesManager.getLoggedInUserId());
         patientNames.clear();
         for (Appointment appointment : allAppointments) {
             if (!patientNames.containsKey(appointment.getPatientId())) {
-                Patient patient = patientRepository.getPatientById(appointment.getPatientId());
+                Patient patient = patientRepository.getPatientById(appointment.getPatientId(), preferencesManager.getLoggedInUserId());
                 patientNames.put(appointment.getPatientId(),
                         patient != null ? patient.getFullName() : "Unknown");
             }
@@ -294,6 +294,7 @@ public class AppointmentListFragment extends Fragment {
                     loadAppointments();
                     Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
                             .setAction(R.string.undo, v -> {
+                                appointment.setOwnerId(preferencesManager.getLoggedInUserId());
                                 appointmentRepository.insert(appointment);
                                 loadAppointments();
                             })

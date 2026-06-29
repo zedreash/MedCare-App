@@ -150,6 +150,9 @@
         <action
             android:id="@+id/action_clinic_to_patientForm"
             app:destination="@id/patientFormFragment" />
+        <action
+            android:id="@+id/action_clinic_to_patientDetail"
+            app:destination="@id/patientDetailFragment" />
     </fragment>
 
     <fragment
@@ -166,7 +169,26 @@
         <action
             android:id="@+id/action_dashboard_to_appointmentDetail"
             app:destination="@id/appointmentDetailFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_calendar"
+            app:destination="@id/calendarFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/calendarFragment"
+        android:name="com.medcare.app.ui.calendar.CalendarFragment"
+        android:label="@string/nav_calendar"
+        tools:layout="@layout/fragment_calendar">
+        <action
+            android:id="@+id/action_calendar_to_appointmentDetail"
+            app:destination="@id/appointmentDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/biometricLockFragment"
+        android:name="com.medcare.app.ui.auth.BiometricLockFragment"
+        android:label="@string/biometric_unlock"
+        tools:layout="@layout/fragment_biometric_lock" />
 
     <fragment
         android:id="@+id/settingsFragment"

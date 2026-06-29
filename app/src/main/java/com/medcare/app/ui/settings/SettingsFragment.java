@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
 import com.medcare.app.R;
 import com.medcare.app.data.repository.UserRepository;
@@ -26,6 +27,10 @@ public class SettingsFragment extends Fragment {
     private EditText durationInput;
     private TextView patientSortValue;
     private TextView appointmentSortValue;
+    private SwitchMaterial biometricSwitch;
+    private View biometricTimeoutLayout;
+    private TextView biometricTimeoutValue;
+    private String[] timeoutKeys = {"immediate", "1min", "5min", "15min"};
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -47,6 +52,9 @@ public class SettingsFragment extends Fragment {
         durationInput = view.findViewById(R.id.duration_input);
         patientSortValue = view.findViewById(R.id.patient_sort_value);
         appointmentSortValue = view.findViewById(R.id.appointment_sort_value);
+        biometricSwitch = view.findViewById(R.id.biometric_switch);
+        biometricTimeoutLayout = view.findViewById(R.id.biometric_timeout_layout);
+        biometricTimeoutValue = view.findViewById(R.id.biometric_timeout_value);
         view.findViewById(R.id.back_button).setOnClickListener(v ->
                 Navigation.findNavController(view).navigateUp());
         view.findViewById(R.id.clear_data_button).setOnClickListener(v -> onClearDataClicked());
@@ -86,6 +94,10 @@ public class SettingsFragment extends Fragment {
         durationInput.setText(String.valueOf(preferencesManager.getDefaultAppointmentDuration()));
         updateSortDisplay(true);
         updateSortDisplay(false);
+        boolean biometricEnabled = preferencesManager.isBiometricEnabled();
+        biometricSwitch.setChecked(biometricEnabled);
+        biometricTimeoutLayout.setVisibility(biometricEnabled ? View.VISIBLE : View.GONE);
+        updateBiometricTimeoutDisplay();
     }
     private void setupListeners() {
         themeGroup.setOnCheckedChangeListener((group, checkedId) -> {
@@ -114,6 +126,53 @@ public class SettingsFragment extends Fragment {
             preferencesManager.setLanguage(lang);
             requireActivity().recreate();
         });
+        biometricSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            preferencesManager.setBiometricEnabled(isChecked);
+            biometricTimeoutLayout.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+        });
+        biometricTimeoutValue.setOnClickListener(v -> showTimeoutDialog());
+    }
+    private void updateBiometricTimeoutDisplay() {
+        String current = preferencesManager.getBiometricTimeout();
+        int index = 0;
+        for (int i = 0; i < timeoutKeys.length; i++) {
+            if (timeoutKeys[i].equals(current)) {
+                index = i;
+                break;
+            }
+        }
+        String[] labels = {
+                getString(R.string.timeout_immediate),
+                getString(R.string.timeout_1min),
+                getString(R.string.timeout_5min),
+                getString(R.string.timeout_15min)
+        };
+        biometricTimeoutValue.setText(labels[index]);
+    }
+    private void showTimeoutDialog() {
+        String current = preferencesManager.getBiometricTimeout();
+        String[] labels = {
+                getString(R.string.timeout_immediate),
+                getString(R.string.timeout_1min),
+                getString(R.string.timeout_5min),
+                getString(R.string.timeout_15min)
+        };
+        int currentIndex = 0;
+        for (int i = 0; i < timeoutKeys.length; i++) {
+            if (timeoutKeys[i].equals(current)) {
+                currentIndex = i;
+                break;
+            }
+        }
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.biometric_timeout)
+                .setSingleChoiceItems(labels, currentIndex, (dialog, which) -> {
+                    preferencesManager.setBiometricTimeout(timeoutKeys[which]);
+                    updateBiometricTimeoutDisplay();
+                    dialog.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
     private void updateSortDisplay(boolean isPatient) {
         int mode = isPatient

@@ -1,9 +1,11 @@
 package com.medcare.app.ui.auth;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -60,6 +62,7 @@ public class LoginFragment extends Fragment {
         });
     }
     private void onLoginClicked() {
+        hideKeyboard();
         if (!validateInputs()) {
             return;
         }
@@ -99,6 +102,15 @@ public class LoginFragment extends Fragment {
         }
         return valid;
     }
+    private void hideKeyboard() {
+        View focused = getActivity().getCurrentFocus();
+        if (focused != null) {
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+            focused.clearFocus();
+        }
+    }
+
     private void navigateToDashboard() {
         Navigation.findNavController(rootView)
                 .navigate(R.id.action_login_to_dashboard);

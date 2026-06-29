@@ -13,6 +13,7 @@ import com.medcare.app.data.entity.Appointment;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
+import com.medcare.app.utils.PreferencesManager;
 public class AppointmentDetailFragment extends Fragment {
     private static final String ARG_APPOINTMENT_ID = "appointmentId";
     private TextView nameText;
@@ -23,6 +24,7 @@ public class AppointmentDetailFragment extends Fragment {
     private TextView notesText;
     private AppointmentRepository appointmentRepository;
     private PatientRepository patientRepository;
+    private PreferencesManager preferencesManager;
     private long appointmentId;
     private Appointment appointment;
     private Patient patient;
@@ -43,6 +45,7 @@ public class AppointmentDetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         appointmentRepository = new AppointmentRepository(requireContext());
         patientRepository = new PatientRepository(requireContext());
+        preferencesManager = new PreferencesManager(requireContext());
         nameText = view.findViewById(R.id.appointment_name_text);
         patientText = view.findViewById(R.id.appointment_patient_text);
         dateText = view.findViewById(R.id.appointment_date_text);
@@ -61,12 +64,12 @@ public class AppointmentDetailFragment extends Fragment {
     }
     private void loadAppointment() {
         if (appointmentId == -1) return;
-        appointment = appointmentRepository.getAppointmentById(appointmentId);
+        appointment = appointmentRepository.getAppointmentById(appointmentId, preferencesManager.getLoggedInUserId());
         if (appointment == null) {
             Navigation.findNavController(requireView()).navigateUp();
             return;
         }
-        patient = patientRepository.getPatientById(appointment.getPatientId());
+        patient = patientRepository.getPatientById(appointment.getPatientId(), preferencesManager.getLoggedInUserId());
         nameText.setText(appointment.getName());
         String patientName = patient != null ? patient.getFullName() : "Unknown";
         patientText.setText(patientName);

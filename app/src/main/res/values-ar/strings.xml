@@ -24,8 +24,9 @@
 
     <string name="field_required">هذا الحقل مطلوب</string>
     <string name="invalid_email">البريد الإلكتروني غير صالح</string>
+    <string name="invalid_id">رقم الهوية غير صالح</string>
     <string name="password_mismatch">كلمتا المرور غير متطابقتين</string>
-    <string name="password_too_short">يجب أن تكون كلمة المرور 6 أحرف على الأقل</string>
+    <string name="password_too_short">يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل، حرف كبير، حرف صغير، رقم، وحرف خاص</string>
     <string name="invalid_phone">رقم الهاتف غير صالح</string>
     <string name="success_saved">تم الحفظ بنجاح</string>
     <string name="success_deleted">تم الحذف بنجاح</string>
@@ -103,6 +104,10 @@
     <string name="next">التالي</string>
     <string name="confirm">تأكيد</string>
     <string name="password_incorrect">كلمة المرور غير صحيحة</string>
+    <string name="change_password">تغيير كلمة المرور</string>
+    <string name="current_password">كلمة المرور الحالية</string>
+    <string name="new_password">كلمة المرور الجديدة</string>
+    <string name="password_changed">تم تغيير كلمة المرور بنجاح</string>
     <string name="confirmation_mismatch">النص غير متطابق</string>
     <string name="clear_data_password_title">أدخل كلمة المرور</string>
     <string name="clear_data_password_hint">كلمة المرور</string>
@@ -152,4 +157,35 @@
     <string name="filter_by_date">تصفية حسب التاريخ</string>
     <string name="clear_filter">مسح التصفية</string>
     <string name="no_appointments_filter">لا توجد مواعيد لـ %s</string>
+
+    <string name="security">الأمان</string>
+    <string name="biometric_lock">القفل البيومتري</string>
+    <string name="biometric_lock_subtitle">قفل التطبيق ببصمة الوجه أو الإصبع عند العودة</string>
+    <string name="biometric_timeout">مهلة القفل</string>
+    <string name="timeout_immediate">فوراً</string>
+    <string name="timeout_1min">بعد دقيقة واحدة</string>
+    <string name="timeout_5min">بعد 5 دقائق</string>
+    <string name="timeout_15min">بعد 15 دقيقة</string>
+    <string name="yes">نعم</string>
+    <string name="later">لاحقاً</string>
+    <string name="enable_biometric_prompt">هل ترغب في تفعيل القفل البيومتري لحماية التطبيق؟</string>
+    <string name="biometric_unlock">فتح MedCare</string>
+    <string name="biometric_prompt_subtitle">تحقق من هويتك للوصول إلى التطبيق</string>
+    <string name="use_password_fallback">استخدام كلمة المرور</string>
+    <string name="biometric_not_available">التحقق البيومتري غير متوفر على هذا الجهاز</string>
+    <string name="biometric_failed">لم يتم التعرف على البصمة. حاول مرة أخرى.</string>
+
+    <string name="nav_calendar">التقويم</string>
+    <string name="open_calendar">فتح التقويم</string>
+    <string name="calendar_today">اليوم</string>
+    <string name="view_day">يوم</string>
+    <string name="view_six_days">6 أيام</string>
+    <string name="view_month">شهر</string>
+    <string name="no_appointments_day">لا توجد مواعيد في هذا اليوم</string>
+    <string name="calendar_expand">▼ +%d</string>
+    <string name="calendar_collapse">▲</string>
+
+    <string name="logout_confirm">هل أنت متأكد من تسجيل الخروج؟</string>
+    <string name="no_appointments_for_patient">لا توجد مواعيد لهذا المريض</string>
+    <string name="error_location">تعذر العثور على اقتراحات العنوان</string>
 </resources>

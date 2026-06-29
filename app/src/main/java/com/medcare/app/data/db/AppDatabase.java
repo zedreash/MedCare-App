@@ -6,7 +6,7 @@ import androidx.room.RoomDatabase;
 import com.medcare.app.data.entity.Appointment;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.entity.User;
-@Database(entities = {User.class, Patient.class, Appointment.class}, version = 4, exportSchema = false)
+@Database(entities = {User.class, Patient.class, Appointment.class}, version = 5, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static volatile AppDatabase INSTANCE;
     public abstract UserDao userDao();

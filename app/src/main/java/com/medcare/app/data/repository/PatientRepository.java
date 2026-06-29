@@ -19,16 +19,16 @@ public class PatientRepository {
     public void delete(Patient patient) {
         patientDao.delete(patient);
     }
-    public List<Patient> getAllPatients() {
-        return patientDao.getAllPatients();
+    public List<Patient> getAllPatients(long ownerId) {
+        return patientDao.getAllPatients(ownerId);
     }
-    public Patient getPatientById(long id) {
-        return patientDao.getPatientById(id);
+    public Patient getPatientById(long id, long ownerId) {
+        return patientDao.getPatientById(id, ownerId);
     }
-    public List<Patient> searchPatients(String query) {
-        return patientDao.searchPatients(query);
+    public List<Patient> searchPatients(String query, long ownerId) {
+        return patientDao.searchPatients(query, ownerId);
     }
-    public int getPatientCount() {
-        return patientDao.getPatientCount();
+    public int getPatientCount(long ownerId) {
+        return patientDao.getPatientCount(ownerId);
     }
 }

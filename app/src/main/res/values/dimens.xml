@@ -7,4 +7,5 @@
     <dimen name="corner_radius_small">8dp</dimen>
     <dimen name="elevation_card">4dp</dimen>
     <dimen name="icon_size">24dp</dimen>
+    <dimen name="calendar_hour_height">60dp</dimen>
 </resources>

@@ -1,10 +1,14 @@
 package com.medcare.app.ui.profile;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +19,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.User;
 import com.medcare.app.data.repository.UserRepository;
+import com.medcare.app.utils.PasswordUtils;
 import com.medcare.app.utils.PreferencesManager;
 import com.medcare.app.utils.ValidationUtils;
 import java.util.Calendar;
@@ -50,6 +55,7 @@ public class ProfileFragment extends Fragment {
         setupErrorClearListeners();
         loadUserProfile();
         view.findViewById(R.id.save_button).setOnClickListener(v -> onSaveClicked());
+        view.findViewById(R.id.change_password_button).setOnClickListener(v -> onChangePasswordClicked());
         view.findViewById(R.id.logout_button).setOnClickListener(v -> onLogoutClicked());
         view.findViewById(R.id.delete_account_button).setOnClickListener(v -> onDeleteAccountClicked());
         view.findViewById(R.id.settings_button).setOnClickListener(v ->
@@ -141,6 +147,7 @@ public class ProfileFragment extends Fragment {
         dobInput.setText(currentUser.getDateOfBirth());
     }
     private void onSaveClicked() {
+        hideKeyboard();
         if (!validateInputs()) {
             return;
         }
@@ -150,6 +157,74 @@ public class ProfileFragment extends Fragment {
         currentUser.setDateOfBirth(dobInput.getText().toString().trim());
         userRepository.update(currentUser);
         Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+    }
+
+    private void onChangePasswordClicked() {
+        android.view.View dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_change_password, null);
+
+        com.google.android.material.textfield.TextInputLayout currentPwdLayout =
+                dialogView.findViewById(R.id.current_password_layout);
+        com.google.android.material.textfield.TextInputLayout newPwdLayout =
+                dialogView.findViewById(R.id.new_password_layout);
+        com.google.android.material.textfield.TextInputLayout confirmPwdLayout =
+                dialogView.findViewById(R.id.confirm_password_layout);
+        EditText currentPwdInput = dialogView.findViewById(R.id.current_password_input);
+        EditText newPwdInput = dialogView.findViewById(R.id.new_password_input);
+        EditText confirmPwdInput = dialogView.findViewById(R.id.confirm_password_input);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.change_password)
+                .setView(dialogView)
+                .setPositiveButton(R.string.save, (d, which) -> {})
+                .setNegativeButton(R.string.cancel, null)
+                .create();
+        dialog.show();
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String currentPwd = currentPwdInput.getText().toString();
+            String newPwd = newPwdInput.getText().toString();
+            String confirmPwd = confirmPwdInput.getText().toString();
+
+            boolean valid = true;
+
+            if (TextUtils.isEmpty(currentPwd)) {
+                currentPwdLayout.setError(getString(R.string.field_required));
+                valid = false;
+            } else if (!PasswordUtils.verify(currentPwd, currentUser.getEmail(), currentUser.getPassword())) {
+                currentPwdLayout.setError(getString(R.string.password_incorrect));
+                valid = false;
+            } else {
+                currentPwdLayout.setError(null);
+            }
+
+            if (TextUtils.isEmpty(newPwd)) {
+                newPwdLayout.setError(getString(R.string.field_required));
+                valid = false;
+            } else if (!ValidationUtils.isValidPassword(newPwd)) {
+                newPwdLayout.setError(getString(R.string.password_too_short));
+                valid = false;
+            } else {
+                newPwdLayout.setError(null);
+            }
+
+            if (TextUtils.isEmpty(confirmPwd)) {
+                confirmPwdLayout.setError(getString(R.string.field_required));
+                valid = false;
+            } else if (!newPwd.equals(confirmPwd)) {
+                confirmPwdLayout.setError(getString(R.string.password_mismatch));
+                valid = false;
+            } else {
+                confirmPwdLayout.setError(null);
+            }
+
+            if (valid) {
+                String hashed = PasswordUtils.hash(newPwd, currentUser.getEmail());
+                currentUser.setPassword(hashed);
+                userRepository.update(currentUser);
+                dialog.dismiss();
+                Snackbar.make(rootView, R.string.password_changed, Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
     private boolean validateInputs() {
         boolean valid = true;
@@ -189,15 +264,38 @@ public class ProfileFragment extends Fragment {
         }
         return valid;
     }
+    private void hideKeyboard() {
+        View focused = getActivity().getCurrentFocus();
+        if (focused != null) {
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+            focused.clearFocus();
+        }
+    }
+
     private void onDeleteAccountClicked() {
-        userRepository.delete(currentUser);
-        preferencesManager.clearSession();
-        Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
-        navigateToLogin();
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.delete)
+                .setMessage(R.string.delete_account_confirm)
+                .setPositiveButton(R.string.delete, (dialog, which) -> {
+                    userRepository.delete(currentUser);
+                    preferencesManager.clearSession();
+                    Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
+                    navigateToLogin();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
     private void onLogoutClicked() {
-        preferencesManager.clearSession();
-        navigateToLogin();
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.logout)
+                .setMessage(R.string.logout_confirm)
+                .setPositiveButton(R.string.logout, (dialog, which) -> {
+                    preferencesManager.clearSession();
+                    navigateToLogin();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
     private void navigateToLogin() {
         Navigation.findNavController(rootView)

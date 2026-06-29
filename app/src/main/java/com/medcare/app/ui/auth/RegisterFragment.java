@@ -1,13 +1,16 @@
 package com.medcare.app.ui.auth;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.biometric.BiometricManager;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import com.google.android.material.snackbar.Snackbar;
@@ -15,6 +18,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.User;
 import com.medcare.app.data.repository.UserRepository;
+import com.medcare.app.utils.PasswordUtils;
 import com.medcare.app.utils.PreferencesManager;
 import com.medcare.app.utils.ValidationUtils;
 import java.util.Calendar;
@@ -103,6 +107,15 @@ public class RegisterFragment extends Fragment {
         datePicker.getDatePicker().setMinDate(minDate.getTimeInMillis());
         datePicker.show();
     }
+    private void hideKeyboard() {
+        View focused = getActivity().getCurrentFocus();
+        if (focused != null) {
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+            focused.clearFocus();
+        }
+    }
+
     private Locale resolveAppLocale() {
         String lang = preferencesManager.getLanguage();
         if ("system".equals(lang)) {
@@ -128,6 +141,7 @@ public class RegisterFragment extends Fragment {
         confirmPasswordInput.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) confirmPasswordLayout.setError(null); });
     }
     private void onRegisterClicked() {
+        hideKeyboard();
         if (!validateInputs()) {
             return;
         }
@@ -143,13 +157,39 @@ public class RegisterFragment extends Fragment {
             emailInput.requestFocus();
             return;
         }
-        User user = new User(tz, name, email, phone, dob, password);
+        String hashedPassword = PasswordUtils.hash(password, email);
+        User user = new User(tz, name, email, phone, dob, hashedPassword);
         long userId = userRepository.insert(user);
         if (userId != -1) {
             preferencesManager.setLoggedInUserId(userId);
             Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
-            Navigation.findNavController(rootView)
-                    .navigate(R.id.action_register_to_dashboard);
+
+            BiometricManager biometricManager = BiometricManager.from(requireContext());
+            if (biometricManager.canAuthenticate(
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG
+                    | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+                    == BiometricManager.BIOMETRIC_SUCCESS) {
+                new android.app.AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.biometric_lock)
+                        .setMessage(R.string.enable_biometric_prompt)
+                        .setPositiveButton(R.string.yes, (dialog, which) -> {
+                            preferencesManager.setBiometricEnabled(true);
+                            preferencesManager.setBiometricTimeout("immediate");
+                            Navigation.findNavController(rootView)
+                                    .navigate(R.id.action_register_to_dashboard);
+                        })
+                        .setNegativeButton(R.string.later, (dialog, which) -> {
+                            Navigation.findNavController(rootView)
+                                    .navigate(R.id.action_register_to_dashboard);
+                        })
+                        .setOnCancelListener(dialog ->
+                                Navigation.findNavController(rootView)
+                                        .navigate(R.id.action_register_to_dashboard))
+                        .show();
+            } else {
+                Navigation.findNavController(rootView)
+                        .navigate(R.id.action_register_to_dashboard);
+            }
         } else {
             Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
         }
@@ -165,6 +205,9 @@ public class RegisterFragment extends Fragment {
         String confirmPassword = confirmPasswordInput.getText().toString();
         if (TextUtils.isEmpty(tz)) {
             tzLayout.setError(getString(R.string.field_required));
+            valid = false;
+        } else if (!ValidationUtils.isValidIsraeliId(tz)) {
+            tzLayout.setError(getString(R.string.invalid_id));
             valid = false;
         } else {
             tzLayout.setError(null);
