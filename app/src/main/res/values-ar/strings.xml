@@ -131,6 +131,11 @@
         <item>@string/sort_time_desc</item>
     </string-array>
 
+    <string name="deleted">تم الحذف</string>
+    <string name="undo">تراجع</string>
+    <string name="delete_patient_message">حذف هذا المريض؟ سيتم حذف جميع المواعيد المرتبطة به أيضًا.</string>
+    <string name="delete_appointment_message">حذف هذا الموعد؟</string>
+
     <string name="patient_detail">المريض</string>
     <string name="appointment_detail">الموعد</string>
     <string name="appointments_history">المواعيد</string>

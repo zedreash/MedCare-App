@@ -247,7 +247,7 @@ public class PatientFormFragment extends Fragment {
     private void onDeleteClicked() {
         new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.delete)
-                .setMessage(R.string.delete_account_confirm)
+                .setMessage(R.string.delete_patient_message)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
                     patientRepository.delete(currentPatient);
                     Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();

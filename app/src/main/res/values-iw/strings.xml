@@ -131,6 +131,11 @@
         <item>@string/sort_time_desc</item>
     </string-array>
 
+    <string name="deleted">נמחק</string>
+    <string name="undo">בטל</string>
+    <string name="delete_patient_message">למחוק מטופל זה? כל התורים המקושרים יימחקו גם כן.</string>
+    <string name="delete_appointment_message">למחוק תור זה?</string>
+
     <string name="patient_detail">מטופל</string>
     <string name="appointment_detail">תור</string>
     <string name="appointments_history">תורים</string>

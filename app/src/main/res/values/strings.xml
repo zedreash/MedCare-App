@@ -130,6 +130,11 @@
         <item>@string/sort_time_desc</item>
     </string-array>
 
+    <string name="deleted">Deleted</string>
+    <string name="undo">Undo</string>
+    <string name="delete_patient_message">Delete this patient? All linked appointments will also be deleted.</string>
+    <string name="delete_appointment_message">Delete this appointment?</string>
+
     <string name="patient_detail">Patient</string>
     <string name="appointment_detail">Appointment</string>
     <string name="appointments_history">Appointments</string>

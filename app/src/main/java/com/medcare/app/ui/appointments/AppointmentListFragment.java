@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import com.medcare.app.R;
 import com.medcare.app.adapter.AppointmentAdapter;
 import com.medcare.app.data.entity.Appointment;
@@ -43,6 +44,7 @@ public class AppointmentListFragment extends Fragment {
     private Map<Long, String> patientNames = new HashMap<>();
     private int currentSortMode = SORT_NEWEST;
     private PreferencesManager preferencesManager;
+    private View rootView;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -51,6 +53,7 @@ public class AppointmentListFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        rootView = view;
         appointmentRepository = new AppointmentRepository(requireContext());
         patientRepository = new PatientRepository(requireContext());
         preferencesManager = new PreferencesManager(requireContext());
@@ -59,8 +62,16 @@ public class AppointmentListFragment extends Fragment {
         emptyStateText = view.findViewById(R.id.empty_state_text);
         searchEditText = view.findViewById(R.id.search_edit_text);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new AppointmentAdapter(this::onAppointmentClicked);
+        adapter = new AppointmentAdapter(this::onAppointmentClicked, this::onAppointmentDeleteClicked);
         recyclerView.setAdapter(adapter);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                if (newState != RecyclerView.SCROLL_STATE_IDLE) {
+                    adapter.closeRevealed();
+                }
+            }
+        });
         loadAppointments();
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -205,5 +216,22 @@ public class AppointmentListFragment extends Fragment {
         args.putInt("appointmentId", (int) appointment.getId());
         Navigation.findNavController(requireView())
                 .navigate(R.id.action_appointmentList_to_appointmentDetail, args);
+    }
+    private void onAppointmentDeleteClicked(Appointment appointment, int position) {
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.delete)
+                .setMessage(R.string.delete_appointment_message)
+                .setPositiveButton(R.string.delete, (dialog, which) -> {
+                    appointmentRepository.delete(appointment);
+                    loadAppointments();
+                    Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
+                            .setAction(R.string.undo, v -> {
+                                appointmentRepository.insert(appointment);
+                                loadAppointments();
+                            })
+                            .show();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 }

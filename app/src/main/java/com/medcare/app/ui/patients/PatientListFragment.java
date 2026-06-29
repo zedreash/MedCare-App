@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import com.medcare.app.R;
 import com.medcare.app.adapter.PatientAdapter;
 import com.medcare.app.data.entity.Patient;
@@ -33,6 +34,7 @@ public class PatientListFragment extends Fragment {
     private List<Patient> allPatients = new ArrayList<>();
     private int currentSortMode = SORT_NEWEST;
     private PreferencesManager preferencesManager;
+    private View rootView;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -41,6 +43,7 @@ public class PatientListFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        rootView = view;
         patientRepository = new PatientRepository(requireContext());
         preferencesManager = new PreferencesManager(requireContext());
         currentSortMode = preferencesManager.getPatientSortMode(SORT_NEWEST);
@@ -48,8 +51,16 @@ public class PatientListFragment extends Fragment {
         emptyStateText = view.findViewById(R.id.empty_state_text);
         searchEditText = view.findViewById(R.id.search_edit_text);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new PatientAdapter(this::onPatientClicked);
+        adapter = new PatientAdapter(this::onPatientClicked, this::onPatientDeleteClicked);
         recyclerView.setAdapter(adapter);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                if (newState != RecyclerView.SCROLL_STATE_IDLE) {
+                    adapter.closeRevealed();
+                }
+            }
+        });
         loadPatients();
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -149,5 +160,22 @@ public class PatientListFragment extends Fragment {
         args.putInt("patientId", (int) patient.getId());
         Navigation.findNavController(requireView())
                 .navigate(R.id.action_patientList_to_patientDetail, args);
+    }
+    private void onPatientDeleteClicked(Patient patient, int position) {
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.delete)
+                .setMessage(R.string.delete_patient_message)
+                .setPositiveButton(R.string.delete, (dialog, which) -> {
+                    patientRepository.delete(patient);
+                    loadPatients();
+                    Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
+                            .setAction(R.string.undo, v -> {
+                                patientRepository.insert(patient);
+                                loadPatients();
+                            })
+                            .show();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 }
