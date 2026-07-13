@@ -142,39 +142,43 @@ public class AppointmentFormFragment extends Fragment {
         timeInput.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) timeLayout.setError(null); });
     }
     private void showPatientPicker() {
-        List<Patient> patients = patientRepository.getAllPatients(preferencesManager.getLoggedInUserId());
-        if (patients.isEmpty()) {
-            Snackbar.make(rootView, R.string.no_patients, Snackbar.LENGTH_SHORT).show();
-            return;
-        }
-        View dialogView = LayoutInflater.from(requireContext())
-                .inflate(R.layout.dialog_patient_search, null);
-        EditText searchInput = dialogView.findViewById(R.id.search_input);
-        ListView listView = dialogView.findViewById(R.id.patient_list);
-        PatientSearchAdapter adapter = new PatientSearchAdapter(requireContext(), patients);
-        listView.setAdapter(adapter);
-        AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setTitle(R.string.select_patient)
-                .setView(dialogView)
-                .setNegativeButton(R.string.cancel, null)
-                .show();
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            Patient patient = adapter.getItem(position);
-            selectedPatientId = patient.getId();
-            selectedPatientName = patient.getFullName();
-            patientInput.setText(selectedPatientName);
-            patientLayout.setError(null);
-            dialog.dismiss();
-        });
-        searchInput.addTextChangedListener(new TextWatcher() {
+        patientRepository.getAllPatients(preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<List<Patient>>() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                adapter.getFilter().filter(s);
+            public void onResult(List<Patient> patients) {
+                if (patients.isEmpty()) {
+                    Snackbar.make(rootView, R.string.no_patients, Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
+                View dialogView = LayoutInflater.from(requireContext())
+                        .inflate(R.layout.dialog_patient_search, null);
+                EditText searchInput = dialogView.findViewById(R.id.search_input);
+                ListView listView = dialogView.findViewById(R.id.patient_list);
+                PatientSearchAdapter adapter = new PatientSearchAdapter(requireContext(), patients);
+                listView.setAdapter(adapter);
+                AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.select_patient)
+                        .setView(dialogView)
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
+                listView.setOnItemClickListener((parent, view, position, id) -> {
+                    Patient patient = adapter.getItem(position);
+                    selectedPatientId = patient.getId();
+                    selectedPatientName = patient.getFullName();
+                    patientInput.setText(selectedPatientName);
+                    patientLayout.setError(null);
+                    dialog.dismiss();
+                });
+                searchInput.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        adapter.getFilter().filter(s);
+                    }
+                    @Override
+                    public void afterTextChanged(Editable s) {}
+                });
             }
-            @Override
-            public void afterTextChanged(Editable s) {}
         });
     }
     private static class PatientSearchAdapter extends ArrayAdapter<Patient> {

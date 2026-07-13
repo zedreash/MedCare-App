@@ -114,10 +114,13 @@ public class PatientFormFragment extends Fragment {
                 ApplicationInfo appInfo = requireContext().getPackageManager()
                         .getApplicationInfo(requireContext().getPackageName(), PackageManager.GET_META_DATA);
                 String apiKey = appInfo.metaData.getString("com.google.android.geo.API_KEY");
-                if (apiKey != null && !apiKey.isEmpty()) {
+                if (apiKey != null && !apiKey.isEmpty() && !apiKey.startsWith("${")) {
                     Places.initialize(requireContext().getApplicationContext(), apiKey);
+                } else {
+                    return;
                 }
             } catch (PackageManager.NameNotFoundException e) {
+                return;
             }
         }
         placesClient = Places.createClient(requireContext());

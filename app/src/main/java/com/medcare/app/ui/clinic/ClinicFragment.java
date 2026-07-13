@@ -210,10 +210,14 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
                     Object tag = marker.getTag();
                     if (tag instanceof Long) {
                         long patientId = (Long) tag;
-                        Patient patient = patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId());
-                        if (patient != null) {
-                            showPatientDialog(patient);
-                        }
+                        patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
+                            @Override
+                            public void onResult(Patient patient) {
+                                if (patient != null) {
+                                    showPatientDialog(patient);
+                                }
+                            }
+                        });
                         return true;
                     }
                     return false;

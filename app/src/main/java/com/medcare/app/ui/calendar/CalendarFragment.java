@@ -53,7 +53,7 @@ public class CalendarFragment extends Fragment {
     private FrameLayout calendarContent;
 
     private ViewMode currentMode = ViewMode.DAY;
-    private Calendar focusedDate;
+    private Calendar focusedDate = Calendar.getInstance();
     private boolean[] expandedRows = new boolean[24];
 
     @Override
