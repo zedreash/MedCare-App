@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:contentDescription="@string/add_appointment"
             app:icon="@android:drawable/ic_input_add"
-                app:iconTint="?attr/colorOnSurface" />
+            app:iconTint="?attr/colorOnSurface" />
 
     </LinearLayout>
 

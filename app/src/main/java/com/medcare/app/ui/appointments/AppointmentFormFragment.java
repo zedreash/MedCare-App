@@ -296,23 +296,32 @@ public class AppointmentFormFragment extends Fragment {
         timePicker.show();
     }
     private void loadAppointment() {
-        currentAppointment = appointmentRepository.getAppointmentById(appointmentId, preferencesManager.getLoggedInUserId());
-        if (currentAppointment == null) {
-            Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
-            Navigation.findNavController(rootView).navigateUp();
-            return;
-        }
-        Patient patient = patientRepository.getPatientById(currentAppointment.getPatientId(), preferencesManager.getLoggedInUserId());
-        if (patient != null) {
-            selectedPatientId = patient.getId();
-            selectedPatientName = patient.getFullName();
-            patientInput.setText(selectedPatientName);
-        }
-        nameInput.setText(currentAppointment.getName());
-        dateInput.setText(currentAppointment.getDate());
-        timeInput.setText(currentAppointment.getTime());
-        durationInput.setText(String.valueOf(currentAppointment.getDuration()));
-        notesInput.setText(currentAppointment.getNotes());
+        appointmentRepository.getAppointmentById(appointmentId, preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<Appointment>() {
+            @Override
+            public void onResult(Appointment result) {
+                currentAppointment = result;
+                if (currentAppointment == null) {
+                    Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
+                    Navigation.findNavController(rootView).navigateUp();
+                    return;
+                }
+                patientRepository.getPatientById(currentAppointment.getPatientId(), preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
+                    @Override
+                    public void onResult(Patient patient) {
+                        if (patient != null) {
+                            selectedPatientId = patient.getId();
+                            selectedPatientName = patient.getFullName();
+                            patientInput.setText(selectedPatientName);
+                        }
+                        nameInput.setText(currentAppointment.getName());
+                        dateInput.setText(currentAppointment.getDate());
+                        timeInput.setText(currentAppointment.getTime());
+                        durationInput.setText(String.valueOf(currentAppointment.getDuration()));
+                        notesInput.setText(currentAppointment.getNotes());
+                    }
+                });
+            }
+        });
     }
     private void onSaveClicked() {
         if (!validateInputs()) {
@@ -327,8 +336,13 @@ public class AppointmentFormFragment extends Fragment {
             Appointment appointment = new Appointment(selectedPatientId, nameValue, date, time, duration, notes,
                     DateUtils.getCurrentTimestamp());
             appointment.setOwnerId(preferencesManager.getLoggedInUserId());
-            appointmentRepository.insert(appointment);
-            Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+            appointmentRepository.insert(appointment, new AppointmentRepository.Callback<Long>() {
+                @Override
+                public void onResult(Long result) {
+                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                    Navigation.findNavController(rootView).navigateUp();
+                }
+            });
         } else {
             currentAppointment.setPatientId(selectedPatientId);
             currentAppointment.setName(nameValue);
@@ -336,19 +350,27 @@ public class AppointmentFormFragment extends Fragment {
             currentAppointment.setTime(time);
             currentAppointment.setDuration(duration);
             currentAppointment.setNotes(notes);
-            appointmentRepository.update(currentAppointment);
-            Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+            appointmentRepository.update(currentAppointment, new AppointmentRepository.Callback<Void>() {
+                @Override
+                public void onResult(Void result) {
+                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                    Navigation.findNavController(rootView).navigateUp();
+                }
+            });
         }
-        Navigation.findNavController(rootView).navigateUp();
     }
     private void onDeleteClicked() {
         new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_appointment_message)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    appointmentRepository.delete(currentAppointment);
-                    Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
-                    Navigation.findNavController(rootView).navigateUp();
+                    appointmentRepository.delete(currentAppointment, new AppointmentRepository.Callback<Void>() {
+                        @Override
+                        public void onResult(Void result) {
+                            Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
+                            Navigation.findNavController(rootView).navigateUp();
+                        }
+                    });
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();

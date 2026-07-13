@@ -85,9 +85,14 @@ public class PatientListFragment extends Fragment {
         loadPatients();
     }
     private void loadPatients() {
-        allPatients = patientRepository.getAllPatients(preferencesManager.getLoggedInUserId());
-        sortPatients();
-        filterPatients(searchEditText.getText().toString());
+        patientRepository.getAllPatients(preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<List<Patient>>() {
+            @Override
+            public void onResult(List<Patient> result) {
+                allPatients = result;
+                sortPatients();
+                filterPatients(searchEditText.getText().toString());
+            }
+        });
     }
     private void showSortDialog() {
         String[] options = {
@@ -166,15 +171,23 @@ public class PatientListFragment extends Fragment {
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_patient_message)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    patientRepository.delete(patient);
-                    loadPatients();
-                    Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
-                            .setAction(R.string.undo, v -> {
-                                patient.setOwnerId(preferencesManager.getLoggedInUserId());
-                                patientRepository.insert(patient);
-                                loadPatients();
-                            })
-                            .show();
+                    patientRepository.delete(patient, new PatientRepository.Callback<Void>() {
+                        @Override
+                        public void onResult(Void result) {
+                            loadPatients();
+                            Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
+                                    .setAction(R.string.undo, v -> {
+                                        patient.setOwnerId(preferencesManager.getLoggedInUserId());
+                                        patientRepository.insert(patient, new PatientRepository.Callback<Long>() {
+                                            @Override
+                                            public void onResult(Long result) {
+                                                loadPatients();
+                                            }
+                                        });
+                                    })
+                                    .show();
+                        }
+                    });
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();

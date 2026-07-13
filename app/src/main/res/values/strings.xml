@@ -76,6 +76,7 @@
     <string name="password_mismatch">Passwords do not match</string>
     <string name="password_too_short">Password must be at least 8 characters with uppercase, lowercase, digit, and special character</string>
     <string name="invalid_phone">Invalid phone number</string>
+    <string name="invalid_age">You must be at least 18 years old</string>
     <string name="success_saved">Saved successfully</string>
     <string name="success_deleted">Deleted successfully</string>
     <string name="error_generic">Something went wrong</string>

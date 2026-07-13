@@ -224,20 +224,25 @@ public class PatientFormFragment extends Fragment {
         diagnosisInput.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) diagnosisLayout.setError(null); });
     }
     private void loadPatient() {
-        currentPatient = patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId());
-        if (currentPatient == null) {
-            Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
-            Navigation.findNavController(rootView).navigateUp();
-            return;
-        }
-        nameInput.setText(currentPatient.getFullName());
-        phoneInput.setText(currentPatient.getPhone());
-        diagnosisInput.setText(currentPatient.getDiagnosis());
-        ignoreTextChanges = true;
-        addressInput.setText(currentPatient.getAddress());
-        ignoreTextChanges = false;
-        pendingLat = currentPatient.getLatitude();
-        pendingLng = currentPatient.getLongitude();
+        patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
+            @Override
+            public void onResult(Patient result) {
+                currentPatient = result;
+                if (currentPatient == null) {
+                    Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
+                    Navigation.findNavController(rootView).navigateUp();
+                    return;
+                }
+                nameInput.setText(currentPatient.getFullName());
+                phoneInput.setText(currentPatient.getPhone());
+                diagnosisInput.setText(currentPatient.getDiagnosis());
+                ignoreTextChanges = true;
+                addressInput.setText(currentPatient.getAddress());
+                ignoreTextChanges = false;
+                pendingLat = currentPatient.getLatitude();
+                pendingLng = currentPatient.getLongitude();
+            }
+        });
     }
     private void onSaveClicked() {
         if (!validateInputs()) {
@@ -252,8 +257,13 @@ public class PatientFormFragment extends Fragment {
             patient.setLatitude(pendingLat);
             patient.setLongitude(pendingLng);
             patient.setOwnerId(preferencesManager.getLoggedInUserId());
-            patientRepository.insert(patient);
-            Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+            patientRepository.insert(patient, new PatientRepository.Callback<Long>() {
+                @Override
+                public void onResult(Long result) {
+                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                    Navigation.findNavController(rootView).navigateUp();
+                }
+            });
         } else {
             currentPatient.setFullName(name);
             currentPatient.setPhone(phone);
@@ -261,19 +271,27 @@ public class PatientFormFragment extends Fragment {
             currentPatient.setAddress(address);
             currentPatient.setLatitude(pendingLat);
             currentPatient.setLongitude(pendingLng);
-            patientRepository.update(currentPatient);
-            Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+            patientRepository.update(currentPatient, new PatientRepository.Callback<Void>() {
+                @Override
+                public void onResult(Void result) {
+                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                    Navigation.findNavController(rootView).navigateUp();
+                }
+            });
         }
-        Navigation.findNavController(rootView).navigateUp();
     }
     private void onDeleteClicked() {
         new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_patient_message)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    patientRepository.delete(currentPatient);
-                    Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
-                    Navigation.findNavController(rootView).navigateUp();
+                    patientRepository.delete(currentPatient, new PatientRepository.Callback<Void>() {
+                        @Override
+                        public void onResult(Void result) {
+                            Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
+                            Navigation.findNavController(rootView).navigateUp();
+                        }
+                    });
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();

@@ -244,147 +244,150 @@ public class CalendarFragment extends Fragment {
 
     private void renderDailyView() {
         String dateStr = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(focusedDate.getTime());
-        List<Appointment> appointments = appointmentRepo.getAppointmentsByDate(dateStr, preferencesManager.getLoggedInUserId());
+        appointmentRepo.getAppointmentsByDate(dateStr, preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<List<Appointment>>() {
+            @Override
+            public void onResult(List<Appointment> appointments) {
+                ScrollView scrollView = new ScrollView(requireContext());
+                scrollView.setLayoutParams(new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
-        ScrollView scrollView = new ScrollView(requireContext());
-        scrollView.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+                FrameLayout contentFrame = new FrameLayout(requireContext());
+                contentFrame.setLayoutParams(new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
 
-        FrameLayout contentFrame = new FrameLayout(requireContext());
-        contentFrame.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
+                LinearLayout hourLayout = new LinearLayout(requireContext());
+                hourLayout.setOrientation(LinearLayout.VERTICAL);
+                hourLayout.setLayoutParams(new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
 
-        LinearLayout hourLayout = new LinearLayout(requireContext());
-        hourLayout.setOrientation(LinearLayout.VERTICAL);
-        hourLayout.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
+                int hourHeightPx = dpToPx(60);
+                float minuteHeightPx = (float) hourHeightPx / 60f;
 
-        int hourHeightPx = dpToPx(60);
-        float minuteHeightPx = (float) hourHeightPx / 60f;
+                if (appointments.isEmpty()) {
+                    TextView emptyText = new TextView(requireContext());
+                    emptyText.setText(getString(R.string.no_appointments_day));
+                    emptyText.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge);
+                    emptyText.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
+                    emptyText.setGravity(Gravity.CENTER);
+                    emptyText.setPadding(0, dpToPx(80), 0, 0);
+                    hourLayout.addView(emptyText);
+                }
 
-        if (appointments.isEmpty()) {
-            TextView emptyText = new TextView(requireContext());
-            emptyText.setText(getString(R.string.no_appointments_day));
-            emptyText.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge);
-            emptyText.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
-            emptyText.setGravity(Gravity.CENTER);
-            emptyText.setPadding(0, dpToPx(80), 0, 0);
-            hourLayout.addView(emptyText);
-        }
-
-        for (int hour = 0; hour < 24; hour++) {
-            List<Appointment> hourAppts = new java.util.ArrayList<>();
-            for (Appointment appt : appointments) {
-                if (appt.getTime() != null && !appt.getTime().isEmpty()) {
-                    String[] parts = appt.getTime().split(":");
-                    try {
-                        int apptHour = Integer.parseInt(parts[0]);
-                        if (apptHour == hour) {
-                            hourAppts.add(appt);
+                for (int hour = 0; hour < 24; hour++) {
+                    List<Appointment> hourAppts = new java.util.ArrayList<>();
+                    for (Appointment appt : appointments) {
+                        if (appt.getTime() != null && !appt.getTime().isEmpty()) {
+                            String[] parts = appt.getTime().split(":");
+                            try {
+                                int apptHour = Integer.parseInt(parts[0]);
+                                if (apptHour == hour) {
+                                    hourAppts.add(appt);
+                                }
+                            } catch (NumberFormatException ignored) {}
                         }
-                    } catch (NumberFormatException ignored) {}
-                }
-            }
+                    }
 
-            int apptCount = hourAppts.size();
-            boolean isExpanded = expandedRows[hour];
+                    int apptCount = hourAppts.size();
+                    boolean isExpanded = expandedRows[hour];
 
-            LinearLayout row = new LinearLayout(requireContext());
-            row.setOrientation(LinearLayout.HORIZONTAL);
+                    LinearLayout row = new LinearLayout(requireContext());
+                    row.setOrientation(LinearLayout.HORIZONTAL);
 
-            if (apptCount > 1 && isExpanded) {
-                row.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            } else {
-                row.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, hourHeightPx));
-            }
+                    if (apptCount > 1 && isExpanded) {
+                        row.setLayoutParams(new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                    } else {
+                        row.setLayoutParams(new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT, hourHeightPx));
+                    }
 
-            TextView hourLabel = new TextView(requireContext());
-            hourLabel.setText(String.format(Locale.getDefault(), "%02d:00", hour));
-            hourLabel.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
-            hourLabel.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
-            hourLabel.setWidth(dpToPx(50));
-            hourLabel.setGravity(Gravity.TOP | Gravity.START);
-            hourLabel.setPadding(0, dpToPx(4), 0, 0);
+                    TextView hourLabel = new TextView(requireContext());
+                    hourLabel.setText(String.format(Locale.getDefault(), "%02d:00", hour));
+                    hourLabel.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
+                    hourLabel.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
+                    hourLabel.setWidth(dpToPx(50));
+                    hourLabel.setGravity(Gravity.TOP | Gravity.START);
+                    hourLabel.setPadding(0, dpToPx(4), 0, 0);
 
-            LinearLayout apptContainer = new LinearLayout(requireContext());
-            apptContainer.setOrientation(LinearLayout.VERTICAL);
-            apptContainer.setLayoutParams(new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+                    LinearLayout apptContainer = new LinearLayout(requireContext());
+                    apptContainer.setOrientation(LinearLayout.VERTICAL);
+                    apptContainer.setLayoutParams(new LinearLayout.LayoutParams(
+                            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
 
-            if (apptCount <= 1) {
-                for (Appointment appt : hourAppts) {
-                    apptContainer.addView(createEventCard(appt));
-                }
-            } else if (!isExpanded) {
-                apptContainer.addView(createEventCard(hourAppts.get(0)));
-                apptContainer.addView(createExpandIndicator(hourAppts.size() - 1));
-            } else {
-                for (Appointment appt : hourAppts) {
-                    apptContainer.addView(createEventCard(appt));
-                }
-                apptContainer.addView(createCollapseIndicator());
-            }
+                    if (apptCount <= 1) {
+                        for (Appointment appt : hourAppts) {
+                            apptContainer.addView(createEventCard(appt));
+                        }
+                    } else if (!isExpanded) {
+                        apptContainer.addView(createEventCard(hourAppts.get(0)));
+                        apptContainer.addView(createExpandIndicator(hourAppts.size() - 1));
+                    } else {
+                        for (Appointment appt : hourAppts) {
+                            apptContainer.addView(createEventCard(appt));
+                        }
+                        apptContainer.addView(createCollapseIndicator());
+                    }
 
-            if (apptCount > 1) {
-                final int currentHour = hour;
-                final ScrollView sv = scrollView;
-                row.setOnClickListener(v -> {
-                    expandedRows[currentHour] = !expandedRows[currentHour];
-                    int savedY = sv.getScrollY();
-                    refresh();
-                    View child = calendarContent.getChildAt(0);
-                    if (child instanceof ScrollView) {
-                        ScrollView newSv = (ScrollView) child;
-                        newSv.post(() -> {
-                            if (newSv.getChildCount() > 0) {
-                                newSv.scrollTo(0, Math.min(savedY, newSv.getChildAt(0).getHeight()));
+                    if (apptCount > 1) {
+                        final int currentHour = hour;
+                        final ScrollView sv = scrollView;
+                        row.setOnClickListener(v -> {
+                            expandedRows[currentHour] = !expandedRows[currentHour];
+                            int savedY = sv.getScrollY();
+                            refresh();
+                            View child = calendarContent.getChildAt(0);
+                            if (child instanceof ScrollView) {
+                                ScrollView newSv = (ScrollView) child;
+                                newSv.post(() -> {
+                                    if (newSv.getChildCount() > 0) {
+                                        newSv.scrollTo(0, Math.min(savedY, newSv.getChildAt(0).getHeight()));
+                                    }
+                                });
                             }
                         });
                     }
-                });
+
+                    View divider = new View(requireContext());
+                    divider.setLayoutParams(new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT, 1));
+                    divider.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.divider));
+
+                    row.addView(hourLabel);
+                    row.addView(apptContainer);
+                    if (!appointments.isEmpty()) {
+                        hourLayout.addView(row);
+                        hourLayout.addView(divider);
+                    }
+                }
+
+                contentFrame.addView(hourLayout);
+
+                Calendar now = Calendar.getInstance();
+                boolean isToday = isSameDay(focusedDate, now);
+                if (isToday) {
+                    View nowLine = new View(requireContext());
+                    nowLine.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.error));
+                    nowLine.setEnabled(false);
+
+                    int minutesSinceMidnight = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+
+                    FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT, dpToPx(3));
+                    lp.topMargin = (int) (minutesSinceMidnight * minuteHeightPx);
+                    nowLine.setLayoutParams(lp);
+
+                    contentFrame.addView(nowLine);
+
+                    int scrollTo = (int) (minutesSinceMidnight * minuteHeightPx) - dpToPx(200);
+                    if (scrollTo < 0) scrollTo = 0;
+                    final int finalScrollTo = scrollTo;
+                    scrollView.post(() -> scrollView.scrollTo(0, finalScrollTo));
+                }
+
+                scrollView.addView(contentFrame);
+                calendarContent.addView(scrollView);
             }
-
-            View divider = new View(requireContext());
-            divider.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, 1));
-            divider.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.divider));
-
-            row.addView(hourLabel);
-            row.addView(apptContainer);
-            if (!appointments.isEmpty()) {
-                hourLayout.addView(row);
-                hourLayout.addView(divider);
-            }
-        }
-
-        contentFrame.addView(hourLayout);
-
-        Calendar now = Calendar.getInstance();
-        boolean isToday = isSameDay(focusedDate, now);
-        if (isToday) {
-            View nowLine = new View(requireContext());
-            nowLine.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.error));
-            nowLine.setEnabled(false);
-
-            int minutesSinceMidnight = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
-
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT, dpToPx(3));
-            lp.topMargin = (int) (minutesSinceMidnight * minuteHeightPx);
-            nowLine.setLayoutParams(lp);
-
-            contentFrame.addView(nowLine);
-
-            int scrollTo = (int) (minutesSinceMidnight * minuteHeightPx) - dpToPx(200);
-            if (scrollTo < 0) scrollTo = 0;
-            final int finalScrollTo = scrollTo;
-            scrollView.post(() -> scrollView.scrollTo(0, finalScrollTo));
-        }
-
-        scrollView.addView(contentFrame);
-        calendarContent.addView(scrollView);
+        });
     }
 
     private View createEventCard(Appointment appointment) {
@@ -406,16 +409,23 @@ public class CalendarFragment extends Fragment {
 
         TextView nameText = new TextView(requireContext());
         nameText.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);
-        String patientName = getPatientName(appointment.getPatientId());
         String apptName = appointment.getName();
-        if (apptName != null && !apptName.isEmpty()) {
-            nameText.setText(apptName + " \u00B7 " + patientName);
-        } else {
-            nameText.setText(patientName);
-        }
+        nameText.setText(apptName != null && !apptName.isEmpty() ? apptName : "");
         nameText.setLayoutParams(new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
         nameText.setMaxLines(1);
+
+        patientRepo.getPatientById(appointment.getPatientId(), preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
+            @Override
+            public void onResult(Patient patient) {
+                String patientName = patient != null ? patient.getFullName() : "";
+                if (apptName != null && !apptName.isEmpty()) {
+                    nameText.setText(apptName + " \u00B7 " + patientName);
+                } else {
+                    nameText.setText(patientName);
+                }
+            }
+        });
 
         TextView timeText = new TextView(requireContext());
         timeText.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
@@ -519,9 +529,8 @@ public class CalendarFragment extends Fragment {
 
             for (Appointment appt : allAppointments) {
                 if (appt.getDate() != null && appt.getDate().equals(dayDateStr)) {
-                    String patientName = getPatientName(appt.getPatientId());
-                    String displayName = appt.getName() != null && !appt.getName().isEmpty()
-                            ? appt.getName() : patientName;
+                    String initialDisplay = appt.getName() != null && !appt.getName().isEmpty()
+                            ? appt.getName() : "";
 
                     MaterialCardView chip = new MaterialCardView(requireContext(), null,
                             com.google.android.material.R.attr.materialCardViewOutlinedStyle);
@@ -537,9 +546,19 @@ public class CalendarFragment extends Fragment {
 
                     TextView chipText = new TextView(requireContext());
                     chipText.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
-                    chipText.setText(appt.getTime() + " " + displayName);
+                    chipText.setText(appt.getTime() + " " + initialDisplay);
                     chipText.setMaxLines(1);
                     chip.addView(chipText);
+
+                    patientRepo.getPatientById(appt.getPatientId(), preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
+                        @Override
+                        public void onResult(Patient patient) {
+                            String patientName = patient != null ? patient.getFullName() : "";
+                            String displayName = appt.getName() != null && !appt.getName().isEmpty()
+                                    ? appt.getName() : patientName;
+                            chipText.setText(appt.getTime() + " " + displayName);
+                        }
+                    });
 
                     final Appointment fAppt = appt;
                     chip.setOnClickListener(v -> {

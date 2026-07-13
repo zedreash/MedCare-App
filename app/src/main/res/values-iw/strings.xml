@@ -28,6 +28,7 @@
     <string name="password_mismatch">הסיסמאות אינן תואמות</string>
     <string name="password_too_short">הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה, ספרה ותו מיוחד</string>
     <string name="invalid_phone">מספר טלפון לא חוקי</string>
+    <string name="invalid_age">עליך להיות בן 18 לפחות</string>
     <string name="success_saved">נשמר בהצלחה</string>
     <string name="success_deleted">נמחק בהצלחה</string>
     <string name="error_generic">משהו השתבש</string>

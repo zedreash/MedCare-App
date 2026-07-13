@@ -68,15 +68,19 @@ public class LoginFragment extends Fragment {
         }
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString();
-        User user = userRepository.login(email, password);
-        if (user != null) {
-            preferencesManager.setLoggedInUserId(user.getId());
-            Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
-            navigateToDashboard();
-        } else {
-            Snackbar.make(rootView, R.string.login_invalid_credentials, Snackbar.LENGTH_LONG).show();
-            passwordLayout.setError(getString(R.string.login_invalid_credentials));
-        }
+        userRepository.login(email, password, new UserRepository.Callback<User>() {
+            @Override
+            public void onResult(User user) {
+                if (user != null) {
+                    preferencesManager.setLoggedInUserId(user.getId());
+                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                    navigateToDashboard();
+                } else {
+                    Snackbar.make(rootView, R.string.login_invalid_credentials, Snackbar.LENGTH_LONG).show();
+                    passwordLayout.setError(getString(R.string.login_invalid_credentials));
+                }
+            }
+        });
     }
     private boolean validateInputs() {
         boolean valid = true;

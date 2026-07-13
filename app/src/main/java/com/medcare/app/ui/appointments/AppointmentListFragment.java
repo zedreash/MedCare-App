@@ -118,17 +118,39 @@ public class AppointmentListFragment extends Fragment {
         loadAppointments();
     }
     private void loadAppointments() {
-        allAppointments = appointmentRepository.getAllAppointments(preferencesManager.getLoggedInUserId());
-        patientNames.clear();
-        for (Appointment appointment : allAppointments) {
-            if (!patientNames.containsKey(appointment.getPatientId())) {
-                Patient patient = patientRepository.getPatientById(appointment.getPatientId(), preferencesManager.getLoggedInUserId());
-                patientNames.put(appointment.getPatientId(),
-                        patient != null ? patient.getFullName() : "Unknown");
+        appointmentRepository.getAllAppointments(preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<List<Appointment>>() {
+            @Override
+            public void onResult(List<Appointment> result) {
+                allAppointments = result;
+                patientNames.clear();
+                List<Long> uniqueIds = new ArrayList<>();
+                for (Appointment a : allAppointments) {
+                    long pid = a.getPatientId();
+                    if (!uniqueIds.contains(pid)) {
+                        uniqueIds.add(pid);
+                    }
+                }
+                if (uniqueIds.isEmpty()) {
+                    sortAppointments();
+                    filterAppointments(searchEditText.getText().toString());
+                    return;
+                }
+                final int[] remaining = {uniqueIds.size()};
+                for (long pid : uniqueIds) {
+                    patientRepository.getPatientById(pid, preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
+                        @Override
+                        public void onResult(Patient patient) {
+                            patientNames.put(pid, patient != null ? patient.getFullName() : "Unknown");
+                            remaining[0]--;
+                            if (remaining[0] == 0) {
+                                sortAppointments();
+                                filterAppointments(searchEditText.getText().toString());
+                            }
+                        }
+                    });
+                }
             }
-        }
-        sortAppointments();
-        filterAppointments(searchEditText.getText().toString());
+        });
     }
     private void showDateFilterDialog() {
         Calendar cal = Calendar.getInstance();
@@ -290,15 +312,23 @@ public class AppointmentListFragment extends Fragment {
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_appointment_message)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    appointmentRepository.delete(appointment);
-                    loadAppointments();
-                    Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
-                            .setAction(R.string.undo, v -> {
-                                appointment.setOwnerId(preferencesManager.getLoggedInUserId());
-                                appointmentRepository.insert(appointment);
-                                loadAppointments();
-                            })
-                            .show();
+                    appointmentRepository.delete(appointment, new AppointmentRepository.Callback<Void>() {
+                        @Override
+                        public void onResult(Void result) {
+                            loadAppointments();
+                            Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
+                                    .setAction(R.string.undo, v -> {
+                                        appointment.setOwnerId(preferencesManager.getLoggedInUserId());
+                                        appointmentRepository.insert(appointment, new AppointmentRepository.Callback<Long>() {
+                                            @Override
+                                            public void onResult(Long result) {
+                                                loadAppointments();
+                                            }
+                                        });
+                                    })
+                                    .show();
+                        }
+                    });
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();

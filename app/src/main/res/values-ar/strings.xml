@@ -28,6 +28,7 @@
     <string name="password_mismatch">كلمتا المرور غير متطابقتين</string>
     <string name="password_too_short">يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل، حرف كبير، حرف صغير، رقم، وحرف خاص</string>
     <string name="invalid_phone">رقم الهاتف غير صالح</string>
+    <string name="invalid_age">يجب أن يكون عمرك 18 عامًا على الأقل</string>
     <string name="success_saved">تم الحفظ بنجاح</string>
     <string name="success_deleted">تم الحذف بنجاح</string>
     <string name="error_generic">حدث خطأ ما</string>

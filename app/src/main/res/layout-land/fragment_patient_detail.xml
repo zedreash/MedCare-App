@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/edit"
                 app:icon="@android:drawable/ic_menu_edit"
-                app:iconTint="?attr/colorOnPrimary" />
+                app:iconTint="?attr/colorOnSurface" />
 
         </LinearLayout>
 

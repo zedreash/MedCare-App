@@ -128,40 +128,83 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadData() {
-        long userId = preferencesManager.getLoggedInUserId();
-        User user = userRepository.getUserById(userId);
-        if (user != null) {
-            welcomeText.setText(getString(R.string.welcome_back, user.getFullName()));
-        } else {
-            welcomeText.setVisibility(View.GONE);
-        }
-
         long ownerId = preferencesManager.getLoggedInUserId();
-        int patientCount = patientRepository.getPatientCount(ownerId);
-        int appointmentCount = appointmentRepository.getAppointmentCount(ownerId);
         String today = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
-        int todayCount = appointmentRepository.getAppointmentCountByDate(today, ownerId);
-        List<Appointment> todayAppointments = appointmentRepository.getAppointmentsByDate(today, ownerId);
 
-        totalPatientsText.setText(String.valueOf(patientCount));
-        totalAppointmentsText.setText(String.valueOf(appointmentCount));
-        todayCountText.setText(String.valueOf(todayCount));
+        userRepository.getUserById(ownerId, new UserRepository.Callback<User>() {
+            @Override
+            public void onResult(User user) {
+                if (user != null) {
+                    welcomeText.setText(getString(R.string.welcome_back, user.getFullName()));
+                } else {
+                    welcomeText.setVisibility(View.GONE);
+                }
 
-        Map<Long, String> nameMap = new HashMap<>();
-        for (Appointment a : todayAppointments) {
-            if (!nameMap.containsKey(a.getPatientId())) {
-                Patient p = patientRepository.getPatientById(a.getPatientId(), preferencesManager.getLoggedInUserId());
-                nameMap.put(a.getPatientId(), p != null ? p.getFullName() : "Unknown");
+                patientRepository.getPatientCount(ownerId, new PatientRepository.Callback<Integer>() {
+                    @Override
+                    public void onResult(Integer patientCount) {
+                        totalPatientsText.setText(String.valueOf(patientCount));
+
+                        appointmentRepository.getAppointmentCount(ownerId, new AppointmentRepository.Callback<Integer>() {
+                            @Override
+                            public void onResult(Integer appointmentCount) {
+                                totalAppointmentsText.setText(String.valueOf(appointmentCount));
+
+                                appointmentRepository.getAppointmentCountByDate(today, ownerId, new AppointmentRepository.Callback<Integer>() {
+                                    @Override
+                                    public void onResult(Integer todayCount) {
+                                        todayCountText.setText(String.valueOf(todayCount));
+
+                                        appointmentRepository.getAppointmentsByDate(today, ownerId, new AppointmentRepository.Callback<List<Appointment>>() {
+                                            @Override
+                                            public void onResult(List<Appointment> todayAppointments) {
+                                                Map<Long, String> nameMap = new HashMap<>();
+                                                java.util.List<Long> uniqueIds = new java.util.ArrayList<>();
+                                                for (Appointment a : todayAppointments) {
+                                                    if (!nameMap.containsKey(a.getPatientId())) {
+                                                        nameMap.put(a.getPatientId(), "Unknown");
+                                                        uniqueIds.add(a.getPatientId());
+                                                    }
+                                                }
+
+                                                Runnable updateUI = () -> {
+                                                    scheduleAdapter.setAppointments(todayAppointments, nameMap);
+                                                    if (todayAppointments.isEmpty()) {
+                                                        noAppointmentsText.setVisibility(View.VISIBLE);
+                                                        scheduleRecycler.setVisibility(View.GONE);
+                                                    } else {
+                                                        noAppointmentsText.setVisibility(View.GONE);
+                                                        scheduleRecycler.setVisibility(View.VISIBLE);
+                                                    }
+                                                };
+
+                                                if (uniqueIds.isEmpty()) {
+                                                    updateUI.run();
+                                                } else {
+                                                    final int[] remaining = {uniqueIds.size()};
+                                                    for (long pid : uniqueIds) {
+                                                        patientRepository.getPatientById(pid, ownerId, new PatientRepository.Callback<Patient>() {
+                                                            @Override
+                                                            public void onResult(Patient p) {
+                                                                nameMap.put(pid, p != null ? p.getFullName() : "Unknown");
+                                                                remaining[0]--;
+                                                                if (remaining[0] == 0) {
+                                                                    updateUI.run();
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
             }
-        }
-        scheduleAdapter.setAppointments(todayAppointments, nameMap);
-        if (todayAppointments.isEmpty()) {
-            noAppointmentsText.setVisibility(View.VISIBLE);
-            scheduleRecycler.setVisibility(View.GONE);
-        } else {
-            noAppointmentsText.setVisibility(View.GONE);
-            scheduleRecycler.setVisibility(View.VISIBLE);
-        }
+        });
 
         rootView.post(() -> {
             if (fitTextsToWidth()) {

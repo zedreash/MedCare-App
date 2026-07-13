@@ -188,33 +188,37 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
         }
     }
     private void addPatientMarkers() {
-        List<Patient> patients = patientRepository.getAllPatients(preferencesManager.getLoggedInUserId());
-        if (patients.isEmpty()) return;
-        for (Patient patient : patients) {
-            if (patient.getLatitude() == 0.0 && patient.getLongitude() == 0.0) continue;
-            LatLng position = new LatLng(patient.getLatitude(), patient.getLongitude());
-            String snippet = patient.getPhone();
-            if (patient.getAddress() != null && !patient.getAddress().isEmpty()) {
-                snippet = patient.getAddress() + " | " + snippet;
-            }
-            Marker marker = googleMap.addMarker(new MarkerOptions()
-                    .position(position)
-                    .title(patient.getFullName())
-                    .snippet(snippet)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-            marker.setTag(patient.getId());
-        }
-        googleMap.setOnMarkerClickListener(marker -> {
-            Object tag = marker.getTag();
-            if (tag instanceof Long) {
-                long patientId = (Long) tag;
-                Patient patient = patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId());
-                if (patient != null) {
-                    showPatientDialog(patient);
+        patientRepository.getAllPatients(preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<List<Patient>>() {
+            @Override
+            public void onResult(List<Patient> patients) {
+                if (patients.isEmpty()) return;
+                for (Patient patient : patients) {
+                    if (patient.getLatitude() == 0.0 && patient.getLongitude() == 0.0) continue;
+                    LatLng position = new LatLng(patient.getLatitude(), patient.getLongitude());
+                    String snippet = patient.getPhone();
+                    if (patient.getAddress() != null && !patient.getAddress().isEmpty()) {
+                        snippet = patient.getAddress() + " | " + snippet;
+                    }
+                    Marker marker = googleMap.addMarker(new MarkerOptions()
+                            .position(position)
+                            .title(patient.getFullName())
+                            .snippet(snippet)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    marker.setTag(patient.getId());
                 }
-                return true;
+                googleMap.setOnMarkerClickListener(marker -> {
+                    Object tag = marker.getTag();
+                    if (tag instanceof Long) {
+                        long patientId = (Long) tag;
+                        Patient patient = patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId());
+                        if (patient != null) {
+                            showPatientDialog(patient);
+                        }
+                        return true;
+                    }
+                    return false;
+                });
             }
-            return false;
         });
     }
     private void showPatientDialog(Patient patient) {

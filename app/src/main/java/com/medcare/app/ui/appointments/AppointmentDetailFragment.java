@@ -64,27 +64,37 @@ public class AppointmentDetailFragment extends Fragment {
     }
     private void loadAppointment() {
         if (appointmentId == -1) return;
-        appointment = appointmentRepository.getAppointmentById(appointmentId, preferencesManager.getLoggedInUserId());
-        if (appointment == null) {
-            Navigation.findNavController(requireView()).navigateUp();
-            return;
-        }
-        patient = patientRepository.getPatientById(appointment.getPatientId(), preferencesManager.getLoggedInUserId());
-        nameText.setText(appointment.getName());
-        String patientName = patient != null ? patient.getFullName() : "Unknown";
-        patientText.setText(patientName);
-        patientText.setOnClickListener(v -> {
-            if (patient != null) {
-                Bundle args = new Bundle();
-                args.putInt("patientId", (int) patient.getId());
-                Navigation.findNavController(requireView())
-                        .navigate(R.id.action_appointmentDetail_to_patientDetail, args);
+        appointmentRepository.getAppointmentById(appointmentId, preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<Appointment>() {
+            @Override
+            public void onResult(Appointment result) {
+                appointment = result;
+                if (appointment == null) {
+                    Navigation.findNavController(requireView()).navigateUp();
+                    return;
+                }
+                patientRepository.getPatientById(appointment.getPatientId(), preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
+                    @Override
+                    public void onResult(Patient result) {
+                        patient = result;
+                        nameText.setText(appointment.getName());
+                        String patientName = patient != null ? patient.getFullName() : "Unknown";
+                        patientText.setText(patientName);
+                        patientText.setOnClickListener(v -> {
+                            if (patient != null) {
+                                Bundle args = new Bundle();
+                                args.putInt("patientId", (int) patient.getId());
+                                Navigation.findNavController(requireView())
+                                        .navigate(R.id.action_appointmentDetail_to_patientDetail, args);
+                            }
+                        });
+                        dateText.setText(appointment.getDate());
+                        timeText.setText(appointment.getTime());
+                        durationText.setText(appointment.getDuration() + " min");
+                        String notes = appointment.getNotes();
+                        notesText.setText(notes != null && !notes.isEmpty() ? notes : null);
+                    }
+                });
             }
         });
-        dateText.setText(appointment.getDate());
-        timeText.setText(appointment.getTime());
-        durationText.setText(appointment.getDuration() + " min");
-        String notes = appointment.getNotes();
-        notesText.setText(notes != null && !notes.isEmpty() ? notes : null);
     }
 }

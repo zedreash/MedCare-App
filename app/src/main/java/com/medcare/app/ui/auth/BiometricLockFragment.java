@@ -92,13 +92,17 @@ public class BiometricLockFragment extends Fragment {
             return;
         }
         long userId = preferencesManager.getLoggedInUserId();
-        User user = userRepository.getUserById(userId);
-        if (user != null && user.getPassword().equals(password)) {
-            onUnlocked();
-        } else {
-            passwordError.setText(R.string.password_incorrect);
-            passwordError.setVisibility(View.VISIBLE);
-        }
+        userRepository.getUserById(userId, new UserRepository.Callback<User>() {
+            @Override
+            public void onResult(User user) {
+                if (user != null && user.getPassword().equals(password)) {
+                    onUnlocked();
+                } else {
+                    passwordError.setText(R.string.password_incorrect);
+                    passwordError.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
     private void onUnlocked() {
         preferencesManager.setLastUnlockTime(System.currentTimeMillis());

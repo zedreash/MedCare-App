@@ -71,34 +71,44 @@ public class PatientDetailFragment extends Fragment {
     }
     private void loadPatient() {
         if (patientId == -1) return;
-        patient = patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId());
-        if (patient == null) {
-            Navigation.findNavController(requireView()).navigateUp();
-            return;
-        }
-        nameText.setText(patient.getFullName());
-        phoneText.setText(patient.getPhone());
-        diagnosisText.setText(patient.getDiagnosis());
-        String address = patient.getAddress();
-        addressText.setText(address != null && !address.isEmpty() ? address : null);
-        String notes = patient.getNotes();
-        notesText.setText(notes != null && !notes.isEmpty() ? notes : null);
-        List<Appointment> appointments = appointmentRepository.getAppointmentsByPatientId(patientId, preferencesManager.getLoggedInUserId());
-        adapter = new PatientAppointmentAdapter(appointment -> {
-            Bundle args = new Bundle();
-            args.putInt("appointmentId", (int) appointment.getId());
-            Navigation.findNavController(requireView())
-                    .navigate(R.id.action_patientDetail_to_appointmentDetail, args);
-        });
-        appointmentsRecycler.setAdapter(adapter);
-        adapter.setAppointments(appointments);
+        patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
+            @Override
+            public void onResult(Patient result) {
+                patient = result;
+                if (patient == null) {
+                    Navigation.findNavController(requireView()).navigateUp();
+                    return;
+                }
+                nameText.setText(patient.getFullName());
+                phoneText.setText(patient.getPhone());
+                diagnosisText.setText(patient.getDiagnosis());
+                String address = patient.getAddress();
+                addressText.setText(address != null && !address.isEmpty() ? address : null);
+                String notes = patient.getNotes();
+                notesText.setText(notes != null && !notes.isEmpty() ? notes : null);
+                appointmentRepository.getAppointmentsByPatientId(patientId, preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<List<Appointment>>() {
+                    @Override
+                    public void onResult(List<Appointment> result) {
+                        List<Appointment> appointments = result;
+                        adapter = new PatientAppointmentAdapter(appointment -> {
+                            Bundle args = new Bundle();
+                            args.putInt("appointmentId", (int) appointment.getId());
+                            Navigation.findNavController(requireView())
+                                    .navigate(R.id.action_patientDetail_to_appointmentDetail, args);
+                        });
+                        appointmentsRecycler.setAdapter(adapter);
+                        adapter.setAppointments(appointments);
 
-        if (appointments.isEmpty()) {
-            appointmentsRecycler.setVisibility(View.GONE);
-            noAppointmentsText.setVisibility(View.VISIBLE);
-        } else {
-            appointmentsRecycler.setVisibility(View.VISIBLE);
-            noAppointmentsText.setVisibility(View.GONE);
-        }
+                        if (appointments.isEmpty()) {
+                            appointmentsRecycler.setVisibility(View.GONE);
+                            noAppointmentsText.setVisibility(View.VISIBLE);
+                        } else {
+                            appointmentsRecycler.setVisibility(View.VISIBLE);
+                            noAppointmentsText.setVisibility(View.GONE);
+                        }
+                    }
+                });
+            }
+        });
     }
 }

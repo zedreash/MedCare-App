@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/settings"
                 app:icon="@drawable/ic_settings"
-                app:iconTint="?attr/colorOnPrimary" />
+                app:iconTint="?attr/colorOnSurfaceVariant" />
 
         </LinearLayout>
 
@@ -80,7 +80,8 @@
                     android:id="@+id/name_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName" />
+                    android:inputType="textPersonName"
+                    android:imeOptions="actionNext" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>
@@ -108,7 +109,8 @@
                     android:id="@+id/email_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textEmailAddress" />
+                    android:inputType="textEmailAddress"
+                    android:imeOptions="actionNext" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -124,7 +126,8 @@
                     android:id="@+id/phone_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="phone" />
+                    android:inputType="phone"
+                    android:imeOptions="actionDone" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>

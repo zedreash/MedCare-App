@@ -92,10 +92,6 @@ public class RegisterFragment extends Fragment {
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
-        Calendar maxDate = Calendar.getInstance();
-        maxDate.add(Calendar.YEAR, -18);
-        Calendar minDate = Calendar.getInstance();
-        minDate.add(Calendar.YEAR, -120);
         DatePickerDialog datePicker = new DatePickerDialog(requireContext(),
                 (view, selectedYear, selectedMonth, selectedDay) -> {
                     String formattedDate = String.format("%02d/%02d/%04d",
@@ -103,8 +99,6 @@ public class RegisterFragment extends Fragment {
                     dobInput.setText(formattedDate);
                     dobLayout.setError(null);
                 }, year, month, day);
-        datePicker.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
-        datePicker.getDatePicker().setMinDate(minDate.getTimeInMillis());
         datePicker.show();
     }
     private void hideKeyboard() {
@@ -151,49 +145,75 @@ public class RegisterFragment extends Fragment {
         String phone = phoneInput.getText().toString().trim();
         String dob = dobInput.getText().toString().trim();
         String password = passwordInput.getText().toString();
-        User existingUser = userRepository.getUserByEmail(email);
-        if (existingUser != null) {
-            emailLayout.setError(getString(R.string.email_already_registered));
-            emailInput.requestFocus();
-            return;
-        }
-        String hashedPassword = PasswordUtils.hash(password, email);
-        User user = new User(tz, name, email, phone, dob, hashedPassword);
-        long userId = userRepository.insert(user);
-        if (userId != -1) {
-            preferencesManager.setLoggedInUserId(userId);
-            Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+        userRepository.getUserByEmail(email, new UserRepository.Callback<User>() {
+            @Override
+            public void onResult(User existingUser) {
+                if (existingUser != null) {
+                    emailLayout.setError(getString(R.string.email_already_registered));
+                    emailInput.requestFocus();
+                    return;
+                }
+                String hashedPassword = PasswordUtils.hash(password, email);
+                User user = new User(tz, name, email, phone, dob, hashedPassword);
+                userRepository.insert(user, new UserRepository.Callback<Long>() {
+                    @Override
+                    public void onResult(Long userId) {
+                        if (userId != -1) {
+                            preferencesManager.setLoggedInUserId(userId);
+                            Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
 
-            BiometricManager biometricManager = BiometricManager.from(requireContext());
-            if (biometricManager.canAuthenticate(
-                    BiometricManager.Authenticators.BIOMETRIC_STRONG
-                    | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-                    == BiometricManager.BIOMETRIC_SUCCESS) {
-                new android.app.AlertDialog.Builder(requireContext())
-                        .setTitle(R.string.biometric_lock)
-                        .setMessage(R.string.enable_biometric_prompt)
-                        .setPositiveButton(R.string.yes, (dialog, which) -> {
-                            preferencesManager.setBiometricEnabled(true);
-                            preferencesManager.setBiometricTimeout("immediate");
-                            Navigation.findNavController(rootView)
-                                    .navigate(R.id.action_register_to_dashboard);
-                        })
-                        .setNegativeButton(R.string.later, (dialog, which) -> {
-                            Navigation.findNavController(rootView)
-                                    .navigate(R.id.action_register_to_dashboard);
-                        })
-                        .setOnCancelListener(dialog ->
+                            BiometricManager biometricManager = BiometricManager.from(requireContext());
+                            if (biometricManager.canAuthenticate(
+                                    BiometricManager.Authenticators.BIOMETRIC_STRONG
+                                    | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+                                    == BiometricManager.BIOMETRIC_SUCCESS) {
+                                new android.app.AlertDialog.Builder(requireContext())
+                                        .setTitle(R.string.biometric_lock)
+                                        .setMessage(R.string.enable_biometric_prompt)
+                                        .setPositiveButton(R.string.yes, (dialog, which) -> {
+                                            preferencesManager.setBiometricEnabled(true);
+                                            preferencesManager.setBiometricTimeout("immediate");
+                                            Navigation.findNavController(rootView)
+                                                    .navigate(R.id.action_register_to_dashboard);
+                                        })
+                                        .setNegativeButton(R.string.later, (dialog, which) -> {
+                                            Navigation.findNavController(rootView)
+                                                    .navigate(R.id.action_register_to_dashboard);
+                                        })
+                                        .setOnCancelListener(dialog ->
+                                                Navigation.findNavController(rootView)
+                                                        .navigate(R.id.action_register_to_dashboard))
+                                        .show();
+                            } else {
                                 Navigation.findNavController(rootView)
-                                        .navigate(R.id.action_register_to_dashboard))
-                        .show();
-            } else {
-                Navigation.findNavController(rootView)
-                        .navigate(R.id.action_register_to_dashboard);
+                                        .navigate(R.id.action_register_to_dashboard);
+                            }
+                        } else {
+                            Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
+                        }
+                    }
+                });
             }
-        } else {
-            Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
+        });
+    }
+    private boolean isAtLeast18(String dateStr) {
+        try {
+            String[] parts = dateStr.split("/");
+            int day = Integer.parseInt(parts[0]);
+            int month = Integer.parseInt(parts[1]);
+            int year = Integer.parseInt(parts[2]);
+            Calendar birthDate = Calendar.getInstance();
+            birthDate.set(Calendar.YEAR, year);
+            birthDate.set(Calendar.MONTH, month - 1);
+            birthDate.set(Calendar.DAY_OF_MONTH, day);
+            Calendar eighteenYearsAgo = Calendar.getInstance();
+            eighteenYearsAgo.add(Calendar.YEAR, -18);
+            return !birthDate.after(eighteenYearsAgo);
+        } catch (Exception e) {
+            return false;
         }
     }
+
     private boolean validateInputs() {
         boolean valid = true;
         String tz = tzInput.getText().toString().trim();
@@ -238,6 +258,9 @@ public class RegisterFragment extends Fragment {
         }
         if (TextUtils.isEmpty(dob)) {
             dobLayout.setError(getString(R.string.field_required));
+            valid = false;
+        } else if (!isAtLeast18(dob)) {
+            dobLayout.setError(getString(R.string.invalid_age));
             valid = false;
         } else {
             dobLayout.setError(null);

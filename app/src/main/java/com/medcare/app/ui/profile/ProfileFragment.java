@@ -134,17 +134,22 @@ public class ProfileFragment extends Fragment {
             navigateToLogin();
             return;
         }
-        currentUser = userRepository.getUserById(userId);
-        if (currentUser == null) {
-            preferencesManager.clearSession();
-            navigateToLogin();
-            return;
-        }
-        tzInput.setText(currentUser.getTzNumber());
-        nameInput.setText(currentUser.getFullName());
-        emailInput.setText(currentUser.getEmail());
-        phoneInput.setText(currentUser.getPhone());
-        dobInput.setText(currentUser.getDateOfBirth());
+        userRepository.getUserById(userId, new UserRepository.Callback<User>() {
+            @Override
+            public void onResult(User user) {
+                currentUser = user;
+                if (currentUser == null) {
+                    preferencesManager.clearSession();
+                    navigateToLogin();
+                    return;
+                }
+                tzInput.setText(currentUser.getTzNumber());
+                nameInput.setText(currentUser.getFullName());
+                emailInput.setText(currentUser.getEmail());
+                phoneInput.setText(currentUser.getPhone());
+                dobInput.setText(currentUser.getDateOfBirth());
+            }
+        });
     }
     private void onSaveClicked() {
         hideKeyboard();
@@ -155,8 +160,12 @@ public class ProfileFragment extends Fragment {
         currentUser.setEmail(emailInput.getText().toString().trim());
         currentUser.setPhone(phoneInput.getText().toString().trim());
         currentUser.setDateOfBirth(dobInput.getText().toString().trim());
-        userRepository.update(currentUser);
-        Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+        userRepository.update(currentUser, new UserRepository.Callback<Void>() {
+            @Override
+            public void onResult(Void result) {
+                Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void onChangePasswordClicked() {
@@ -220,9 +229,13 @@ public class ProfileFragment extends Fragment {
             if (valid) {
                 String hashed = PasswordUtils.hash(newPwd, currentUser.getEmail());
                 currentUser.setPassword(hashed);
-                userRepository.update(currentUser);
-                dialog.dismiss();
-                Snackbar.make(rootView, R.string.password_changed, Snackbar.LENGTH_SHORT).show();
+                userRepository.update(currentUser, new UserRepository.Callback<Void>() {
+                    @Override
+                    public void onResult(Void result) {
+                        dialog.dismiss();
+                        Snackbar.make(rootView, R.string.password_changed, Snackbar.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
     }
@@ -278,10 +291,14 @@ public class ProfileFragment extends Fragment {
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_account_confirm)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    userRepository.delete(currentUser);
-                    preferencesManager.clearSession();
-                    Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
-                    navigateToLogin();
+                    userRepository.delete(currentUser, new UserRepository.Callback<Void>() {
+                        @Override
+                        public void onResult(Void result) {
+                            preferencesManager.clearSession();
+                            Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
+                            navigateToLogin();
+                        }
+                    });
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();
