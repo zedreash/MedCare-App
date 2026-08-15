@@ -85,6 +85,7 @@
     <string name="delete_account_confirm">Are you sure you want to delete your account? This cannot be undone.</string>
     <string name="logout_confirm">Are you sure you want to log out?</string>
     <string name="no_appointments_for_patient">No appointments for this patient</string>
+    <string name="time_conflict">There is already an appointment at this time</string>
     <string name="error_location">Could not find address suggestions</string>
 
     <string name="settings">Settings</string>
@@ -107,6 +108,7 @@
     <string name="next">Next</string>
     <string name="confirm">Confirm</string>
     <string name="password_incorrect">Incorrect password</string>
+    <string name="email_change_password_message">Enter your current password to confirm the email change</string>
     <string name="change_password">Change Password</string>
     <string name="current_password">Current Password</string>
     <string name="new_password">New Password</string>

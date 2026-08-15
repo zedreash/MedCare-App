@@ -16,6 +16,7 @@ import com.google.android.material.button.MaterialButton;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.User;
 import com.medcare.app.data.repository.UserRepository;
+import com.medcare.app.utils.PasswordUtils;
 import com.medcare.app.utils.PreferencesManager;
 import java.util.concurrent.Executor;
 public class BiometricLockFragment extends Fragment {
@@ -54,6 +55,13 @@ public class BiometricLockFragment extends Fragment {
             checkPassword();
             return true;
         });
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),
+                new androidx.activity.OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        // keep the app locked: block back navigation
+                    }
+                });
         showBiometricPrompt();
     }
     private void setupBiometricPrompt() {
@@ -95,7 +103,7 @@ public class BiometricLockFragment extends Fragment {
         userRepository.getUserById(userId, new UserRepository.Callback<User>() {
             @Override
             public void onResult(User user) {
-                if (user != null && user.getPassword().equals(password)) {
+                if (user != null && PasswordUtils.verify(password, user.getEmail(), user.getPassword())) {
                     onUnlocked();
                 } else {
                     passwordError.setText(R.string.password_incorrect);

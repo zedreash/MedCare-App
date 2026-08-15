@@ -23,4 +23,6 @@ public interface PatientDao {
     List<Patient> searchPatients(String query, long ownerId);
     @Query("SELECT COUNT(*) FROM patients WHERE owner_id = :ownerId")
     int getPatientCount(long ownerId);
+    @Query("DELETE FROM patients WHERE owner_id = :ownerId")
+    void deleteAllByOwner(long ownerId);
 }

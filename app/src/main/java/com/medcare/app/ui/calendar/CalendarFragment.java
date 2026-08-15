@@ -151,12 +151,32 @@ public class CalendarFragment extends Fragment {
             public void run() {
                 if (!isAdded() || calendarContent == null) return;
                 if (currentMode == ViewMode.DAY) {
+                    int savedY = getCurrentScrollY();
                     refresh();
+                    restoreScrollY(savedY);
                 }
                 calendarContent.postDelayed(this, 10000);
             }
         };
         calendarContent.postDelayed(autoRefreshRunnable, 10000);
+    }
+    private int getCurrentScrollY() {
+        if (calendarContent.getChildCount() > 0 && calendarContent.getChildAt(0) instanceof ScrollView) {
+            return ((ScrollView) calendarContent.getChildAt(0)).getScrollY();
+        }
+        return 0;
+    }
+    private void restoreScrollY(int y) {
+        if (y <= 0) return;
+        final int target = y;
+        calendarContent.post(() -> {
+            if (calendarContent.getChildCount() > 0 && calendarContent.getChildAt(0) instanceof ScrollView) {
+                ScrollView sv = (ScrollView) calendarContent.getChildAt(0);
+                int max = sv.getChildCount() > 0
+                        ? sv.getChildAt(0).getHeight() - sv.getHeight() : 0;
+                sv.scrollTo(0, Math.min(target, Math.max(max, 0)));
+            }
+        });
     }
 
     private void stopAutoRefresh() {

@@ -27,4 +27,6 @@ public interface AppointmentDao {
     int getAppointmentCount(long ownerId);
     @Query("SELECT COUNT(*) FROM appointments WHERE date = :date AND owner_id = :ownerId")
     int getAppointmentCountByDate(String date, long ownerId);
+    @Query("DELETE FROM appointments WHERE owner_id = :ownerId")
+    void deleteAllByOwner(long ownerId);
 }

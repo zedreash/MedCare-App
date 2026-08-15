@@ -127,10 +127,40 @@ public class SettingsFragment extends Fragment {
             requireActivity().recreate();
         });
         biometricSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                androidx.biometric.BiometricManager bm = androidx.biometric.BiometricManager.from(requireContext());
+                if (bm.canAuthenticate(
+                        androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+                        | androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+                        != androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS) {
+                    buttonView.setChecked(false);
+                    Snackbar.make(rootView, R.string.biometric_not_available, Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+            }
             preferencesManager.setBiometricEnabled(isChecked);
             biometricTimeoutLayout.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
         biometricTimeoutValue.setOnClickListener(v -> showTimeoutDialog());
+        durationInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) saveDurationSetting();
+        });
+        durationInput.setOnEditorActionListener((v, actionId, event) -> {
+            saveDurationSetting();
+            return true;
+        });
+    }
+    private void saveDurationSetting() {
+        String text = durationInput.getText().toString().trim();
+        if (text.isEmpty()) return;
+        try {
+            int minutes = Integer.parseInt(text);
+            if (minutes > 0 && minutes <= 1440) {
+                preferencesManager.setDefaultAppointmentDuration(minutes);
+                return;
+            }
+        } catch (NumberFormatException ignored) {}
+        durationInput.setText(String.valueOf(preferencesManager.getDefaultAppointmentDuration()));
     }
     private void updateBiometricTimeoutDisplay() {
         String current = preferencesManager.getBiometricTimeout();
@@ -226,12 +256,17 @@ public class SettingsFragment extends Fragment {
                     String entered = passwordInput.getText().toString();
                     UserRepository userRepo = new UserRepository(requireContext());
                     long userId = preferencesManager.getLoggedInUserId();
-                    com.medcare.app.data.entity.User user = userRepo.getUserById(userId);
-                    if (user != null && user.getPassword().equals(entered)) {
-                        showConfirmationDialog();
-                    } else {
-                        Snackbar.make(rootView, R.string.password_incorrect, Snackbar.LENGTH_SHORT).show();
-                    }
+                    userRepo.getUserById(userId, new UserRepository.Callback<com.medcare.app.data.entity.User>() {
+                        @Override
+                        public void onResult(com.medcare.app.data.entity.User user) {
+                            if (user != null && com.medcare.app.utils.PasswordUtils.verify(
+                                    entered, user.getEmail(), user.getPassword())) {
+                                showConfirmationDialog();
+                            } else {
+                                Snackbar.make(rootView, R.string.password_incorrect, Snackbar.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();

@@ -336,10 +336,25 @@ public class AppointmentFormFragment extends Fragment {
         String time = timeInput.getText().toString().trim();
         int duration = Integer.parseInt(durationInput.getText().toString().trim());
         String notes = notesInput.getText().toString().trim();
+        long ownerId = preferencesManager.getLoggedInUserId();
+        appointmentRepository.getAppointmentsByDate(date, ownerId, new AppointmentRepository.Callback<List<Appointment>>() {
+            @Override
+            public void onResult(List<Appointment> existing) {
+                if (hasTimeConflict(existing, time, duration)) {
+                    timeLayout.setError(getString(R.string.time_conflict));
+                    Snackbar.make(rootView, R.string.time_conflict, Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+                saveAppointment(nameValue, date, time, duration, notes);
+            }
+        });
+    }
+    private void saveAppointment(String nameValue, String date, String time, int duration, String notes) {
+        long ownerId = preferencesManager.getLoggedInUserId();
         if (appointmentId == -1) {
             Appointment appointment = new Appointment(selectedPatientId, nameValue, date, time, duration, notes,
                     DateUtils.getCurrentTimestamp());
-            appointment.setOwnerId(preferencesManager.getLoggedInUserId());
+            appointment.setOwnerId(ownerId);
             appointmentRepository.insert(appointment, new AppointmentRepository.Callback<Long>() {
                 @Override
                 public void onResult(Long result) {
@@ -363,7 +378,31 @@ public class AppointmentFormFragment extends Fragment {
             });
         }
     }
+    private boolean hasTimeConflict(List<Appointment> existing, String time, int duration) {
+        long newStart = parseTimeToMinutes(time);
+        if (newStart < 0) return false;
+        long newEnd = newStart + duration;
+        for (Appointment appt : existing) {
+            if (appt.getId() == appointmentId) continue;
+            long start = parseTimeToMinutes(appt.getTime());
+            if (start < 0) continue;
+            long end = start + appt.getDuration();
+            if (newStart < end && start < newEnd) return true;
+        }
+        return false;
+    }
+    private long parseTimeToMinutes(String time) {
+        if (time == null || time.isEmpty()) return -1;
+        String[] parts = time.split(":");
+        if (parts.length != 2) return -1;
+        try {
+            return Long.parseLong(parts[0]) * 60 + Long.parseLong(parts[1]);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
     private void onDeleteClicked() {
+        if (currentAppointment == null) return;
         new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_appointment_message)

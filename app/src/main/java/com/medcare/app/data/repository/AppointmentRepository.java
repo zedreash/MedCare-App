@@ -118,4 +118,15 @@ public class AppointmentRepository {
             AppDatabase.runOnMainThread(() -> callback.onResult(count));
         });
     }
+
+    public void deleteAllByOwner(long ownerId) {
+        appointmentDao.deleteAllByOwner(ownerId);
+    }
+
+    public void deleteAllByOwner(long ownerId, Callback<Void> callback) {
+        AppDatabase.getExecutor().execute(() -> {
+            appointmentDao.deleteAllByOwner(ownerId);
+            AppDatabase.runOnMainThread(() -> callback.onResult(null));
+        });
+    }
 }

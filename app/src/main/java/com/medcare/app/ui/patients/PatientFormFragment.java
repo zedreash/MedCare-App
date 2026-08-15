@@ -284,6 +284,7 @@ public class PatientFormFragment extends Fragment {
         }
     }
     private void onDeleteClicked() {
+        if (currentPatient == null) return;
         new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_patient_message)

@@ -35,6 +35,7 @@
     <string name="login_invalid_credentials">דוא"ל או סיסמה שגויים</string>
     <string name="email_already_registered">דוא"ל זה כבר רשום</string>
     <string name="delete_account_confirm">האם אתה בטוח שברצונך למחוק את חשבונך? לא ניתן לבטל פעולה זו.</string>
+    <string name="time_conflict">כבר קיים תור בשעה זו</string>
 
     <string name="patients">מטופלים</string>
     <string name="select_patient">בחר מטופל</string>
@@ -105,6 +106,7 @@
     <string name="next">הבא</string>
     <string name="confirm">אישור</string>
     <string name="password_incorrect">סיסמה שגויה</string>
+    <string name="email_change_password_message">הזן את הסיסמה הנוכחית שלך כדי לאשר את שינוי הדוא"ל</string>
     <string name="change_password">שינוי סיסמה</string>
     <string name="current_password">סיסמה נוכחית</string>
     <string name="new_password">סיסמה חדשה</string>

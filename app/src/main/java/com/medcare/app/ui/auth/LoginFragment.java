@@ -98,9 +98,6 @@ public class LoginFragment extends Fragment {
         if (TextUtils.isEmpty(password)) {
             passwordLayout.setError(getString(R.string.field_required));
             valid = false;
-        } else if (!ValidationUtils.isValidPassword(password)) {
-            passwordLayout.setError(getString(R.string.password_too_short));
-            valid = false;
         } else {
             passwordLayout.setError(null);
         }

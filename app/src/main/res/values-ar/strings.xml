@@ -35,6 +35,7 @@
     <string name="login_invalid_credentials">البريد الإلكتروني أو كلمة المرور غير صحيحة</string>
     <string name="email_already_registered">هذا البريد الإلكتروني مسجل بالفعل</string>
     <string name="delete_account_confirm">هل أنت متأكد من حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="time_conflict">يوجد بالفعل موعد في هذا الوقت</string>
 
     <string name="patients">المرضى</string>
     <string name="select_patient">اختر مريض</string>
@@ -105,6 +106,7 @@
     <string name="next">التالي</string>
     <string name="confirm">تأكيد</string>
     <string name="password_incorrect">كلمة المرور غير صحيحة</string>
+    <string name="email_change_password_message">أدخل كلمة المرور الحالية لتأكيد تغيير البريد الإلكتروني</string>
     <string name="change_password">تغيير كلمة المرور</string>
     <string name="current_password">كلمة المرور الحالية</string>
     <string name="new_password">كلمة المرور الجديدة</string>

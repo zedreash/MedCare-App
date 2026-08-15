@@ -18,6 +18,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.User;
+import com.medcare.app.data.repository.AppointmentRepository;
+import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.data.repository.UserRepository;
 import com.medcare.app.utils.PasswordUtils;
 import com.medcare.app.utils.PreferencesManager;
@@ -153,19 +155,53 @@ public class ProfileFragment extends Fragment {
     }
     private void onSaveClicked() {
         hideKeyboard();
-        if (!validateInputs()) {
+        if (!validateInputs() || currentUser == null) {
             return;
         }
-        currentUser.setFullName(nameInput.getText().toString().trim());
-        currentUser.setEmail(emailInput.getText().toString().trim());
-        currentUser.setPhone(phoneInput.getText().toString().trim());
-        currentUser.setDateOfBirth(dobInput.getText().toString().trim());
+        String name = nameInput.getText().toString().trim();
+        final String newEmail = emailInput.getText().toString().trim();
+        String phone = phoneInput.getText().toString().trim();
+        String dob = dobInput.getText().toString().trim();
+        String oldEmail = currentUser.getEmail();
+        if (oldEmail != null && oldEmail.equalsIgnoreCase(newEmail)) {
+            applyProfileUpdate(name, newEmail, phone, dob);
+        } else {
+            promptEmailChangePassword(name, oldEmail, newEmail, phone, dob);
+        }
+    }
+    private void applyProfileUpdate(String name, String email, String phone, String dob) {
+        currentUser.setFullName(name);
+        currentUser.setEmail(email);
+        currentUser.setPhone(phone);
+        currentUser.setDateOfBirth(dob);
         userRepository.update(currentUser, new UserRepository.Callback<Void>() {
             @Override
             public void onResult(Void result) {
                 Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
             }
         });
+    }
+    private void promptEmailChangePassword(String name, String oldEmail, String newEmail, String phone, String dob) {
+        EditText passwordInput = new EditText(requireContext());
+        passwordInput.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        int padding = getResources().getDimensionPixelSize(R.dimen.margin_large);
+        passwordInput.setPadding(padding, padding, padding, padding);
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.change_password)
+                .setMessage(R.string.email_change_password_message)
+                .setView(passwordInput)
+                .setPositiveButton(R.string.save, (dialog, which) -> {
+                    String entered = passwordInput.getText().toString();
+                    if (PasswordUtils.verify(entered, oldEmail, currentUser.getPassword())) {
+                        currentUser.setPassword(PasswordUtils.hash(entered, newEmail));
+                        applyProfileUpdate(name, newEmail, phone, dob);
+                    } else {
+                        Snackbar.make(rootView, R.string.password_incorrect, Snackbar.LENGTH_LONG).show();
+                    }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     private void onChangePasswordClicked() {
@@ -291,12 +327,25 @@ public class ProfileFragment extends Fragment {
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_account_confirm)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    userRepository.delete(currentUser, new UserRepository.Callback<Void>() {
+                    long ownerId = preferencesManager.getLoggedInUserId();
+                    PatientRepository patientRepo = new PatientRepository(requireContext());
+                    AppointmentRepository appointmentRepo = new AppointmentRepository(requireContext());
+                    appointmentRepo.deleteAllByOwner(ownerId, new AppointmentRepository.Callback<Void>() {
                         @Override
                         public void onResult(Void result) {
-                            preferencesManager.clearSession();
-                            Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
-                            navigateToLogin();
+                            patientRepo.deleteAllByOwner(ownerId, new PatientRepository.Callback<Void>() {
+                                @Override
+                                public void onResult(Void result) {
+                                    userRepository.delete(currentUser, new UserRepository.Callback<Void>() {
+                                        @Override
+                                        public void onResult(Void result) {
+                                            preferencesManager.clearSession();
+                                            Snackbar.make(rootView, R.string.success_deleted, Snackbar.LENGTH_SHORT).show();
+                                            navigateToLogin();
+                                        }
+                                    });
+                                }
+                            });
                         }
                     });
                 })

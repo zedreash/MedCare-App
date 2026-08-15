@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.card.MaterialCardView;
@@ -89,6 +90,13 @@ public class MainActivity extends AppCompatActivity {
         navController = navHostFragment.getNavController();
         customBottomNav = findViewById(R.id.custom_bottom_nav);
 
+        if (!preferencesManager.isLoggedIn()) {
+            navController.navigate(R.id.loginFragment, null,
+                    new NavOptions.Builder()
+                            .setPopUpTo(R.id.dashboardFragment, true)
+                            .build());
+        }
+
         setupCustomBottomNav();
 
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
@@ -140,9 +148,11 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < navTabs.length; i++) {
             final int destId = navDestinations[i];
             navTabs[i].setOnClickListener(v -> {
-                if (navController.getCurrentDestination() != null
-                        && destId != navController.getCurrentDestination().getId()) {
-                    navController.navigate(destId);
+                if (navController.getCurrentDestination() == null) return;
+                if (destId != navController.getCurrentDestination().getId()) {
+                    if (!navController.popBackStack(destId, false)) {
+                        navController.navigate(destId);
+                    }
                 }
             });
         }
@@ -182,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void maybeShowBiometricLock() {
         if (!preferencesManager.isBiometricEnabled()) return;
+        if (navController.getCurrentDestination() == null) return;
 
         int currentDestId = navController.getCurrentDestination().getId();
         if (currentDestId == R.id.biometricLockFragment

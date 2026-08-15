@@ -96,4 +96,15 @@ public class PatientRepository {
             AppDatabase.runOnMainThread(() -> callback.onResult(count));
         });
     }
+
+    public void deleteAllByOwner(long ownerId) {
+        patientDao.deleteAllByOwner(ownerId);
+    }
+
+    public void deleteAllByOwner(long ownerId, Callback<Void> callback) {
+        AppDatabase.getExecutor().execute(() -> {
+            patientDao.deleteAllByOwner(ownerId);
+            AppDatabase.runOnMainThread(() -> callback.onResult(null));
+        });
+    }
 }
