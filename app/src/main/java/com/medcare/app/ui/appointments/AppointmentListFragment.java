@@ -47,6 +47,7 @@ public class AppointmentListFragment extends Fragment {
     private AppointmentAdapter adapter;
     private RecyclerView recyclerView;
     private TextView emptyStateText;
+    private View emptyStateContainer;
     private EditText searchEditText;
     private MaterialButton filterDateButton;
     private LinearLayout filterChipContainer;
@@ -72,6 +73,7 @@ public class AppointmentListFragment extends Fragment {
         currentSortMode = preferencesManager.getAppointmentSortMode(SORT_NEWEST);
         recyclerView = view.findViewById(R.id.appointment_recycler_view);
         emptyStateText = view.findViewById(R.id.empty_state_text);
+        emptyStateContainer = view.findViewById(R.id.empty_state_container);
         searchEditText = view.findViewById(R.id.search_edit_text);
         filterDateButton = view.findViewById(R.id.filter_date_button);
         filterChipContainer = view.findViewById(R.id.filter_chip_container);
@@ -103,6 +105,12 @@ public class AppointmentListFragment extends Fragment {
         });
         view.findViewById(R.id.sort_button).setOnClickListener(v -> showSortDialog());
         view.findViewById(R.id.add_appointment_button).setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putInt("appointmentId", -1);
+            Navigation.findNavController(view).navigate(
+                    R.id.action_appointmentList_to_appointmentForm, args);
+        });
+        view.findViewById(R.id.empty_add_appointment_button).setOnClickListener(v -> {
             Bundle args = new Bundle();
             args.putInt("appointmentId", -1);
             Navigation.findNavController(view).navigate(
@@ -257,12 +265,18 @@ public class AppointmentListFragment extends Fragment {
                 allAppointments.sort((a, b) -> Long.compare(getDateSortKey(b.getDate()), getDateSortKey(a.getDate())));
                 break;
             case SORT_TIME_ASC:
-                allAppointments.sort((a, b) -> a.getTime().compareTo(b.getTime()));
+                allAppointments.sort((a, b) -> compareTimeStrings(a.getTime(), b.getTime()));
                 break;
             case SORT_TIME_DESC:
-                allAppointments.sort((a, b) -> b.getTime().compareTo(a.getTime()));
+                allAppointments.sort((a, b) -> compareTimeStrings(b.getTime(), a.getTime()));
                 break;
         }
+    }
+    private int compareTimeStrings(String t1, String t2) {
+        if (t1 == null && t2 == null) return 0;
+        if (t1 == null) return -1;
+        if (t2 == null) return 1;
+        return t1.compareTo(t2);
     }
     private void filterAppointments(String query) {
         if (query == null) query = "";
@@ -288,7 +302,7 @@ public class AppointmentListFragment extends Fragment {
         adapter.setAppointments(filtered, patientNames);
         if (filtered.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
-            emptyStateText.setVisibility(View.VISIBLE);
+            emptyStateContainer.setVisibility(View.VISIBLE);
             if (allAppointments.isEmpty()) {
                 emptyStateText.setText(R.string.no_appointments);
             } else if (selectedFilterDate != null) {
@@ -298,7 +312,7 @@ public class AppointmentListFragment extends Fragment {
             }
         } else {
             recyclerView.setVisibility(View.VISIBLE);
-            emptyStateText.setVisibility(View.GONE);
+            emptyStateContainer.setVisibility(View.GONE);
         }
     }
     private void onAppointmentClicked(Appointment appointment) {

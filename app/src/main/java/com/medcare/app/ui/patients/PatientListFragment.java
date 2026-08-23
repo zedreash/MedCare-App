@@ -16,7 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
 import com.medcare.app.R;
 import com.medcare.app.adapter.PatientAdapter;
+import com.medcare.app.data.entity.Appointment;
 import com.medcare.app.data.entity.Patient;
+import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.utils.PreferencesManager;
 import java.util.ArrayList;
@@ -27,9 +29,11 @@ public class PatientListFragment extends Fragment {
     private static final int SORT_NAME_AZ = 2;
     private static final int SORT_NAME_ZA = 3;
     private PatientRepository patientRepository;
+    private AppointmentRepository appointmentRepository;
     private PatientAdapter adapter;
     private RecyclerView recyclerView;
     private TextView emptyStateText;
+    private View emptyStateContainer;
     private EditText searchEditText;
     private List<Patient> allPatients = new ArrayList<>();
     private int currentSortMode = SORT_NEWEST;
@@ -45,10 +49,12 @@ public class PatientListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         rootView = view;
         patientRepository = new PatientRepository(requireContext());
+        appointmentRepository = new AppointmentRepository(requireContext());
         preferencesManager = new PreferencesManager(requireContext());
         currentSortMode = preferencesManager.getPatientSortMode(SORT_NEWEST);
         recyclerView = view.findViewById(R.id.patient_recycler_view);
         emptyStateText = view.findViewById(R.id.empty_state_text);
+        emptyStateContainer = view.findViewById(R.id.empty_state_container);
         searchEditText = view.findViewById(R.id.search_edit_text);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new PatientAdapter(this::onPatientClicked, this::onPatientDeleteClicked);
@@ -74,6 +80,11 @@ public class PatientListFragment extends Fragment {
         });
         view.findViewById(R.id.sort_button).setOnClickListener(v -> showSortDialog());
         view.findViewById(R.id.add_patient_button).setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putInt("patientId", -1);
+            Navigation.findNavController(view).navigate(R.id.action_patientList_to_patientForm, args);
+        });
+        view.findViewById(R.id.empty_add_patient_button).setOnClickListener(v -> {
             Bundle args = new Bundle();
             args.putInt("patientId", -1);
             Navigation.findNavController(view).navigate(R.id.action_patientList_to_patientForm, args);
@@ -122,12 +133,18 @@ public class PatientListFragment extends Fragment {
                 allPatients.sort((a, b) -> Long.compare(a.getCreatedAt(), b.getCreatedAt()));
                 break;
             case SORT_NAME_AZ:
-                allPatients.sort((a, b) -> a.getFullName().compareToIgnoreCase(b.getFullName()));
+                allPatients.sort((a, b) -> compareNames(a.getFullName(), b.getFullName()));
                 break;
             case SORT_NAME_ZA:
-                allPatients.sort((a, b) -> b.getFullName().compareToIgnoreCase(a.getFullName()));
+                allPatients.sort((a, b) -> compareNames(b.getFullName(), a.getFullName()));
                 break;
         }
+    }
+    private int compareNames(String n1, String n2) {
+        if (n1 == null && n2 == null) return 0;
+        if (n1 == null) return -1;
+        if (n2 == null) return 1;
+        return n1.compareToIgnoreCase(n2);
     }
     private void filterPatients(String query) {
         if (query == null) query = "";
@@ -138,7 +155,7 @@ public class PatientListFragment extends Fragment {
         } else {
             filtered = new ArrayList<>();
             for (Patient p : allPatients) {
-                if (p.getFullName().toLowerCase().contains(query) ||
+                if ((p.getFullName() != null && p.getFullName().toLowerCase().contains(query)) ||
                     (p.getPhone() != null && p.getPhone().toLowerCase().contains(query)) ||
                     (p.getDiagnosis() != null && p.getDiagnosis().toLowerCase().contains(query)) ||
                     (p.getAddress() != null && p.getAddress().toLowerCase().contains(query))) {
@@ -149,7 +166,7 @@ public class PatientListFragment extends Fragment {
         adapter.setPatients(filtered);
         if (filtered.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
-            emptyStateText.setVisibility(View.VISIBLE);
+            emptyStateContainer.setVisibility(View.VISIBLE);
             if (allPatients.isEmpty()) {
                 emptyStateText.setText(R.string.no_patients);
             } else {
@@ -157,7 +174,7 @@ public class PatientListFragment extends Fragment {
             }
         } else {
             recyclerView.setVisibility(View.VISIBLE);
-            emptyStateText.setVisibility(View.GONE);
+            emptyStateContainer.setVisibility(View.GONE);
         }
     }
     private void onPatientClicked(Patient patient) {
@@ -171,25 +188,52 @@ public class PatientListFragment extends Fragment {
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_patient_message)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    patientRepository.delete(patient, new PatientRepository.Callback<Void>() {
+                    long ownerId = preferencesManager.getLoggedInUserId();
+                    appointmentRepository.getAppointmentsByPatientId(patient.getId(), ownerId,
+                            new AppointmentRepository.Callback<List<Appointment>>() {
                         @Override
-                        public void onResult(Void result) {
-                            loadPatients();
-                            Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
-                                    .setAction(R.string.undo, v -> {
-                                        patient.setOwnerId(preferencesManager.getLoggedInUserId());
-                                        patientRepository.insert(patient, new PatientRepository.Callback<Long>() {
-                                            @Override
-                                            public void onResult(Long result) {
-                                                loadPatients();
-                                            }
-                                        });
-                                    })
-                                    .show();
+                        public void onResult(List<Appointment> appointmentsToRestore) {
+                            patientRepository.delete(patient, new PatientRepository.Callback<Void>() {
+                                @Override
+                                public void onResult(Void result) {
+                                    loadPatients();
+                                    Snackbar.make(rootView, R.string.deleted, Snackbar.LENGTH_LONG)
+                                            .setAction(R.string.undo, v ->
+                                                    restorePatient(patient, appointmentsToRestore))
+                                            .show();
+                                }
+                            });
                         }
                     });
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();
+    }
+
+    private void restorePatient(Patient patient, List<Appointment> appointments) {
+        long ownerId = preferencesManager.getLoggedInUserId();
+        patient.setOwnerId(ownerId);
+        patientRepository.insert(patient, new PatientRepository.Callback<Long>() {
+            @Override
+            public void onResult(Long result) {
+                if (appointments == null || appointments.isEmpty()) {
+                    loadPatients();
+                    return;
+                }
+                final int[] remaining = {appointments.size()};
+                for (Appointment appointment : appointments) {
+                    appointment.setOwnerId(ownerId);
+                    appointmentRepository.insert(appointment, new AppointmentRepository.Callback<Long>() {
+                        @Override
+                        public void onResult(Long r) {
+                            remaining[0]--;
+                            if (remaining[0] == 0) {
+                                loadPatients();
+                            }
+                        }
+                    });
+                }
+            }
+        });
     }
 }

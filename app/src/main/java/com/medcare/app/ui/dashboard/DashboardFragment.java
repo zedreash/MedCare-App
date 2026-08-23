@@ -1,14 +1,11 @@
 package com.medcare.app.ui.dashboard;
 import android.os.Bundle;
 
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.graphics.Paint;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -206,20 +203,7 @@ public class DashboardFragment extends Fragment {
             }
         });
 
-        rootView.post(() -> {
-            if (fitTextsToWidth()) {
-                rootView.getViewTreeObserver().addOnGlobalLayoutListener(
-                        new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-                        rootView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                        equalizeCardHeights();
-                    }
-                });
-            } else {
-                equalizeCardHeights();
-            }
-        });
+        rootView.post(this::equalizeCardHeights);
     }
 
     private void startAutoRefresh() {
@@ -262,44 +246,6 @@ public class DashboardFragment extends Fragment {
             lp3.height = maxHeight;
             totalAppointmentsCard.requestLayout();
         }
-    }
-
-    private boolean fitTextsToWidth() {
-        float s1 = computeTargetSp(totalPatientsLabel);
-        float s2 = computeTargetSp(todayCountLabel);
-        float s3 = computeTargetSp(totalAppointmentsLabel);
-
-        float[] sizes = {s1, s2, s3};
-        float minSize = Float.MAX_VALUE;
-        boolean anyResized = false;
-        for (float s : sizes) {
-            if (s > 0) {
-                minSize = Math.min(minSize, s);
-                anyResized = true;
-            }
-        }
-
-        if (!anyResized) return false;
-
-        totalPatientsLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, minSize);
-        todayCountLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, minSize);
-        totalAppointmentsLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, minSize);
-        return true;
-    }
-
-    private float computeTargetSp(TextView textView) {
-        int availableWidth = textView.getWidth() - textView.getPaddingLeft() - textView.getPaddingRight();
-        if (availableWidth <= 0) return -1;
-
-        String text = textView.getText().toString();
-        if (text.isEmpty()) return -1;
-
-        Paint paint = textView.getPaint();
-        float textWidth = paint.measureText(text);
-        if (textWidth <= availableWidth) return -1;
-
-        float currentSizeSp = textView.getTextSize() / getResources().getDisplayMetrics().scaledDensity;
-        return currentSizeSp * availableWidth / textWidth;
     }
 
 }

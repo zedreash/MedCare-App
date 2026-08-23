@@ -39,7 +39,7 @@ import com.medcare.app.utils.PreferencesManager;
 import java.util.List;
 public class ClinicFragment extends Fragment implements OnMapReadyCallback {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
-    private static final LatLng CLINIC_LOCATION = new LatLng(32.0471, 34.8431);
+    private static final LatLng CLINIC_LOCATION = new LatLng(31.780906, 35.245916);
     private static final LatLngBounds ISRAEL_BOUNDS = new LatLngBounds(
             new LatLng(29.5, 34.2),
             new LatLng(33.3, 35.9)
@@ -191,6 +191,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
         patientRepository.getAllPatients(preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<List<Patient>>() {
             @Override
             public void onResult(List<Patient> patients) {
+                if (!isAdded() || googleMap == null) return;
                 if (patients.isEmpty()) return;
                 for (Patient patient : patients) {
                     if (patient.getLatitude() == 0.0 && patient.getLongitude() == 0.0) continue;

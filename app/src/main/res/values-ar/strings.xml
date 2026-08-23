@@ -23,19 +23,23 @@
     <string name="delete">حذف</string>
 
     <string name="field_required">هذا الحقل مطلوب</string>
+    <string name="fix_highlighted_fields">يرجى تصحيح الحقول المميزة</string>
     <string name="invalid_email">البريد الإلكتروني غير صالح</string>
     <string name="invalid_id">رقم الهوية غير صالح</string>
     <string name="password_mismatch">كلمتا المرور غير متطابقتين</string>
-    <string name="password_too_short">يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل، حرف كبير، حرف صغير، رقم، وحرف خاص</string>
+    <string name="password_too_short">يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل، حرف ورقم وحرف خاص</string>
     <string name="invalid_phone">رقم الهاتف غير صالح</string>
     <string name="invalid_age">يجب أن يكون عمرك 18 عامًا على الأقل</string>
     <string name="success_saved">تم الحفظ بنجاح</string>
     <string name="success_deleted">تم الحذف بنجاح</string>
     <string name="error_generic">حدث خطأ ما</string>
     <string name="login_invalid_credentials">البريد الإلكتروني أو كلمة المرور غير صحيحة</string>
+    <string name="login_success">تم تسجيل الدخول بنجاح</string>
     <string name="email_already_registered">هذا البريد الإلكتروني مسجل بالفعل</string>
+    <string name="id_already_registered">رقم الهوية هذا مسجل بالفعل</string>
     <string name="delete_account_confirm">هل أنت متأكد من حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.</string>
     <string name="time_conflict">يوجد بالفعل موعد في هذا الوقت</string>
+    <string name="appointment_past_error">لا يمكن حجز موعد في الماضي</string>
 
     <string name="patients">المرضى</string>
     <string name="select_patient">اختر مريض</string>
@@ -45,6 +49,8 @@
     <string name="patient_name">اسم المريض</string>
     <string name="patient_phone">رقم هاتف المريض</string>
     <string name="patient_diagnosis">التشخيص</string>
+    <string name="no_diagnosis_hint">لا يوجد تشخيص بعد — اضغط تعديل للإضافة</string>
+    <string name="no_diagnosis_short">لا يوجد تشخيص بعد</string>
     <string name="search_patients">ابحث عن مرضى</string>
     <string name="no_search_results">لا يوجد مرضى يطابقون بحثك</string>
     <string name="no_patients">لا يوجد مرضى بعد</string>
@@ -66,8 +72,8 @@
 
     <string name="nav_patients">المرضى</string>
     <string name="nav_appointments">المواعيد</string>
-    <string name="clinic_location">موقع العيادة</string>
-    <string name="clinic_address">مركز شيبا الطبي، تل هشومير، رمات غان</string>
+    <string name="clinic_location">مستشفى المقاصد الإسلامي الخيري</string>
+    <string name="clinic_address">مستشفى المقاصد، شارع روبا العدوية، القدس</string>
     <string name="get_directions">الحصول على الاتجاهات</string>
     <string name="view_patient">عرض المريض</string>
     <string name="your_location">موقعك</string>
@@ -92,6 +98,12 @@
     <string name="theme_system">إعدادات النظام</string>
     <string name="theme_light">فاتح</string>
     <string name="theme_dark">داكن</string>
+    <string name="theme_style_section">نظام الألوان</string>
+    <string name="choose_theme_prompt">اختر لوحة ألوان لتطبيقك</string>
+    <string name="theme_blue">أزرق</string>
+    <string name="theme_green">أخضر</string>
+    <string name="theme_purple">بنفسجي</string>
+    <string name="theme_orange">برتقالي</string>
     <string name="language_section">اللغة</string>
     <string name="lang_system">إعدادات النظام</string>
     <string name="lang_english">English</string>
@@ -101,6 +113,20 @@
     <string name="default_duration">المدة الافتراضية (دقائق)</string>
     <string name="data_section">البيانات</string>
     <string name="clear_all_data">مسح جميع البيانات</string>
+    <string name="developer_section">إعدادات المطور</string>
+    <string name="developer_mode">وضع المطور</string>
+    <string name="developer_mode_subtitle">يتيح أدوات اختبار إضافية</string>
+    <string name="fill_mock_data">تعبئة ببيانات تجريبية</string>
+    <string name="fill_mock_data_message">سيتم إضافة مرضى ومواعيد تجريبية لحسابك لأغراض الاختبار. هل تريد المتابعة؟</string>
+    <string name="mock_data_added">تمت إضافة البيانات التجريبية</string>
+    <string name="clear_sample_data">مسح البيانات التجريبية</string>
+    <string name="clear_sample_data_message">سيتم إزالة المرضى والمواعيد التجريبية التي تمت إضافتها لحسابك. هل تريد المتابعة؟</string>
+    <string name="sample_data_removed">تمت إزالة البيانات التجريبية</string>
+    <string name="app_version">إصدار التطبيق</string>
+    <string name="account_id">معرّف الحساب</string>
+    <string name="reset_settings">إعادة ضبط إعدادات التطبيق</string>
+    <string name="reset_settings_message">سيتم إعادة ضبط المظهر واللغة والفرز والمدة الافتراضية وإعدادات البصمة إلى الإعدادات الافتراضية. يبقى حسابك وبياناتك كما هي. هل تريد المتابعة؟</string>
+    <string name="settings_reset">تمت إعادة ضبط الإعدادات</string>
     <string name="clear_data_confirm">سيؤدي هذا إلى حذف جميع المرضى والمواعيد وحسابك. لا يمكن التراجع عن هذا الإجراء.</string>
     <string name="data_cleared">تم مسح جميع البيانات</string>
     <string name="next">التالي</string>
@@ -176,9 +202,21 @@
     <string name="biometric_prompt_subtitle">تحقق من هويتك للوصول إلى التطبيق</string>
     <string name="use_password_fallback">استخدام كلمة المرور</string>
     <string name="biometric_not_available">التحقق البيومتري غير متوفر على هذا الجهاز</string>
+    <string name="profile_photo">صورة الملف الشخصي</string>
+    <string name="change_profile_photo">تغيير الصورة</string>
+    <string name="remove_profile_photo">إزالة الصورة</string>
+    <string name="profile_picture_updated">تم تحديث صورة الملف الشخصي</string>
+    <string name="profile_picture_removed">تمت إزالة صورة الملف الشخصي</string>
+    <string name="disable_biometric_title">تعطيل القفل البيومتري</string>
+    <string name="disable_biometric_subtitle">قم بالمصادقة لإيقاف تشغيل القفل البيومتري</string>
+    <string name="enable_biometric_title">تفعيل القفل البيومتري</string>
+    <string name="enable_biometric_subtitle">قم بالمصادقة لتفعيل القفل البيومتري</string>
     <string name="biometric_failed">لم يتم التعرف على البصمة. حاول مرة أخرى.</string>
 
     <string name="nav_calendar">التقويم</string>
+    <string name="in_minutes">بعد %1$d دقيقة</string>
+    <string name="in_hours">بعد %1$d ساعة</string>
+    <string name="in_hours_minutes">بعد %1$d ساعة و%2$d دقيقة</string>
     <string name="open_calendar">فتح التقويم</string>
     <string name="calendar_today">اليوم</string>
     <string name="view_day">يوم</string>

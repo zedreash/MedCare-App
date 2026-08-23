@@ -6,9 +6,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.material.color.MaterialColors;
 
 import com.medcare.app.R;
 import com.medcare.app.data.entity.Patient;
+import com.medcare.app.utils.AvatarUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,22 +62,12 @@ public class PatientAdapter extends BaseSwipeAdapter<PatientAdapter.PatientViewH
         notifyDataSetChanged();
     }
 
-    public Patient removeItem(int position) {
-        Patient patient = patients.remove(position);
-        notifyItemRemoved(position);
-        return patient;
-    }
-
-    public void restoreItem(Patient patient, int position) {
-        patients.add(position, patient);
-        notifyItemInserted(position);
-    }
-
     class PatientViewHolder extends SwipeableViewHolder {
         private TextView nameText;
         private TextView phoneText;
         private TextView diagnosisText;
         private TextView addressText;
+        private TextView avatarText;
 
         PatientViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -81,14 +75,27 @@ public class PatientAdapter extends BaseSwipeAdapter<PatientAdapter.PatientViewH
             phoneText = itemView.findViewById(R.id.patient_phone_text);
             diagnosisText = itemView.findViewById(R.id.patient_diagnosis_text);
             addressText = itemView.findViewById(R.id.patient_address_text);
+            avatarText = itemView.findViewById(R.id.patient_avatar);
         }
 
         void bind(Patient patient) {
             nameText.setText(patient.getFullName());
             phoneText.setText(patient.getPhone());
-            diagnosisText.setText(patient.getDiagnosis());
+            String diagnosis = patient.getDiagnosis();
+            if (diagnosis != null && !diagnosis.isEmpty()) {
+                diagnosisText.setText(diagnosis);
+                diagnosisText.setTextColor(MaterialColors.getColor(itemView.getContext(),
+                        com.google.android.material.R.attr.colorOnSurface,
+                        ContextCompat.getColor(itemView.getContext(), android.R.color.black)));
+            } else {
+                diagnosisText.setText(R.string.no_diagnosis_short);
+                diagnosisText.setTextColor(MaterialColors.getColor(itemView.getContext(),
+                        com.google.android.material.R.attr.colorOnSurfaceVariant,
+                        ContextCompat.getColor(itemView.getContext(), R.color.text_secondary)));
+            }
             String address = patient.getAddress();
             addressText.setText(address != null && !address.isEmpty() ? address : null);
+            avatarText.setText(AvatarUtils.getInitials(patient.getFullName()));
         }
 
         @Override

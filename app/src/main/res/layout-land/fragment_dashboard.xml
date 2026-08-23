@@ -10,13 +10,27 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_medium">
 
-        <TextView
-            android:id="@+id/title"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/nav_dashboard"
-            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_app_logo" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="@string/nav_dashboard"
+                android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/welcome_text"
@@ -88,9 +102,10 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:gravity="center_horizontal"
-                            android:maxLines="1"
+                            android:hyphenationFrequency="normal"
                             android:text="@string/total_patients"
-                            android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -151,9 +166,10 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:gravity="center_horizontal"
-                            android:maxLines="1"
+                            android:hyphenationFrequency="normal"
                             android:text="@string/today_appointments"
-                            android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -214,9 +230,10 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:gravity="center_horizontal"
-                            android:maxLines="1"
+                            android:hyphenationFrequency="normal"
                             android:text="@string/total_appointments"
-                            android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
 
                     </LinearLayout>
                 </LinearLayout>

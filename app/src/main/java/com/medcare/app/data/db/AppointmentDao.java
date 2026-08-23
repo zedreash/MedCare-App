@@ -15,11 +15,11 @@ public interface AppointmentDao {
     void update(Appointment appointment);
     @Delete
     void delete(Appointment appointment);
-    @Query("SELECT * FROM appointments WHERE owner_id = :ownerId ORDER BY date DESC, time DESC")
+    @Query("SELECT * FROM appointments WHERE owner_id = :ownerId ORDER BY created_at DESC")
     List<Appointment> getAllAppointments(long ownerId);
     @Query("SELECT * FROM appointments WHERE id = :id AND owner_id = :ownerId LIMIT 1")
     Appointment getAppointmentById(long id, long ownerId);
-    @Query("SELECT * FROM appointments WHERE patient_id = :patientId AND owner_id = :ownerId ORDER BY date DESC")
+    @Query("SELECT * FROM appointments WHERE patient_id = :patientId AND owner_id = :ownerId ORDER BY created_at DESC")
     List<Appointment> getAppointmentsByPatientId(long patientId, long ownerId);
     @Query("SELECT * FROM appointments WHERE date = :date AND owner_id = :ownerId ORDER BY time ASC")
     List<Appointment> getAppointmentsByDate(String date, long ownerId);
@@ -29,4 +29,6 @@ public interface AppointmentDao {
     int getAppointmentCountByDate(String date, long ownerId);
     @Query("DELETE FROM appointments WHERE owner_id = :ownerId")
     void deleteAllByOwner(long ownerId);
+    @Query("DELETE FROM appointments WHERE id = :id")
+    void deleteById(long id);
 }

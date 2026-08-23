@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/margin_large"
+    android:paddingEnd="@dimen/margin_large"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <ImageView
+        android:id="@+id/dialog_ts_blue"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginHorizontal="10dp"
+        android:background="@drawable/bg_circle"
+        android:backgroundTint="@color/theme_swatch_blue"
+        android:contentDescription="@string/theme_blue"
+        android:padding="10dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_check" />
+
+    <ImageView
+        android:id="@+id/dialog_ts_green"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginHorizontal="10dp"
+        android:background="@drawable/bg_circle"
+        android:backgroundTint="@color/theme_swatch_green"
+        android:contentDescription="@string/theme_green"
+        android:padding="10dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_check" />
+
+    <ImageView
+        android:id="@+id/dialog_ts_purple"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginHorizontal="10dp"
+        android:background="@drawable/bg_circle"
+        android:backgroundTint="@color/theme_swatch_purple"
+        android:contentDescription="@string/theme_purple"
+        android:padding="10dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_check" />
+
+    <ImageView
+        android:id="@+id/dialog_ts_orange"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginHorizontal="10dp"
+        android:background="@drawable/bg_circle"
+        android:backgroundTint="@color/theme_swatch_orange"
+        android:contentDescription="@string/theme_orange"
+        android:padding="10dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_check" />
+
+</LinearLayout>

@@ -25,6 +25,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.color.MaterialColors;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.Appointment;
 import com.medcare.app.data.entity.Patient;
@@ -44,7 +45,7 @@ public class CalendarFragment extends Fragment {
     private AppointmentRepository appointmentRepo;
     private PatientRepository patientRepo;
     private PreferencesManager preferencesManager;
-    private Runnable autoRefreshRunnable;
+    private boolean scrollToNowOnNextRender = false;
 
     private TextView dateHeaderText;
     private ImageButton prevButton, nextButton;
@@ -55,6 +56,7 @@ public class CalendarFragment extends Fragment {
     private ViewMode currentMode = ViewMode.DAY;
     private Calendar focusedDate = Calendar.getInstance();
     private boolean[] expandedRows = new boolean[24];
+    private int pendingScrollY = -1;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -121,69 +123,12 @@ public class CalendarFragment extends Fragment {
             case SIX_DAY: sixDayChip.setChecked(true); break;
             case MONTH: monthChip.setChecked(true); break;
         }
-        refresh();
     }
 
     @Override
     public void onStart() {
         super.onStart();
         refresh();
-        startAutoRefresh();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        stopAutoRefresh();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        stopAutoRefresh();
-    }
-
-    private void startAutoRefresh() {
-        stopAutoRefresh();
-        if (calendarContent == null) return;
-        autoRefreshRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!isAdded() || calendarContent == null) return;
-                if (currentMode == ViewMode.DAY) {
-                    int savedY = getCurrentScrollY();
-                    refresh();
-                    restoreScrollY(savedY);
-                }
-                calendarContent.postDelayed(this, 10000);
-            }
-        };
-        calendarContent.postDelayed(autoRefreshRunnable, 10000);
-    }
-    private int getCurrentScrollY() {
-        if (calendarContent.getChildCount() > 0 && calendarContent.getChildAt(0) instanceof ScrollView) {
-            return ((ScrollView) calendarContent.getChildAt(0)).getScrollY();
-        }
-        return 0;
-    }
-    private void restoreScrollY(int y) {
-        if (y <= 0) return;
-        final int target = y;
-        calendarContent.post(() -> {
-            if (calendarContent.getChildCount() > 0 && calendarContent.getChildAt(0) instanceof ScrollView) {
-                ScrollView sv = (ScrollView) calendarContent.getChildAt(0);
-                int max = sv.getChildCount() > 0
-                        ? sv.getChildAt(0).getHeight() - sv.getHeight() : 0;
-                sv.scrollTo(0, Math.min(target, Math.max(max, 0)));
-            }
-        });
-    }
-
-    private void stopAutoRefresh() {
-        if (calendarContent != null && autoRefreshRunnable != null) {
-            calendarContent.removeCallbacks(autoRefreshRunnable);
-        }
-        autoRefreshRunnable = null;
     }
 
     private void navigateDate(int direction) {
@@ -234,6 +179,7 @@ public class CalendarFragment extends Fragment {
     private void refresh() {
         updateDateHeader();
         calendarContent.removeAllViews();
+        scrollToNowOnNextRender = true;
         if (currentMode != ViewMode.DAY) {
             resetExpandedRows();
         }
@@ -267,6 +213,7 @@ public class CalendarFragment extends Fragment {
         appointmentRepo.getAppointmentsByDate(dateStr, preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<List<Appointment>>() {
             @Override
             public void onResult(List<Appointment> appointments) {
+                if (!isAdded()) return;
                 ScrollView scrollView = new ScrollView(requireContext());
                 scrollView.setLayoutParams(new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
@@ -287,7 +234,7 @@ public class CalendarFragment extends Fragment {
                     TextView emptyText = new TextView(requireContext());
                     emptyText.setText(getString(R.string.no_appointments_day));
                     emptyText.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge);
-                    emptyText.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
+                    emptyText.setTextColor(themeColor(com.google.android.material.R.attr.colorOnSurfaceVariant, ContextCompat.getColor(requireContext(), R.color.text_secondary)));
                     emptyText.setGravity(Gravity.CENTER);
                     emptyText.setPadding(0, dpToPx(80), 0, 0);
                     hourLayout.addView(emptyText);
@@ -324,7 +271,7 @@ public class CalendarFragment extends Fragment {
                     TextView hourLabel = new TextView(requireContext());
                     hourLabel.setText(String.format(Locale.getDefault(), "%02d:00", hour));
                     hourLabel.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
-                    hourLabel.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
+                    hourLabel.setTextColor(themeColor(com.google.android.material.R.attr.colorOnSurfaceVariant, ContextCompat.getColor(requireContext(), R.color.text_secondary)));
                     hourLabel.setWidth(dpToPx(50));
                     hourLabel.setGravity(Gravity.TOP | Gravity.START);
                     hourLabel.setPadding(0, dpToPx(4), 0, 0);
@@ -353,24 +300,15 @@ public class CalendarFragment extends Fragment {
                         final ScrollView sv = scrollView;
                         row.setOnClickListener(v -> {
                             expandedRows[currentHour] = !expandedRows[currentHour];
-                            int savedY = sv.getScrollY();
+                            pendingScrollY = sv.getScrollY();
                             refresh();
-                            View child = calendarContent.getChildAt(0);
-                            if (child instanceof ScrollView) {
-                                ScrollView newSv = (ScrollView) child;
-                                newSv.post(() -> {
-                                    if (newSv.getChildCount() > 0) {
-                                        newSv.scrollTo(0, Math.min(savedY, newSv.getChildAt(0).getHeight()));
-                                    }
-                                });
-                            }
                         });
                     }
 
                     View divider = new View(requireContext());
                     divider.setLayoutParams(new LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT, 1));
-                    divider.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.divider));
+                    divider.setBackgroundColor(themeColor(com.google.android.material.R.attr.colorOutlineVariant, ContextCompat.getColor(requireContext(), R.color.divider)));
 
                     row.addView(hourLabel);
                     row.addView(apptContainer);
@@ -382,14 +320,15 @@ public class CalendarFragment extends Fragment {
 
                 contentFrame.addView(hourLayout);
 
+                boolean hasAppointments = !appointments.isEmpty();
                 Calendar now = Calendar.getInstance();
                 boolean isToday = isSameDay(focusedDate, now);
-                if (isToday) {
-                    View nowLine = new View(requireContext());
-                    nowLine.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.error));
-                    nowLine.setEnabled(false);
-
+                if (hasAppointments && isToday) {
                     int minutesSinceMidnight = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+
+                    View nowLine = new View(requireContext());
+                    nowLine.setBackgroundColor(themeColor(com.google.android.material.R.attr.colorError, ContextCompat.getColor(requireContext(), R.color.error)));
+                    nowLine.setEnabled(false);
 
                     FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                             FrameLayout.LayoutParams.MATCH_PARENT, dpToPx(3));
@@ -398,14 +337,29 @@ public class CalendarFragment extends Fragment {
 
                     contentFrame.addView(nowLine);
 
-                    int scrollTo = (int) (minutesSinceMidnight * minuteHeightPx) - dpToPx(200);
-                    if (scrollTo < 0) scrollTo = 0;
-                    final int finalScrollTo = scrollTo;
-                    scrollView.post(() -> scrollView.scrollTo(0, finalScrollTo));
+                    if (scrollToNowOnNextRender && pendingScrollY < 0) {
+                        scrollToNowOnNextRender = false;
+                        int scrollTo = (int) (minutesSinceMidnight * minuteHeightPx) - dpToPx(200);
+                        if (scrollTo < 0) scrollTo = 0;
+                        final int finalScrollTo = scrollTo;
+                        scrollView.post(() -> scrollView.scrollTo(0, finalScrollTo));
+                    }
                 }
 
                 scrollView.addView(contentFrame);
+                calendarContent.removeAllViews();
                 calendarContent.addView(scrollView);
+
+                if (pendingScrollY >= 0) {
+                    final int target = pendingScrollY;
+                    pendingScrollY = -1;
+                    scrollToNowOnNextRender = false;
+                    scrollView.post(() -> {
+                        if (scrollView.getChildCount() > 0) {
+                            scrollView.scrollTo(0, Math.min(target, scrollView.getChildAt(0).getHeight()));
+                        }
+                    });
+                }
             }
         });
     }
@@ -438,6 +392,7 @@ public class CalendarFragment extends Fragment {
         patientRepo.getPatientById(appointment.getPatientId(), preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
             @Override
             public void onResult(Patient patient) {
+                if (!isAdded()) return;
                 String patientName = patient != null ? patient.getFullName() : "";
                 if (apptName != null && !apptName.isEmpty()) {
                     nameText.setText(apptName + " \u00B7 " + patientName);
@@ -449,7 +404,7 @@ public class CalendarFragment extends Fragment {
 
         TextView timeText = new TextView(requireContext());
         timeText.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
-        timeText.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
+        timeText.setTextColor(themeColor(com.google.android.material.R.attr.colorOnSurfaceVariant, ContextCompat.getColor(requireContext(), R.color.text_secondary)));
         String time = appointment.getTime() != null ? appointment.getTime() : "";
         if (appointment.getDuration() > 0) {
             timeText.setText(time + " - " + calculateEndTime(time, appointment.getDuration()));
@@ -475,7 +430,7 @@ public class CalendarFragment extends Fragment {
         TextView tv = new TextView(requireContext());
         tv.setText(String.format(Locale.getDefault(), getString(R.string.calendar_expand), moreCount));
         tv.setGravity(Gravity.CENTER);
-        tv.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary));
+        tv.setTextColor(themeColor(com.google.android.material.R.attr.colorPrimary, ContextCompat.getColor(requireContext(), R.color.primary)));
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         tv.setPadding(0, dpToPx(2), 0, dpToPx(2));
         return tv;
@@ -485,30 +440,32 @@ public class CalendarFragment extends Fragment {
         TextView tv = new TextView(requireContext());
         tv.setText(getString(R.string.calendar_collapse));
         tv.setGravity(Gravity.CENTER);
-        tv.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary));
+        tv.setTextColor(themeColor(com.google.android.material.R.attr.colorPrimary, ContextCompat.getColor(requireContext(), R.color.primary)));
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         tv.setPadding(0, dpToPx(2), 0, dpToPx(2));
         return tv;
     }
 
     private void renderSixDayView() {
-        ScrollView vScroll = new ScrollView(requireContext());
-        vScroll.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        appointmentRepo.getAllAppointments(preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<List<Appointment>>() {
+            @Override
+            public void onResult(List<Appointment> allAppointments) {
+                if (!isAdded()) return;
+                ScrollView vScroll = new ScrollView(requireContext());
+                vScroll.setLayoutParams(new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
-        HorizontalScrollView hScroll = new HorizontalScrollView(requireContext());
-        hScroll.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                HorizontalScrollView hScroll = new HorizontalScrollView(requireContext());
+                hScroll.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
-        LinearLayout container = new LinearLayout(requireContext());
-        container.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout container = new LinearLayout(requireContext());
+                container.setOrientation(LinearLayout.HORIZONTAL);
 
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        int colWidthPx = screenWidth / 3;
-        int colHeightPx = (int) (getResources().getDisplayMetrics().heightPixels * 2);
+                int screenWidth = getResources().getDisplayMetrics().widthPixels;
+                int colWidthPx = screenWidth / 3;
 
-        List<Appointment> allAppointments = appointmentRepo.getAllAppointments(preferencesManager.getLoggedInUserId());
-        Calendar today = Calendar.getInstance();
+                Calendar today = Calendar.getInstance();
 
         for (int i = 0; i < 6; i++) {
             Calendar day = (Calendar) focusedDate.clone();
@@ -517,7 +474,7 @@ public class CalendarFragment extends Fragment {
 
             LinearLayout column = new LinearLayout(requireContext());
             column.setOrientation(LinearLayout.VERTICAL);
-            column.setLayoutParams(new LinearLayout.LayoutParams(colWidthPx, colHeightPx));
+            column.setLayoutParams(new LinearLayout.LayoutParams(colWidthPx, LinearLayout.LayoutParams.WRAP_CONTENT));
             column.setPadding(dpToPx(4), 0, dpToPx(4), 0);
 
             TextView header = new TextView(requireContext());
@@ -530,10 +487,10 @@ public class CalendarFragment extends Fragment {
 
             boolean isToday = isSameDay(day, today);
             if (isToday) {
-                header.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.primary));
-                header.setTextColor(ContextCompat.getColor(requireContext(), R.color.on_primary));
+                header.setBackgroundColor(themeColor(com.google.android.material.R.attr.colorPrimary, ContextCompat.getColor(requireContext(), R.color.primary)));
+                header.setTextColor(themeColor(com.google.android.material.R.attr.colorOnPrimary, ContextCompat.getColor(requireContext(), R.color.on_primary)));
             } else {
-                header.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.surface));
+                header.setBackgroundColor(themeColor(com.google.android.material.R.attr.colorSurface, ContextCompat.getColor(requireContext(), R.color.surface)));
             }
 
             final Calendar targetDay = (Calendar) day.clone();
@@ -556,27 +513,40 @@ public class CalendarFragment extends Fragment {
                             com.google.android.material.R.attr.materialCardViewOutlinedStyle);
                     chip.setLayoutParams(new LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                    chip.setContentPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4));
-                    chip.setRadius(dpToPx(4));
+                    chip.setContentPadding(dpToPx(10), dpToPx(6), dpToPx(10), dpToPx(6));
+                    chip.setRadius(dpToPx(6));
                     chip.setStrokeWidth(0);
                     chip.setCardElevation(dpToPx(1));
                     int chipMargin = dpToPx(2);
                     LinearLayout.LayoutParams chipLp = (LinearLayout.LayoutParams) chip.getLayoutParams();
                     chipLp.setMargins(0, chipMargin, 0, chipMargin);
 
+                    LinearLayout chipInner = new LinearLayout(requireContext());
+                    chipInner.setOrientation(LinearLayout.VERTICAL);
+
+                    TextView chipTime = new TextView(requireContext());
+                    chipTime.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_LabelSmall);
+                    chipTime.setText(appt.getTime());
+                    chipTime.setTextColor(themeColor(com.google.android.material.R.attr.colorPrimary, ContextCompat.getColor(requireContext(), R.color.primary)));
+                    chipInner.addView(chipTime);
+
                     TextView chipText = new TextView(requireContext());
                     chipText.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
-                    chipText.setText(appt.getTime() + " " + initialDisplay);
-                    chipText.setMaxLines(1);
-                    chip.addView(chipText);
+                    chipText.setText(initialDisplay);
+                    chipText.setMaxLines(2);
+                    chipText.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                    chipInner.addView(chipText);
+
+                    chip.addView(chipInner);
 
                     patientRepo.getPatientById(appt.getPatientId(), preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
                         @Override
                         public void onResult(Patient patient) {
+                            if (!isAdded()) return;
                             String patientName = patient != null ? patient.getFullName() : "";
                             String displayName = appt.getName() != null && !appt.getName().isEmpty()
                                     ? appt.getName() : patientName;
-                            chipText.setText(appt.getTime() + " " + displayName);
+                            chipText.setText(displayName);
                         }
                     });
 
@@ -595,102 +565,195 @@ public class CalendarFragment extends Fragment {
             container.addView(column);
         }
 
-        hScroll.addView(container);
-        vScroll.addView(hScroll);
-        calendarContent.addView(vScroll);
+                hScroll.addView(container);
+                vScroll.addView(hScroll);
+                calendarContent.removeAllViews();
+                calendarContent.addView(vScroll);
+            }
+        });
     }
 
     private void renderMonthView() {
-        Calendar firstOfMonth = (Calendar) focusedDate.clone();
-        firstOfMonth.set(Calendar.DAY_OF_MONTH, 1);
-        int firstDayOfWeek = firstOfMonth.get(Calendar.DAY_OF_WEEK);
-        int daysInMonth = firstOfMonth.getActualMaximum(Calendar.DAY_OF_MONTH);
-        Calendar today = Calendar.getInstance();
+        appointmentRepo.getAllAppointments(preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<List<Appointment>>() {
+            @Override
+            public void onResult(List<Appointment> allAppointments) {
+                if (!isAdded()) return;
+                Calendar firstOfMonth = (Calendar) focusedDate.clone();
+                firstOfMonth.set(Calendar.DAY_OF_MONTH, 1);
+                int firstDayOfWeek = firstOfMonth.get(Calendar.DAY_OF_WEEK);
+                int daysInMonth = firstOfMonth.getActualMaximum(Calendar.DAY_OF_MONTH);
+                Calendar today = Calendar.getInstance();
 
-        int firstCol = (firstDayOfWeek - Calendar.SUNDAY + 7) % 7;
+                String monthSuffix = String.format(Locale.getDefault(), "/%02d/%04d",
+                        focusedDate.get(Calendar.MONTH) + 1, focusedDate.get(Calendar.YEAR));
+                java.util.Map<Integer, Integer> dayCounts = new java.util.HashMap<>();
+                for (Appointment a : allAppointments) {
+                    String date = a.getDate();
+                    if (date != null && date.endsWith(monthSuffix)) {
+                        try {
+                            int day = Integer.parseInt(date.substring(0, 2));
+                            dayCounts.put(day, dayCounts.containsKey(day) ? dayCounts.get(day) + 1 : 1);
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }
 
-        ScrollView scrollView = new ScrollView(requireContext());
-        scrollView.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+                int localeFirstDay = firstOfMonth.getFirstDayOfWeek();
+                int firstCol = (firstDayOfWeek - localeFirstDay + 7) % 7;
 
-        LinearLayout container = new LinearLayout(requireContext());
-        container.setOrientation(LinearLayout.VERTICAL);
+                ScrollView scrollView = new ScrollView(requireContext());
+                scrollView.setLayoutParams(new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
-        LinearLayout headerRow = new LinearLayout(requireContext());
-        headerRow.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout container = new LinearLayout(requireContext());
+                container.setOrientation(LinearLayout.VERTICAL);
 
-        Calendar refCal = (Calendar) focusedDate.clone();
-        refCal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-        SimpleDateFormat dayNameFmt = new SimpleDateFormat("EEE", Locale.getDefault());
+                LinearLayout headerRow = new LinearLayout(requireContext());
+                headerRow.setOrientation(LinearLayout.HORIZONTAL);
 
-        for (int i = 0; i < 7; i++) {
-            TextView dayHeader = new TextView(requireContext());
-            dayHeader.setText(dayNameFmt.format(refCal.getTime()));
-            dayHeader.setGravity(Gravity.CENTER);
-            dayHeader.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
-            dayHeader.setTypeface(dayHeader.getTypeface(), Typeface.BOLD);
-            dayHeader.setLayoutParams(new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
-            dayHeader.setPadding(0, dpToPx(8), 0, dpToPx(8));
-            headerRow.addView(dayHeader);
-            refCal.add(Calendar.DAY_OF_MONTH, 1);
-        }
+                Calendar refCal = (Calendar) focusedDate.clone();
+                refCal.set(Calendar.DAY_OF_WEEK, localeFirstDay);
+                SimpleDateFormat dayNameFmt = new SimpleDateFormat("EEE", Locale.getDefault());
 
-        container.addView(headerRow);
+                for (int i = 0; i < 7; i++) {
+                    TextView dayHeader = new TextView(requireContext());
+                    dayHeader.setText(dayNameFmt.format(refCal.getTime()));
+                    dayHeader.setGravity(Gravity.CENTER);
+                    dayHeader.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);
+                    dayHeader.setTypeface(dayHeader.getTypeface(), Typeface.BOLD);
+                    dayHeader.setLayoutParams(new LinearLayout.LayoutParams(
+                            0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+                    dayHeader.setPadding(0, dpToPx(8), 0, dpToPx(8));
+                    headerRow.addView(dayHeader);
+                    refCal.add(Calendar.DAY_OF_MONTH, 1);
+                }
 
-        LinearLayout weekRow = new LinearLayout(requireContext());
-        weekRow.setOrientation(LinearLayout.HORIZONTAL);
-        int cellSizePx = dpToPx(48);
+                container.addView(headerRow);
 
-        for (int i = 0; i < firstCol; i++) {
-            TextView empty = new TextView(requireContext());
-            empty.setLayoutParams(new LinearLayout.LayoutParams(0, cellSizePx, 1));
-            weekRow.addView(empty);
-        }
-
-        for (int day = 1; day <= daysInMonth; day++) {
-            if (weekRow.getChildCount() == 7) {
-                container.addView(weekRow);
-                weekRow = new LinearLayout(requireContext());
+                LinearLayout weekRow = new LinearLayout(requireContext());
                 weekRow.setOrientation(LinearLayout.HORIZONTAL);
+                int cellSizePx = dpToPx(52);
+                final int selectedDay = focusedDate.get(Calendar.DAY_OF_MONTH);
+
+                for (int i = 0; i < firstCol; i++) {
+                    TextView empty = new TextView(requireContext());
+                    empty.setLayoutParams(new LinearLayout.LayoutParams(0, cellSizePx, 1));
+                    weekRow.addView(empty);
+                }
+
+                for (int day = 1; day <= daysInMonth; day++) {
+                    if (weekRow.getChildCount() == 7) {
+                        container.addView(weekRow);
+                        weekRow = new LinearLayout(requireContext());
+                        weekRow.setOrientation(LinearLayout.HORIZONTAL);
+                    }
+
+                    final int currentDay = day;
+                    boolean isToday = isSameMonthDay(focusedDate, today) && day == today.get(Calendar.DAY_OF_MONTH);
+                    boolean isSelected = day == selectedDay;
+                    int primaryColor = themeColor(com.google.android.material.R.attr.colorPrimary, ContextCompat.getColor(requireContext(), R.color.primary));
+                    int onPrimaryColor = themeColor(com.google.android.material.R.attr.colorOnPrimary, ContextCompat.getColor(requireContext(), R.color.on_primary));
+                    int containerColor = themeColor(com.google.android.material.R.attr.colorPrimaryContainer, ContextCompat.getColor(requireContext(), R.color.primary_container));
+                    int onContainerColor = themeColor(com.google.android.material.R.attr.colorOnPrimaryContainer, ContextCompat.getColor(requireContext(), R.color.on_primary_container));
+
+                    LinearLayout dayCell = new LinearLayout(requireContext());
+                    dayCell.setOrientation(LinearLayout.VERTICAL);
+                    dayCell.setGravity(Gravity.CENTER);
+                    dayCell.setLayoutParams(new LinearLayout.LayoutParams(0, cellSizePx, 1));
+                    dayCell.setClickable(true);
+                    dayCell.setFocusable(true);
+
+                    LinearLayout box = new LinearLayout(requireContext());
+                    box.setOrientation(LinearLayout.VERTICAL);
+                    box.setGravity(Gravity.CENTER);
+                    box.setPadding(dpToPx(6), dpToPx(3), dpToPx(6), dpToPx(3));
+                    LinearLayout.LayoutParams boxLp = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                    boxLp.setMargins(dpToPx(2), 0, dpToPx(2), 0);
+                    box.setLayoutParams(boxLp);
+                    box.setMinimumHeight(dpToPx(42));
+
+                    TextView dayNumber = new TextView(requireContext());
+                    dayNumber.setText(String.valueOf(day));
+                    dayNumber.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);
+                    dayNumber.setGravity(Gravity.CENTER);
+                    dayNumber.setIncludeFontPadding(false);
+
+                    int boxColor = 0;
+                    int boxTextColor = 0;
+                    if (isSelected) {
+                        boxColor = primaryColor;
+                        boxTextColor = onPrimaryColor;
+                    } else if (isToday) {
+                        boxColor = containerColor;
+                        boxTextColor = onContainerColor;
+                    }
+
+                    int count = dayCounts.containsKey(day) ? dayCounts.get(day) : 0;
+                    LinearLayout dotsRow = new LinearLayout(requireContext());
+                    dotsRow.setOrientation(LinearLayout.HORIZONTAL);
+                    dotsRow.setGravity(Gravity.CENTER);
+                    dotsRow.setPadding(0, dpToPx(2), 0, 0);
+                    int dotsToShow = Math.min(count, 3);
+                    int dotColor = isSelected ? onPrimaryColor : (isToday ? onContainerColor : primaryColor);
+                    for (int d = 0; d < dotsToShow; d++) {
+                        View dot = new View(requireContext());
+                        LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(dpToPx(4), dpToPx(4));
+                        dotLp.setMargins(dpToPx(1), 0, dpToPx(1), 0);
+                        dot.setLayoutParams(dotLp);
+                        dot.setBackgroundResource(R.drawable.bg_dot);
+                        dot.setBackgroundTintList(android.content.res.ColorStateList.valueOf(dotColor));
+                        dotsRow.addView(dot);
+                    }
+                    if (count > 3) {
+                        TextView more = new TextView(requireContext());
+                        more.setText("+" + (count - 3));
+                        more.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8);
+                        more.setIncludeFontPadding(false);
+                        more.setSingleLine(true);
+                        more.setMaxLines(1);
+                        more.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+                        more.setTextColor(dotColor);
+                        more.setPadding(dpToPx(1), 0, 0, 0);
+                        dotsRow.addView(more);
+                    }
+
+                    box.addView(dayNumber);
+                    if (count > 0) {
+                        box.addView(dotsRow);
+                    }
+                    if (boxColor != 0) {
+                        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+                        bg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+                        bg.setCornerRadius(dpToPx(10));
+                        bg.setColor(boxColor);
+                        box.setBackground(bg);
+                        dayNumber.setTextColor(boxTextColor);
+                    }
+
+                    dayCell.addView(box);
+
+                    dayCell.setOnClickListener(v -> {
+                        focusedDate.set(Calendar.DAY_OF_MONTH, currentDay);
+                        currentMode = ViewMode.DAY;
+                        dayChip.setChecked(true);
+                        refresh();
+                    });
+
+                    weekRow.addView(dayCell);
+                }
+
+                while (weekRow.getChildCount() < 7) {
+                    TextView empty = new TextView(requireContext());
+                    empty.setLayoutParams(new LinearLayout.LayoutParams(0, cellSizePx, 1));
+                    weekRow.addView(empty);
+                }
+                container.addView(weekRow);
+
+                scrollView.addView(container);
+                calendarContent.removeAllViews();
+                calendarContent.addView(scrollView);
             }
-
-            final int currentDay = day;
-            TextView dayCell = new TextView(requireContext());
-            dayCell.setText(String.valueOf(day));
-            dayCell.setGravity(Gravity.CENTER);
-            dayCell.setLayoutParams(new LinearLayout.LayoutParams(0, cellSizePx, 1));
-            dayCell.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);
-
-            boolean isToday = isSameMonthDay(focusedDate, today) && day == today.get(Calendar.DAY_OF_MONTH);
-            if (isToday) {
-                android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
-                bg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-                bg.setCornerRadius(dpToPx(20));
-                bg.setColor(ContextCompat.getColor(requireContext(), R.color.primary));
-                dayCell.setBackground(bg);
-                dayCell.setTextColor(ContextCompat.getColor(requireContext(), R.color.on_primary));
-            }
-
-            dayCell.setOnClickListener(v -> {
-                focusedDate.set(Calendar.DAY_OF_MONTH, currentDay);
-                currentMode = ViewMode.DAY;
-                dayChip.setChecked(true);
-                refresh();
-            });
-
-            weekRow.addView(dayCell);
-        }
-
-        while (weekRow.getChildCount() < 7) {
-            TextView empty = new TextView(requireContext());
-            empty.setLayoutParams(new LinearLayout.LayoutParams(0, cellSizePx, 1));
-            weekRow.addView(empty);
-        }
-        container.addView(weekRow);
-
-        scrollView.addView(container);
-        calendarContent.addView(scrollView);
+        });
     }
 
     private String calculateEndTime(String time, int duration) {
@@ -722,8 +785,7 @@ public class CalendarFragment extends Fragment {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
-    private String getPatientName(long patientId) {
-        Patient patient = patientRepo.getPatientById(patientId, preferencesManager.getLoggedInUserId());
-        return patient != null ? patient.getFullName() : "";
+    private int themeColor(int attr, int fallback) {
+        return MaterialColors.getColor(requireContext(), attr, fallback);
     }
 }

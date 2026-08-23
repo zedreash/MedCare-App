@@ -7,10 +7,14 @@
     android:padding="@dimen/margin_large">
 
     <ImageView
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
         android:contentDescription="@string/app_name"
-        android:src="@android:drawable/ic_lock_idle_lock" />
+        android:padding="20dp"
+        android:background="@drawable/bg_biometric_icon"
+        android:src="@drawable/ic_lock"
+        app:tint="?attr/colorPrimary"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
 
     <TextView
         android:layout_width="match_parent"
@@ -68,7 +72,7 @@
             android:id="@+id/password_error"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/error"
+            android:textColor="?attr/colorError"
             android:visibility="gone" />
 
     </LinearLayout>

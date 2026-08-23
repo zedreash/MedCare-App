@@ -12,6 +12,13 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_app_logo" />
+
         <ImageButton
             android:id="@+id/prev_button"
             android:layout_width="48dp"
@@ -19,7 +26,8 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@null"
             android:scaleType="center"
-            android:src="@android:drawable/ic_media_previous" />
+            android:src="@drawable/ic_chevron_left"
+            app:tint="?attr/colorPrimary" />
 
         <TextView
             android:id="@+id/date_header_text"
@@ -37,7 +45,8 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@null"
             android:scaleType="center"
-            android:src="@android:drawable/ic_media_next" />
+            android:src="@drawable/ic_chevron_right"
+            app:tint="?attr/colorPrimary" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/today_button"

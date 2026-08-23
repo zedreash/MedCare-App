@@ -75,17 +75,6 @@ public class PatientRepository {
         });
     }
 
-    public List<Patient> searchPatients(String query, long ownerId) {
-        return patientDao.searchPatients(query, ownerId);
-    }
-
-    public void searchPatients(String query, long ownerId, Callback<List<Patient>> callback) {
-        AppDatabase.getExecutor().execute(() -> {
-            List<Patient> patients = patientDao.searchPatients(query, ownerId);
-            AppDatabase.runOnMainThread(() -> callback.onResult(patients));
-        });
-    }
-
     public int getPatientCount(long ownerId) {
         return patientDao.getPatientCount(ownerId);
     }

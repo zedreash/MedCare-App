@@ -65,6 +65,13 @@ public class UserRepository {
         });
     }
 
+    public void getUserByTzNumber(String tz, Callback<User> callback) {
+        AppDatabase.getExecutor().execute(() -> {
+            User user = userDao.getUserByTzNumber(tz);
+            AppDatabase.runOnMainThread(() -> callback.onResult(user));
+        });
+    }
+
     public User getUserById(long id) {
         return userDao.getUserById(id);
     }
@@ -74,14 +81,6 @@ public class UserRepository {
             User user = userDao.getUserById(id);
             AppDatabase.runOnMainThread(() -> callback.onResult(user));
         });
-    }
-
-    public User login(String email, String password) {
-        User user = userDao.getUserByEmail(email);
-        if (user != null && PasswordUtils.verify(password, email, user.getPassword())) {
-            return user;
-        }
-        return null;
     }
 
     public void login(String email, String password, Callback<User> callback) {

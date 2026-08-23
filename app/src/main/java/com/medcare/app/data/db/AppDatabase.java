@@ -48,4 +48,11 @@ public abstract class AppDatabase extends RoomDatabase {
     public static void runOnMainThread(Runnable runnable) {
         mainHandler.post(runnable);
     }
+
+    public static void closeAndResetInstance() {
+        if (INSTANCE != null) {
+            INSTANCE.close();
+            INSTANCE = null;
+        }
+    }
 }

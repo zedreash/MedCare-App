@@ -23,19 +23,23 @@
     <string name="delete">מחק</string>
 
     <string name="field_required">שדה חובה</string>
+    <string name="fix_highlighted_fields">נא לתקן את השדות המסומנים</string>
     <string name="invalid_email">כתובת דוא"ל לא חוקית</string>
     <string name="invalid_id">מספר תעודת זהות לא חוקי</string>
     <string name="password_mismatch">הסיסמאות אינן תואמות</string>
-    <string name="password_too_short">הסיסמה חייבת להכיל לפחות 8 תווים, אות גדולה, אות קטנה, ספרה ותו מיוחד</string>
+    <string name="password_too_short">הסיסמה חייבת להכיל לפחות 8 תווים, אות, ספרה ותו מיוחד</string>
     <string name="invalid_phone">מספר טלפון לא חוקי</string>
     <string name="invalid_age">עליך להיות בן 18 לפחות</string>
     <string name="success_saved">נשמר בהצלחה</string>
     <string name="success_deleted">נמחק בהצלחה</string>
     <string name="error_generic">משהו השתבש</string>
     <string name="login_invalid_credentials">דוא"ל או סיסמה שגויים</string>
+    <string name="login_success">התחברת בהצלחה</string>
     <string name="email_already_registered">דוא"ל זה כבר רשום</string>
+    <string name="id_already_registered">מספר זהות זה כבר רשום</string>
     <string name="delete_account_confirm">האם אתה בטוח שברצונך למחוק את חשבונך? לא ניתן לבטל פעולה זו.</string>
     <string name="time_conflict">כבר קיים תור בשעה זו</string>
+    <string name="appointment_past_error">לא ניתן לקבוע תור בעבר</string>
 
     <string name="patients">מטופלים</string>
     <string name="select_patient">בחר מטופל</string>
@@ -45,6 +49,8 @@
     <string name="patient_name">שם המטופל</string>
     <string name="patient_phone">טלפון המטופל</string>
     <string name="patient_diagnosis">אבחון</string>
+    <string name="no_diagnosis_hint">אין אבחנה עדיין — לחץ על עריכה להוספה</string>
+    <string name="no_diagnosis_short">אין אבחנה עדיין</string>
     <string name="search_patients">חפש מטופלים</string>
     <string name="no_search_results">לא נמצאו מטופלים תואמים</string>
     <string name="no_patients">אין מטופלים עדיין</string>
@@ -66,8 +72,8 @@
 
     <string name="nav_patients">מטופלים</string>
     <string name="nav_appointments">תורים</string>
-    <string name="clinic_location">מיקום המרפאה</string>
-    <string name="clinic_address">המרכז הרפואי שיבא, תל השומר, רמת גן</string>
+    <string name="clinic_location">בית החולים אל-מקאסד</string>
+    <string name="clinic_address">בית החולים מקאסד, רחוב רובא אל-אדוויה, ירושלים</string>
     <string name="get_directions">קבל הנחיות</string>
     <string name="view_patient">הצג מטופל</string>
     <string name="your_location">המיקום שלך</string>
@@ -92,6 +98,12 @@
     <string name="theme_system">ברירת מחדל של המערכת</string>
     <string name="theme_light">בהיר</string>
     <string name="theme_dark">כהה</string>
+    <string name="theme_style_section">ערכת צבעים</string>
+    <string name="choose_theme_prompt">בחר ערכת צבעים לאפליקציה</string>
+    <string name="theme_blue">כחול</string>
+    <string name="theme_green">ירוק</string>
+    <string name="theme_purple">סגול</string>
+    <string name="theme_orange">כתום</string>
     <string name="language_section">שפה</string>
     <string name="lang_system">ברירת מחדל של המערכת</string>
     <string name="lang_english">English</string>
@@ -101,6 +113,20 @@
     <string name="default_duration">משך ברירת מחדל (דקות)</string>
     <string name="data_section">מידע</string>
     <string name="clear_all_data">מחק את כל המידע</string>
+    <string name="developer_section">הגדרות מפתח</string>
+    <string name="developer_mode">מצב מפתח</string>
+    <string name="developer_mode_subtitle">מאפשר כלי בדיקה נוספים</string>
+    <string name="fill_mock_data">מלא בנתוני דוגמה</string>
+    <string name="fill_mock_data_message">פעולה זו תוסיף מטופלים ותורים לדוגמה לחשבון שלך לצורכי בדיקה. להמשיך?</string>
+    <string name="mock_data_added">נתוני הדוגמה נוספו</string>
+    <string name="clear_sample_data">מחק נתוני דוגמה</string>
+    <string name="clear_sample_data_message">פעולה זו תסיר את המטופלים והתורים לדוגמה שנוספו לחשבון שלך. להמשיך?</string>
+    <string name="sample_data_removed">נתוני הדוגמה הוסרו</string>
+    <string name="app_version">גרסת האפליקציה</string>
+    <string name="account_id">מזהה חשבון</string>
+    <string name="reset_settings">אפס הגדרות אפליקציה</string>
+    <string name="reset_settings_message">פעולה זו תאפס את המראה, השפה, המיון, משך ברירת המחדל והגדרות הביומטריה לברירת מחדל. החשבון והנתונים שלך יישארו. להמשיך?</string>
+    <string name="settings_reset">ההגדרות אופסו לברירת מחדל</string>
     <string name="clear_data_confirm">פעולה זו תמחק את כל המטופלים, התורים והחשבון שלך. לא ניתן לבטל פעולה זו.</string>
     <string name="data_cleared">כל המידע נמחק</string>
     <string name="next">הבא</string>
@@ -176,8 +202,20 @@
     <string name="biometric_prompt_subtitle">התאמת זהות לגישה לאפליקציה</string>
     <string name="use_password_fallback">השתמש בסיסמה</string>
     <string name="biometric_not_available">אימות ביומטרי לא זמין במכשיר זה</string>
+    <string name="profile_photo">תמונת פרופיל</string>
+    <string name="change_profile_photo">החלפת תמונה</string>
+    <string name="remove_profile_photo">הסרת תמונה</string>
+    <string name="profile_picture_updated">תמונת הפרופיל עודכנה</string>
+    <string name="profile_picture_removed">תמונת הפרופיל הוסרה</string>
+    <string name="disable_biometric_title">ביטול הנעילה הביומטרית</string>
+    <string name="disable_biometric_subtitle">אמת את זהותך כדי לכבות את הנעילה הביומטרית</string>
+    <string name="enable_biometric_title">הפעלת הנעילה הביומטרית</string>
+    <string name="enable_biometric_subtitle">אמת את זהותך כדי להפעיל את הנעילה הביומטרית</string>
 
     <string name="nav_calendar">לוח שנה</string>
+    <string name="in_minutes">בעוד %1$d דק\'</string>
+    <string name="in_hours">בעוד %1$d שע\'</string>
+    <string name="in_hours_minutes">בעוד %1$d שע\' ו-%2$d דק\'</string>
     <string name="open_calendar">פתח לוח שנה</string>
     <string name="calendar_today">היום</string>
     <string name="view_day">יום</string>

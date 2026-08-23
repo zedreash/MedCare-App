@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 
 import com.medcare.app.R;
 import com.medcare.app.data.entity.Appointment;
+import com.medcare.app.utils.AvatarUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,17 +63,6 @@ public class AppointmentAdapter extends BaseSwipeAdapter<AppointmentAdapter.Appo
         notifyDataSetChanged();
     }
 
-    public Appointment removeItem(int position) {
-        Appointment appointment = appointments.remove(position);
-        notifyItemRemoved(position);
-        return appointment;
-    }
-
-    public void restoreItem(Appointment appointment, int position) {
-        appointments.add(position, appointment);
-        notifyItemInserted(position);
-    }
-
     class AppointmentViewHolder extends SwipeableViewHolder {
         private TextView nameText;
         private TextView patientText;
@@ -80,6 +70,7 @@ public class AppointmentAdapter extends BaseSwipeAdapter<AppointmentAdapter.Appo
         private TextView timeText;
         private TextView durationText;
         private TextView notesText;
+        private TextView avatarText;
 
         AppointmentViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -89,6 +80,7 @@ public class AppointmentAdapter extends BaseSwipeAdapter<AppointmentAdapter.Appo
             timeText = itemView.findViewById(R.id.appointment_time_text);
             durationText = itemView.findViewById(R.id.appointment_duration_text);
             notesText = itemView.findViewById(R.id.appointment_notes_text);
+            avatarText = itemView.findViewById(R.id.appointment_avatar);
         }
 
         void bind(Appointment appointment) {
@@ -100,6 +92,8 @@ public class AppointmentAdapter extends BaseSwipeAdapter<AppointmentAdapter.Appo
             durationText.setText(appointment.getDuration() + "m");
             String notes = appointment.getNotes();
             notesText.setText(notes != null && !notes.isEmpty() ? notes : null);
+            String initialSource = (n != null && !n.isEmpty()) ? n : appointment.getName();
+            avatarText.setText(AvatarUtils.getInitials(initialSource));
         }
 
         @Override

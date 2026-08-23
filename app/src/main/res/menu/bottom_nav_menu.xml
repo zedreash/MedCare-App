@@ -2,22 +2,26 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/dashboardFragment"
-        android:icon="@android:drawable/ic_menu_directions"
+        android:icon="@drawable/ic_nav_home"
         android:title="@string/nav_dashboard" />
     <item
         android:id="@+id/patientListFragment"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:icon="@drawable/ic_nav_patients"
         android:title="@string/nav_patients" />
     <item
         android:id="@+id/appointmentListFragment"
-        android:icon="@android:drawable/ic_menu_agenda"
+        android:icon="@drawable/ic_nav_appointments"
         android:title="@string/nav_appointments" />
     <item
         android:id="@+id/clinicFragment"
-        android:icon="@android:drawable/ic_menu_compass"
+        android:icon="@drawable/ic_nav_clinic"
         android:title="@string/nav_clinic" />
     <item
+        android:id="@+id/calendarFragment"
+        android:icon="@drawable/ic_calendar_month"
+        android:title="@string/nav_calendar" />
+    <item
         android:id="@+id/profileFragment"
-        android:icon="@android:drawable/ic_menu_myplaces"
+        android:icon="@drawable/ic_nav_profile"
         android:title="@string/nav_profile" />
 </menu>

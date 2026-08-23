@@ -1,19 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.MedCare" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Base.Theme.MedCare.Light" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/on_error</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="Theme.MedCare.Blue" parent="Base.Theme.MedCare.Light">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_variant</item>
         <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryContainer">@color/primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/on_primary_container</item>
+        <item name="colorTertiary">@color/tertiary</item>
+        <item name="colorTertiaryContainer">@color/tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/on_tertiary_container</item>
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorSecondaryVariant">@color/secondary_variant</item>
         <item name="colorOnSecondary">@color/on_secondary</item>
         <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/on_background</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/on_surface</item>
-        <item name="colorOnBackground">@color/on_background</item>
-        <item name="colorError">@color/error</item>
-        <item name="colorOnError">@color/on_error</item>
-        <item name="android:statusBarColor">@color/primary</item>
+        <item name="colorSurfaceVariant">#E6E1E5</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorOutline">@color/outline</item>
+        <item name="colorOutlineVariant">@color/divider</item>
+        <item name="android:statusBarColor">@color/background</item>
         <item name="android:navigationBarColor">@color/background</item>
     </style>
+
+    <style name="Theme.MedCare.Green" parent="Base.Theme.MedCare.Light">
+        <item name="colorPrimary">#1E8E3E</item>
+        <item name="colorPrimaryVariant">#188038</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#B7F0C4</item>
+        <item name="colorOnPrimaryContainer">#00391C</item>
+        <item name="colorTertiary">#0D652D</item>
+        <item name="colorTertiaryContainer">#B7F0C4</item>
+        <item name="colorOnTertiaryContainer">#00391C</item>
+        <item name="colorSecondary">#34A853</item>
+        <item name="colorSecondaryVariant">#188038</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="android:colorBackground">#F6FAF6</item>
+        <item name="colorOnBackground">#1B1F1B</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#1B1F1B</item>
+        <item name="colorSurfaceVariant">#DFE9E0</item>
+        <item name="colorOnSurfaceVariant">#4B554C</item>
+        <item name="colorOutline">#7B857C</item>
+        <item name="colorOutlineVariant">#DCE5DD</item>
+        <item name="android:statusBarColor">#F6FAF6</item>
+        <item name="android:navigationBarColor">#F6FAF6</item>
+    </style>
+
+    <style name="Theme.MedCare.Purple" parent="Base.Theme.MedCare.Light">
+        <item name="colorPrimary">#8E24AA</item>
+        <item name="colorPrimaryVariant">#6A1B9A</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#F3D8FF</item>
+        <item name="colorOnPrimaryContainer">#2A0045</item>
+        <item name="colorTertiary">#AD1457</item>
+        <item name="colorTertiaryContainer">#FFD9E3</item>
+        <item name="colorOnTertiaryContainer">#3F0015</item>
+        <item name="colorSecondary">#E040FB</item>
+        <item name="colorSecondaryVariant">#C51162</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="android:colorBackground">#FBF7FF</item>
+        <item name="colorOnBackground">#1E1B24</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#1E1B24</item>
+        <item name="colorSurfaceVariant">#E6DFED</item>
+        <item name="colorOnSurfaceVariant">#4B4654</item>
+        <item name="colorOutline">#7C7685</item>
+        <item name="colorOutlineVariant">#E4DCED</item>
+        <item name="android:statusBarColor">#FBF7FF</item>
+        <item name="android:navigationBarColor">#FBF7FF</item>
+    </style>
+
+    <style name="Theme.MedCare.Orange" parent="Base.Theme.MedCare.Light">
+        <item name="colorPrimary">#E8710A</item>
+        <item name="colorPrimaryVariant">#C6540A</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#FFE0B2</item>
+        <item name="colorOnPrimaryContainer">#3B1F00</item>
+        <item name="colorTertiary">#BF360C</item>
+        <item name="colorTertiaryContainer">#FFCCB2</item>
+        <item name="colorOnTertiaryContainer">#3E0900</item>
+        <item name="colorSecondary">#FB8C00</item>
+        <item name="colorSecondaryVariant">#EF6C00</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="android:colorBackground">#FFF9F2</item>
+        <item name="colorOnBackground">#211B15</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#211B15</item>
+        <item name="colorSurfaceVariant">#F1DFD3</item>
+        <item name="colorOnSurfaceVariant">#54483E</item>
+        <item name="colorOutline">#867870</item>
+        <item name="colorOutlineVariant">#EDE0D5</item>
+        <item name="android:statusBarColor">#FFF9F2</item>
+        <item name="android:navigationBarColor">#FFF9F2</item>
+    </style>
+
+    <style name="Theme.MedCare" parent="Theme.MedCare.Blue"/>
 </resources>

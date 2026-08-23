@@ -6,25 +6,23 @@ public class ValidationUtils {
     }
     public static boolean isValidPassword(String password) {
         if (password == null || password.length() < 8) return false;
-        boolean hasUpper = false, hasLower = false, hasDigit = false, hasSpecial = false;
+        boolean hasLetter = false, hasDigit = false, hasSpecial = false;
         for (char c : password.toCharArray()) {
-            if (Character.isUpperCase(c)) hasUpper = true;
-            else if (Character.isLowerCase(c)) hasLower = true;
+            if (Character.isLetter(c)) hasLetter = true;
             else if (Character.isDigit(c)) hasDigit = true;
             else hasSpecial = true;
         }
-        return hasUpper && hasLower && hasDigit && hasSpecial;
+        return hasLetter && hasDigit && hasSpecial;
     }
     public static boolean isValidIsraeliId(String id) {
-        if (id == null) return false;
-        StringBuilder digits = new StringBuilder();
-        for (char c : id.toCharArray()) {
-            if (Character.isDigit(c)) digits.append(c);
+        if (id == null || id.length() != 9) return false;
+        for (int i = 0; i < 9; i++) {
+            char c = id.charAt(i);
+            if (c < '0' || c > '9') return false;
         }
-        if (digits.length() != 9) return false;
         int sum = 0;
         for (int i = 0; i < 9; i++) {
-            int digit = digits.charAt(i) - '0';
+            int digit = id.charAt(i) - '0';
             int weight = (i % 2 == 0) ? 1 : 2;
             int product = digit * weight;
             sum += product > 9 ? product - 9 : product;

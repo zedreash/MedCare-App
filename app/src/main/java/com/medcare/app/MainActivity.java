@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -16,7 +15,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 
-import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.color.MaterialColors;
 import com.medcare.app.utils.PreferencesManager;
 
 import java.util.Locale;
@@ -24,11 +23,10 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     private NavController navController;
-    private MaterialCardView customBottomNav;
+    private View customBottomNav;
     private PreferencesManager preferencesManager;
     private LinearLayout[] navTabs;
     private ImageView[] navIcons;
-    private TextView[] navLabels;
     private final int[] navDestinations = {
             R.id.dashboardFragment,
             R.id.patientListFragment,
@@ -70,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         PreferencesManager prefs = new PreferencesManager(this);
+        setTheme(themeStyleToRes(prefs.getThemeStyle()));
         switch (prefs.getThemeMode()) {
             case "light":
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -91,10 +90,14 @@ public class MainActivity extends AppCompatActivity {
         customBottomNav = findViewById(R.id.custom_bottom_nav);
 
         if (!preferencesManager.isLoggedIn()) {
-            navController.navigate(R.id.loginFragment, null,
-                    new NavOptions.Builder()
-                            .setPopUpTo(R.id.dashboardFragment, true)
-                            .build());
+            int currentDest = navController.getCurrentDestination() != null
+                    ? navController.getCurrentDestination().getId() : -1;
+            if (currentDest != R.id.loginFragment && currentDest != R.id.registerFragment) {
+                navController.navigate(R.id.loginFragment, null,
+                        new NavOptions.Builder()
+                                .setPopUpTo(R.id.dashboardFragment, true)
+                                .build());
+            }
         }
 
         setupCustomBottomNav();
@@ -136,14 +139,6 @@ public class MainActivity extends AppCompatActivity {
                 findViewById(R.id.nav_calendar_icon),
                 findViewById(R.id.nav_profile_icon)
         };
-        navLabels = new TextView[]{
-                findViewById(R.id.nav_dashboard_label),
-                findViewById(R.id.nav_patients_label),
-                findViewById(R.id.nav_appointments_label),
-                findViewById(R.id.nav_clinic_label),
-                findViewById(R.id.nav_calendar_label),
-                findViewById(R.id.nav_profile_label)
-        };
 
         for (int i = 0; i < navTabs.length; i++) {
             final int destId = navDestinations[i];
@@ -151,26 +146,42 @@ public class MainActivity extends AppCompatActivity {
                 if (navController.getCurrentDestination() == null) return;
                 if (destId != navController.getCurrentDestination().getId()) {
                     if (!navController.popBackStack(destId, false)) {
-                        navController.navigate(destId);
+                        NavOptions options = new NavOptions.Builder()
+                                .setEnterAnim(android.R.anim.fade_in)
+                                .setExitAnim(android.R.anim.fade_out)
+                                .setPopEnterAnim(android.R.anim.fade_in)
+                                .setPopExitAnim(android.R.anim.fade_out)
+                                .build();
+                        navController.navigate(destId, null, options);
                     }
                 }
             });
         }
     }
 
+    private static int themeStyleToRes(String style) {
+        if (style == null) return R.style.Theme_MedCare_Blue;
+        switch (style) {
+            case "green":
+                return R.style.Theme_MedCare_Green;
+            case "purple":
+                return R.style.Theme_MedCare_Purple;
+            case "orange":
+                return R.style.Theme_MedCare_Orange;
+            default:
+                return R.style.Theme_MedCare_Blue;
+        }
+    }
+
     private void setTabSelected(int index) {
         if (index < 0 || index >= navTabs.length) return;
-        int primaryColor = ContextCompat.getColor(this, R.color.primary);
-        int inactiveColor = ContextCompat.getColor(this, R.color.text_secondary);
+        int primaryColor = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary,
+                ContextCompat.getColor(this, R.color.primary));
+        int inactiveColor = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant,
+                ContextCompat.getColor(this, R.color.text_secondary));
 
         for (int i = 0; i < navTabs.length; i++) {
-            if (i == index) {
-                navIcons[i].setColorFilter(primaryColor, PorterDuff.Mode.SRC_IN);
-                navLabels[i].setTextColor(primaryColor);
-            } else {
-                navIcons[i].setColorFilter(inactiveColor, PorterDuff.Mode.SRC_IN);
-                navLabels[i].setTextColor(inactiveColor);
-            }
+            navIcons[i].setColorFilter(i == index ? primaryColor : inactiveColor, PorterDuff.Mode.SRC_IN);
         }
     }
 
@@ -185,9 +196,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (preferencesManager != null) {
-            preferencesManager.setLastBackgroundTime(System.currentTimeMillis());
-        }
     }
 
     private void maybeShowBiometricLock() {

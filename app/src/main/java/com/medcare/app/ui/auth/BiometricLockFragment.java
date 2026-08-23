@@ -93,7 +93,7 @@ public class BiometricLockFragment extends Fragment {
         biometricPrompt.authenticate(promptInfo);
     }
     private void checkPassword() {
-        String password = passwordInput.getText().toString().trim();
+        String password = passwordInput.getText().toString();
         if (password.isEmpty()) {
             passwordError.setText(R.string.field_required);
             passwordError.setVisibility(View.VISIBLE);

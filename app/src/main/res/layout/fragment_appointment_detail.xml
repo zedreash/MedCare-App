@@ -27,7 +27,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/cancel"
                 android:padding="8dp"
-                android:src="@android:drawable/ic_menu_revert"
+                android:src="@drawable/ic_arrow_back"
                 app:tint="?attr/colorPrimary" />
 
             <TextView
@@ -46,7 +46,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/edit"
-                app:icon="@android:drawable/ic_menu_edit"
+                app:icon="@drawable/ic_edit"
                 app:iconTint="?attr/colorOnSurface" />
 
         </LinearLayout>
@@ -72,6 +72,7 @@
                     android:id="@+id/appointment_name_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:hyphenationFrequency="normal"
                     android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
                     android:textStyle="bold" />
 
@@ -82,6 +83,7 @@
                     android:layout_marginTop="12dp"
                     android:clickable="true"
                     android:focusable="true"
+                    android:hyphenationFrequency="normal"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                     android:textColor="?attr/colorPrimary" />
 
@@ -120,6 +122,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:hyphenationFrequency="normal"
                     android:textAppearance="@style/TextAppearance.Material3.BodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 

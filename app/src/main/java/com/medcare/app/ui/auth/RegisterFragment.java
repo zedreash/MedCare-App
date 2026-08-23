@@ -2,15 +2,20 @@ package com.medcare.app.ui.auth;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import com.google.android.material.snackbar.Snackbar;
@@ -18,11 +23,13 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.User;
 import com.medcare.app.data.repository.UserRepository;
+import com.medcare.app.utils.FieldHint;
 import com.medcare.app.utils.PasswordUtils;
 import com.medcare.app.utils.PreferencesManager;
 import com.medcare.app.utils.ValidationUtils;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.concurrent.Executor;
 public class RegisterFragment extends Fragment {
     private UserRepository userRepository;
     private PreferencesManager preferencesManager;
@@ -40,6 +47,8 @@ public class RegisterFragment extends Fragment {
     private EditText dobInput;
     private EditText passwordInput;
     private EditText confirmPasswordInput;
+    private static boolean sThemeDialogPending = false;
+    private BiometricPrompt biometricPrompt;
     private View rootView;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -55,6 +64,10 @@ public class RegisterFragment extends Fragment {
         initViews(view);
         setupDatePicker();
         setupErrorClearListeners();
+        if (sThemeDialogPending) {
+            sThemeDialogPending = false;
+            showThemeDialog();
+        }
         view.findViewById(R.id.register_button).setOnClickListener(v -> onRegisterClicked());
         view.findViewById(R.id.login_link).setOnClickListener(v ->
                 Navigation.findNavController(view).navigate(R.id.action_register_to_login));
@@ -74,6 +87,13 @@ public class RegisterFragment extends Fragment {
         dobInput = view.findViewById(R.id.dob_input);
         passwordInput = view.findViewById(R.id.password_input);
         confirmPasswordInput = view.findViewById(R.id.confirm_password_input);
+        FieldHint.required(tzLayout, R.string.id_number);
+        FieldHint.required(nameLayout, R.string.full_name);
+        FieldHint.required(emailLayout, R.string.email);
+        FieldHint.required(phoneLayout, R.string.phone);
+        FieldHint.required(dobLayout, R.string.date_of_birth);
+        FieldHint.required(passwordLayout, R.string.password);
+        FieldHint.required(confirmPasswordLayout, R.string.confirm_password);
     }
     private void setupDatePicker() {
         dobInput.setOnClickListener(v -> showDatePicker());
@@ -141,7 +161,7 @@ public class RegisterFragment extends Fragment {
         }
         String tz = tzInput.getText().toString().trim();
         String name = nameInput.getText().toString().trim();
-        String email = emailInput.getText().toString().trim();
+        String email = emailInput.getText().toString().trim().toLowerCase();
         String phone = phoneInput.getText().toString().trim();
         String dob = dobInput.getText().toString().trim();
         String password = passwordInput.getText().toString();
@@ -149,52 +169,142 @@ public class RegisterFragment extends Fragment {
             @Override
             public void onResult(User existingUser) {
                 if (existingUser != null) {
-                    emailLayout.setError(getString(R.string.email_already_registered));
                     emailInput.requestFocus();
+                    emailLayout.setError(getString(R.string.email_already_registered));
                     return;
                 }
-                String hashedPassword = PasswordUtils.hash(password, email);
-                User user = new User(tz, name, email, phone, dob, hashedPassword);
-                userRepository.insert(user, new UserRepository.Callback<Long>() {
+                userRepository.getUserByTzNumber(tz, new UserRepository.Callback<User>() {
                     @Override
-                    public void onResult(Long userId) {
-                        if (userId != -1) {
-                            preferencesManager.setLoggedInUserId(userId);
-                            Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
-
-                            BiometricManager biometricManager = BiometricManager.from(requireContext());
-                            if (biometricManager.canAuthenticate(
-                                    BiometricManager.Authenticators.BIOMETRIC_STRONG
-                                    | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-                                    == BiometricManager.BIOMETRIC_SUCCESS) {
-                                new android.app.AlertDialog.Builder(requireContext())
-                                        .setTitle(R.string.biometric_lock)
-                                        .setMessage(R.string.enable_biometric_prompt)
-                                        .setPositiveButton(R.string.yes, (dialog, which) -> {
-                                            preferencesManager.setBiometricEnabled(true);
-                                            preferencesManager.setBiometricTimeout("immediate");
-                                            Navigation.findNavController(rootView)
-                                                    .navigate(R.id.action_register_to_dashboard);
-                                        })
-                                        .setNegativeButton(R.string.later, (dialog, which) -> {
-                                            Navigation.findNavController(rootView)
-                                                    .navigate(R.id.action_register_to_dashboard);
-                                        })
-                                        .setOnCancelListener(dialog ->
-                                                Navigation.findNavController(rootView)
-                                                        .navigate(R.id.action_register_to_dashboard))
-                                        .show();
-                            } else {
-                                Navigation.findNavController(rootView)
-                                        .navigate(R.id.action_register_to_dashboard);
-                            }
-                        } else {
-                            Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
+                    public void onResult(User existingByTz) {
+                        if (existingByTz != null) {
+                            tzInput.requestFocus();
+                            tzLayout.setError(getString(R.string.id_already_registered));
+                            return;
                         }
+                        String hashedPassword = PasswordUtils.hash(password, email);
+                        User user = new User(tz, name, email, phone, dob, hashedPassword);
+                        userRepository.insert(user, new UserRepository.Callback<Long>() {
+                            @Override
+                            public void onResult(Long userId) {
+                                if (userId != -1) {
+                                    preferencesManager.setLoggedInUserId(userId);
+                                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                                    showThemeDialog();
+                                } else {
+                                    Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
+                                }
+                            }
+                        });
                     }
                 });
             }
         });
+    }
+    private void showThemeDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_theme_picker, null);
+        updateThemeDialogSelection(dialogView, preferencesManager.getThemeStyle());
+        ImageView blue = dialogView.findViewById(R.id.dialog_ts_blue);
+        ImageView green = dialogView.findViewById(R.id.dialog_ts_green);
+        ImageView purple = dialogView.findViewById(R.id.dialog_ts_purple);
+        ImageView orange = dialogView.findViewById(R.id.dialog_ts_orange);
+        blue.setOnClickListener(v -> selectThemeLive(dialogView, "blue"));
+        green.setOnClickListener(v -> selectThemeLive(dialogView, "green"));
+        purple.setOnClickListener(v -> selectThemeLive(dialogView, "purple"));
+        orange.setOnClickListener(v -> selectThemeLive(dialogView, "orange"));
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.theme_style_section)
+                .setMessage(R.string.choose_theme_prompt)
+                .setView(dialogView)
+                .setPositiveButton(R.string.save, (dialog, which) -> promptBiometricSetup())
+                .setNegativeButton(R.string.later, (dialog, which) -> promptBiometricSetup())
+                .setOnCancelListener(dialog -> promptBiometricSetup())
+                .show();
+    }
+    private void selectThemeLive(View dialogView, String style) {
+        preferencesManager.setThemeStyle(style);
+        updateThemeDialogSelection(dialogView, style);
+        sThemeDialogPending = true;
+        requireActivity().recreate();
+    }
+    private void updateThemeDialogSelection(View dialogView, String style) {
+        applySwatchState(dialogView.findViewById(R.id.dialog_ts_blue), "blue".equals(style));
+        applySwatchState(dialogView.findViewById(R.id.dialog_ts_green), "green".equals(style));
+        applySwatchState(dialogView.findViewById(R.id.dialog_ts_purple), "purple".equals(style));
+        applySwatchState(dialogView.findViewById(R.id.dialog_ts_orange), "orange".equals(style));
+    }
+    private void applySwatchState(ImageView swatch, boolean selected) {
+        if (swatch == null) return;
+        swatch.setImageResource(selected ? R.drawable.ic_check : 0);
+    }
+    private void promptBiometricSetup() {
+        BiometricManager biometricManager = BiometricManager.from(requireContext());
+        if (biometricManager.canAuthenticate(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG
+                | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+                == BiometricManager.BIOMETRIC_SUCCESS) {
+            new android.app.AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.biometric_lock)
+                    .setMessage(R.string.enable_biometric_prompt)
+                    .setPositiveButton(R.string.yes, (dialog, which) ->
+                            authenticateToEnableBiometrics())
+                    .setNegativeButton(R.string.later, (dialog, which) ->
+                            finishRegistration())
+                    .setOnCancelListener(dialog ->
+                            finishRegistration())
+                    .show();
+        } else {
+            finishRegistration();
+        }
+    }
+    private void finishRegistration() {
+        Navigation.findNavController(rootView).navigate(R.id.action_register_to_dashboard);
+    }
+    private void authenticateToEnableBiometrics() {
+        Executor executor = ContextCompat.getMainExecutor(requireContext());
+        biometricPrompt = new BiometricPrompt(this, executor,
+                new BiometricPrompt.AuthenticationCallback() {
+                    @Override
+                    public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
+                        preferencesManager.setBiometricEnabled(true);
+                        preferencesManager.setBiometricTimeout("immediate");
+                        finishRegistration();
+                    }
+
+                    @Override
+                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+                        if (isAdded()) {
+                            finishRegistration();
+                        }
+                    }
+
+                    @Override
+                    public void onAuthenticationFailed() {
+                        if (isAdded()) {
+                            finishRegistration();
+                        }
+                    }
+                });
+        BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.enable_biometric_title))
+                .setSubtitle(getString(R.string.enable_biometric_subtitle))
+                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG
+                        | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+                .build();
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (!isAdded()) {
+                return;
+            }
+            biometricPrompt.authenticate(info);
+        }, 350);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (biometricPrompt != null) {
+            biometricPrompt.cancelAuthentication();
+            biometricPrompt = null;
+        }
     }
     private boolean isAtLeast18(String dateStr) {
         try {
@@ -284,7 +394,7 @@ public class RegisterFragment extends Fragment {
             confirmPasswordLayout.setError(null);
         }
         if (!valid) {
-            Snackbar.make(rootView, R.string.field_required, Snackbar.LENGTH_SHORT).show();
+            Snackbar.make(rootView, R.string.fix_highlighted_fields, Snackbar.LENGTH_SHORT).show();
         }
         return valid;
     }

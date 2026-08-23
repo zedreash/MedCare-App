@@ -28,6 +28,7 @@ import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.utils.DateUtils;
+import com.medcare.app.utils.FieldHint;
 import com.medcare.app.utils.PreferencesManager;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -120,6 +121,11 @@ public class AppointmentFormFragment extends Fragment {
         timeInput = view.findViewById(R.id.time_input);
         durationInput = view.findViewById(R.id.duration_input);
         notesInput = view.findViewById(R.id.notes_input);
+        FieldHint.required(nameLayout, R.string.appointment_name);
+        FieldHint.required(patientLayout, R.string.select_patient);
+        FieldHint.required(dateLayout, R.string.appointment_date);
+        FieldHint.required(timeLayout, R.string.appointment_time);
+        FieldHint.required(durationLayout, R.string.appointment_duration);
     }
     private void setupPickers() {
         patientInput.setOnClickListener(v -> showPatientPicker());
@@ -145,6 +151,7 @@ public class AppointmentFormFragment extends Fragment {
         patientRepository.getAllPatients(preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<List<Patient>>() {
             @Override
             public void onResult(List<Patient> patients) {
+                if (!isAdded()) return;
                 if (patients.isEmpty()) {
                     Snackbar.make(rootView, R.string.no_patients, Snackbar.LENGTH_SHORT).show();
                     return;
@@ -234,8 +241,8 @@ public class AppointmentFormFragment extends Fragment {
                         String query = constraint.toString().toLowerCase();
                         List<Patient> filtered = new ArrayList<>();
                     for (Patient p : originalList) {
-                        if (p.getFullName().toLowerCase().contains(query)
-                                || p.getPhone().toLowerCase().contains(query)
+                        if ((p.getFullName() != null && p.getFullName().toLowerCase().contains(query))
+                                || (p.getPhone() != null && p.getPhone().toLowerCase().contains(query))
                                 || (p.getDiagnosis() != null && p.getDiagnosis().toLowerCase().contains(query))
                                 || (p.getAddress() != null && p.getAddress().toLowerCase().contains(query))) {
                                 filtered.add(p);
@@ -303,6 +310,7 @@ public class AppointmentFormFragment extends Fragment {
         appointmentRepository.getAppointmentById(appointmentId, preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<Appointment>() {
             @Override
             public void onResult(Appointment result) {
+                if (!isAdded()) return;
                 currentAppointment = result;
                 if (currentAppointment == null) {
                     Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
@@ -336,6 +344,14 @@ public class AppointmentFormFragment extends Fragment {
         String time = timeInput.getText().toString().trim();
         int duration = Integer.parseInt(durationInput.getText().toString().trim());
         String notes = notesInput.getText().toString().trim();
+        boolean editingWithSameDateTime = appointmentId != -1 && currentAppointment != null
+                && date.equals(currentAppointment.getDate())
+                && time.equals(currentAppointment.getTime());
+        if (!editingWithSameDateTime && isDateTimeInPast(date, time)) {
+            timeLayout.setError(getString(R.string.appointment_past_error));
+            Snackbar.make(rootView, R.string.appointment_past_error, Snackbar.LENGTH_LONG).show();
+            return;
+        }
         long ownerId = preferencesManager.getLoggedInUserId();
         appointmentRepository.getAppointmentsByDate(date, ownerId, new AppointmentRepository.Callback<List<Appointment>>() {
             @Override
@@ -376,6 +392,25 @@ public class AppointmentFormFragment extends Fragment {
                     Navigation.findNavController(rootView).navigateUp();
                 }
             });
+        }
+    }
+    private boolean isDateTimeInPast(String date, String time) {
+        try {
+            String[] dateParts = date.split("/");
+            if (dateParts.length != 3) return false;
+            String[] timeParts = time.split(":");
+            if (timeParts.length != 2) return false;
+            Calendar cal = Calendar.getInstance();
+            cal.set(Integer.parseInt(dateParts[2]),
+                    Integer.parseInt(dateParts[1]) - 1,
+                    Integer.parseInt(dateParts[0]),
+                    Integer.parseInt(timeParts[0]),
+                    Integer.parseInt(timeParts[1]),
+                    0);
+            cal.set(Calendar.MILLISECOND, 0);
+            return cal.getTimeInMillis() < System.currentTimeMillis();
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
     private boolean hasTimeConflict(List<Appointment> existing, String time, int duration) {

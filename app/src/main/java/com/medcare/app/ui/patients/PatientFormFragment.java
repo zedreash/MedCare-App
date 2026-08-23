@@ -34,6 +34,7 @@ import com.medcare.app.R;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.utils.DateUtils;
+import com.medcare.app.utils.FieldHint;
 import com.medcare.app.utils.PreferencesManager;
 import com.medcare.app.utils.ValidationUtils;
 import java.util.ArrayList;
@@ -108,6 +109,19 @@ public class PatientFormFragment extends Fragment {
                     }
                 });
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (debounceRunnable != null) {
+            debounceHandler.removeCallbacks(debounceRunnable);
+            debounceRunnable = null;
+        }
+        if (popup != null) {
+            popup.dismiss();
+            popup = null;
+        }
+    }
     private void initPlaces() {
         if (!Places.isInitialized()) {
             try {
@@ -136,6 +150,8 @@ public class PatientFormFragment extends Fragment {
         phoneInput = view.findViewById(R.id.phone_input);
         diagnosisInput = view.findViewById(R.id.diagnosis_input);
         addressInput = view.findViewById(R.id.address_input);
+        FieldHint.required(nameLayout, R.string.patient_name);
+        FieldHint.required(phoneLayout, R.string.patient_phone);
     }
     private void setupAutocomplete() {
         sessionToken = AutocompleteSessionToken.newInstance();
@@ -180,6 +196,7 @@ public class PatientFormFragment extends Fragment {
                 .build();
         placesClient.findAutocompletePredictions(request)
                 .addOnSuccessListener(response -> {
+                    if (!isAdded() || popup == null) return;
                     predictions = response.getAutocompletePredictions();
                     List<String> items = new ArrayList<>();
                     for (AutocompletePrediction p : predictions) {
@@ -207,7 +224,9 @@ public class PatientFormFragment extends Fragment {
         placesClient.fetchPlace(request)
                 .addOnSuccessListener(response -> {
                     Place place = response.getPlace();
+                    ignoreTextChanges = true;
                     addressInput.setText(place.getAddress());
+                    ignoreTextChanges = false;
                     if (place.getLatLng() != null) {
                         pendingLat = place.getLatLng().latitude;
                         pendingLng = place.getLatLng().longitude;
@@ -218,7 +237,9 @@ public class PatientFormFragment extends Fragment {
                     }
                 })
                 .addOnFailureListener(e -> {
+                    ignoreTextChanges = true;
                     addressInput.setText(prediction.getPrimaryText(null));
+                    ignoreTextChanges = false;
                 });
     }
     private void setupErrorClearListeners() {
@@ -230,6 +251,7 @@ public class PatientFormFragment extends Fragment {
         patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
             @Override
             public void onResult(Patient result) {
+                if (!isAdded()) return;
                 currentPatient = result;
                 if (currentPatient == null) {
                     Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();

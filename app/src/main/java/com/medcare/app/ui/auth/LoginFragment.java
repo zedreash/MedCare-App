@@ -1,6 +1,9 @@
 package com.medcare.app.ui.auth;
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +19,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.User;
 import com.medcare.app.data.repository.UserRepository;
+import com.medcare.app.utils.FieldHint;
 import com.medcare.app.utils.PreferencesManager;
 import com.medcare.app.utils.ValidationUtils;
 public class LoginFragment extends Fragment {
@@ -52,6 +56,8 @@ public class LoginFragment extends Fragment {
         passwordLayout = view.findViewById(R.id.password_layout);
         emailInput = view.findViewById(R.id.email_input);
         passwordInput = view.findViewById(R.id.password_input);
+        FieldHint.required(emailLayout, R.string.email);
+        FieldHint.required(passwordLayout, R.string.password);
     }
     private void setupErrorClearListeners() {
         emailInput.setOnFocusChangeListener((v, hasFocus) -> {
@@ -66,21 +72,44 @@ public class LoginFragment extends Fragment {
         if (!validateInputs()) {
             return;
         }
-        String email = emailInput.getText().toString().trim();
+        String email = emailInput.getText().toString().trim().toLowerCase();
         String password = passwordInput.getText().toString();
         userRepository.login(email, password, new UserRepository.Callback<User>() {
             @Override
             public void onResult(User user) {
                 if (user != null) {
                     preferencesManager.setLoggedInUserId(user.getId());
-                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                    boolean themeChanged = applyUserTheme(user.getId());
+                    Snackbar.make(rootView, R.string.login_success, Snackbar.LENGTH_SHORT).show();
+                    final Activity activity = requireActivity();
                     navigateToDashboard();
+                    if (themeChanged) {
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            if (!activity.isFinishing() && !activity.isDestroyed()) {
+                                activity.recreate();
+                            }
+                        });
+                    }
                 } else {
                     Snackbar.make(rootView, R.string.login_invalid_credentials, Snackbar.LENGTH_LONG).show();
                     passwordLayout.setError(getString(R.string.login_invalid_credentials));
                 }
             }
         });
+    }
+    private boolean applyUserTheme(long userId) {
+        String mode = preferencesManager.getThemeModeForUser(userId);
+        String style = preferencesManager.getThemeStyleForUser(userId);
+        boolean changed = false;
+        if (mode != null && !mode.isEmpty() && !mode.equals(preferencesManager.getThemeMode())) {
+            preferencesManager.setThemeMode(mode);
+            changed = true;
+        }
+        if (style != null && !style.isEmpty() && !style.equals(preferencesManager.getThemeStyle())) {
+            preferencesManager.setThemeStyle(style);
+            changed = true;
+        }
+        return changed;
     }
     private boolean validateInputs() {
         boolean valid = true;

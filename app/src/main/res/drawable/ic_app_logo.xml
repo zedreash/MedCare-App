@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Rounded-square background (theme primary) -->
+    <path
+        android:fillColor="?attr/colorPrimary"
+        android:pathData="M38,14 h32 a24,24 0 0 1 24,24 v32 a24,24 0 0 1 -24,24 h-32 a24,24 0 0 1 -24,-24 v-32 a24,24 0 0 1 24,-24 z" />
+
+    <!-- ECG pulse line (on-primary) -->
+    <path
+        android:pathData="M30,55 L41,55 L45,44 L50,59 L55,49 L60,55 L78,55"
+        android:fillColor="#00000000"
+        android:strokeColor="?attr/colorOnPrimary"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

@@ -1,4 +1,5 @@
 package com.medcare.app.adapter;
+import android.content.Context;
 import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -6,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.color.MaterialColors;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.Appointment;
 import java.util.ArrayList;
@@ -37,6 +39,7 @@ public class TodayAppointmentAdapter extends RecyclerView.Adapter<TodayAppointme
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Appointment appointment = appointments.get(position);
+        android.content.Context ctx = holder.itemView.getContext();
         String patientName = patientNames != null ? patientNames.get(appointment.getPatientId()) : "";
         if (patientName == null) patientName = "";
         String apptName = appointment.getName();
@@ -54,15 +57,16 @@ public class TodayAppointmentAdapter extends RecyclerView.Adapter<TodayAppointme
         boolean isPast = isPastAppointment(time, durationInt);
         boolean isNow = !isPast && isCurrentAppointment(time, durationInt);
         if (isNow) {
-            holder.timeText.setText(formatTimeLine(durationStr, "Now"));
+            holder.timeText.setText(formatTimeLine(ctx, durationStr, ctx.getString(R.string.now)));
             holder.timeText.setTextColor(holder.itemView.getContext().getColor(R.color.success));
         } else {
-            holder.timeText.setTextColor(holder.itemView.getContext().getColor(R.color.text_secondary));
+            holder.timeText.setTextColor(MaterialColors.getColor(holder.itemView.getContext(),
+                    com.google.android.material.R.attr.colorOnSurfaceVariant, holder.itemView.getContext().getColor(R.color.text_secondary)));
             String statusText = "";
             if (!isPast) {
-                statusText = computeTimeUntil(time);
+                statusText = computeTimeUntil(ctx, time);
             }
-            holder.timeText.setText(formatTimeLine(durationStr, statusText));
+            holder.timeText.setText(formatTimeLine(ctx, durationStr, statusText));
         }
         if (isPast) {
             holder.nameText.setAlpha(0.5f);
@@ -101,7 +105,7 @@ public class TodayAppointmentAdapter extends RecyclerView.Adapter<TodayAppointme
         endCal.add(Calendar.MINUTE, Math.max(duration, 0));
         return now.before(endCal);
     }
-    private String computeTimeUntil(String appointmentTime) {
+    private String computeTimeUntil(Context context, String appointmentTime) {
         Calendar apptCal = parseToCalendar(appointmentTime);
         if (apptCal == null) return "";
         Calendar now = Calendar.getInstance();
@@ -109,11 +113,11 @@ public class TodayAppointmentAdapter extends RecyclerView.Adapter<TodayAppointme
         long diffMs = apptCal.getTimeInMillis() - now.getTimeInMillis();
         long diffMin = diffMs / 60000;
         if (diffMin < 1) return "";
-        if (diffMin < 60) return "In " + diffMin + " min";
+        if (diffMin < 60) return context.getString(R.string.in_minutes, diffMin);
         long hours = diffMin / 60;
         long mins = diffMin % 60;
-        if (mins == 0) return "In " + hours + "h";
-        return "In " + hours + "h " + mins + "min";
+        if (mins == 0) return context.getString(R.string.in_hours, hours);
+        return context.getString(R.string.in_hours_minutes, hours, mins);
     }
     private Calendar parseToCalendar(String time) {
         if (time == null || time.isEmpty()) return null;
@@ -130,7 +134,7 @@ public class TodayAppointmentAdapter extends RecyclerView.Adapter<TodayAppointme
             return null;
         }
     }
-    private String formatTimeLine(String duration, String timeUntil) {
+    private String formatTimeLine(Context context, String duration, String timeUntil) {
         if (duration.isEmpty() && timeUntil.isEmpty()) return "";
         if (duration.isEmpty()) return timeUntil;
         if (timeUntil.isEmpty()) return duration;

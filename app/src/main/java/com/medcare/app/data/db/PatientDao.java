@@ -19,10 +19,10 @@ public interface PatientDao {
     List<Patient> getAllPatients(long ownerId);
     @Query("SELECT * FROM patients WHERE id = :id AND owner_id = :ownerId LIMIT 1")
     Patient getPatientById(long id, long ownerId);
-    @Query("SELECT * FROM patients WHERE owner_id = :ownerId AND (full_name LIKE '%' || :query || '%' OR phone LIKE '%' || :query || '%')")
-    List<Patient> searchPatients(String query, long ownerId);
     @Query("SELECT COUNT(*) FROM patients WHERE owner_id = :ownerId")
     int getPatientCount(long ownerId);
     @Query("DELETE FROM patients WHERE owner_id = :ownerId")
     void deleteAllByOwner(long ownerId);
+    @Query("DELETE FROM patients WHERE id = :id")
+    void deleteById(long id);
 }

@@ -67,6 +67,7 @@ public class AppointmentDetailFragment extends Fragment {
         appointmentRepository.getAppointmentById(appointmentId, preferencesManager.getLoggedInUserId(), new AppointmentRepository.Callback<Appointment>() {
             @Override
             public void onResult(Appointment result) {
+                if (!isAdded()) return;
                 appointment = result;
                 if (appointment == null) {
                     Navigation.findNavController(requireView()).navigateUp();

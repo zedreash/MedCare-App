@@ -20,10 +20,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_app_logo" />
+
             <TextView
                 android:id="@+id/profile_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
                 android:layout_weight="1"
                 android:text="@string/profile"
                 android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
@@ -40,15 +47,59 @@
 
         </LinearLayout>
 
+        <FrameLayout
+            android:id="@+id/profile_avatar_container"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/top_bar">
+
+            <TextView
+                android:id="@+id/profile_avatar"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:background="@drawable/bg_avatar"
+                android:gravity="center"
+                android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/profile_avatar_image"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:background="@drawable/bg_avatar"
+                android:contentDescription="@string/profile_photo"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/profile_avatar_badge"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="bottom|end"
+                android:background="@drawable/bg_avatar_badge"
+                android:contentDescription="@string/change_profile_photo"
+                android:padding="5dp"
+                android:src="@drawable/ic_camera"
+                app:tint="?attr/colorOnPrimary" />
+
+        </FrameLayout>
+
         <LinearLayout
             android:id="@+id/form_row1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/top_bar">
+            app:layout_constraintTop_toBottomOf="@id/profile_avatar_container">
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tz_layout"
@@ -185,7 +236,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/logout"
-            android:textColor="@color/error"
+            android:textColor="?attr/colorError"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/change_password_button" />
@@ -196,7 +247,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/delete"
-            android:textColor="@color/error"
+            android:textColor="?attr/colorError"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/logout_button" />

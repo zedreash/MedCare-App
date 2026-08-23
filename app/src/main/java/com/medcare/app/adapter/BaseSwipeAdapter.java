@@ -34,7 +34,6 @@ public abstract class BaseSwipeAdapter<VH extends BaseSwipeAdapter.SwipeableView
         protected boolean isRevealed;
         protected int touchSlop;
         private BaseSwipeAdapter adapter;
-        private int adapterPosition;
 
         public SwipeableViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -76,7 +75,6 @@ public abstract class BaseSwipeAdapter<VH extends BaseSwipeAdapter.SwipeableView
 
         void bindSwipeState(BaseSwipeAdapter adapter, int position) {
             this.adapter = adapter;
-            this.adapterPosition = position;
             if (adapter.previouslyRevealed == position && deleteActionWidth > 0) {
                 cardView.setTranslationX(-deleteActionWidth);
                 isRevealed = true;

@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -74,6 +75,7 @@ public class PatientDetailFragment extends Fragment {
         patientRepository.getPatientById(patientId, preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<Patient>() {
             @Override
             public void onResult(Patient result) {
+                if (!isAdded()) return;
                 patient = result;
                 if (patient == null) {
                     Navigation.findNavController(requireView()).navigateUp();
@@ -81,7 +83,18 @@ public class PatientDetailFragment extends Fragment {
                 }
                 nameText.setText(patient.getFullName());
                 phoneText.setText(patient.getPhone());
-                diagnosisText.setText(patient.getDiagnosis());
+                String diagnosis = patient.getDiagnosis();
+                if (diagnosis != null && !diagnosis.isEmpty()) {
+                    diagnosisText.setText(diagnosis);
+                    diagnosisText.setTextColor(com.google.android.material.color.MaterialColors.getColor(
+                            requireContext(), com.google.android.material.R.attr.colorPrimary,
+                            ContextCompat.getColor(requireContext(), R.color.primary)));
+                } else {
+                    diagnosisText.setText(R.string.no_diagnosis_hint);
+                    diagnosisText.setTextColor(com.google.android.material.color.MaterialColors.getColor(
+                            requireContext(), com.google.android.material.R.attr.colorOnSurfaceVariant,
+                            ContextCompat.getColor(requireContext(), R.color.text_secondary)));
+                }
                 String address = patient.getAddress();
                 addressText.setText(address != null && !address.isEmpty() ? address : null);
                 String notes = patient.getNotes();

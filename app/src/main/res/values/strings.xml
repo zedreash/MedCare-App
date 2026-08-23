@@ -34,6 +34,8 @@
     <string name="location_found">Address located</string>
     <string name="location_not_found">Could not locate address</string>
     <string name="patient_diagnosis">Diagnosis</string>
+    <string name="no_diagnosis_hint">No diagnosis yet — tap Edit to add</string>
+    <string name="no_diagnosis_short">No diagnosis yet</string>
     <string name="search_patients">Search patients</string>
     <string name="no_search_results">No patients match your search</string>
     <string name="no_patients">No patients yet</string>
@@ -48,8 +50,8 @@
     <string name="search_appointments">Search appointments</string>
     <string name="no_appointments">No appointments yet</string>
 
-    <string name="clinic_location">Clinic Location</string>
-    <string name="clinic_address">Sheba Medical Center, Tel HaShomer, Ramat Gan</string>
+    <string name="clinic_location">Al-Makassed Islamic Charitable Hospital</string>
+    <string name="clinic_address">Makassed Hospital, Ruba el-Adawiya St, Jerusalem</string>
     <string name="get_directions">Get Directions</string>
     <string name="view_patient">View Patient</string>
 
@@ -71,21 +73,25 @@
     <string name="sort_time_desc">Time descending</string>
 
     <string name="field_required">This field is required</string>
+    <string name="fix_highlighted_fields">Please fix the highlighted fields</string>
     <string name="invalid_email">Invalid email address</string>
     <string name="invalid_id">Invalid ID number</string>
     <string name="password_mismatch">Passwords do not match</string>
-    <string name="password_too_short">Password must be at least 8 characters with uppercase, lowercase, digit, and special character</string>
+    <string name="password_too_short">Password must be at least 8 characters with a letter, a number, and a special character</string>
     <string name="invalid_phone">Invalid phone number</string>
     <string name="invalid_age">You must be at least 18 years old</string>
     <string name="success_saved">Saved successfully</string>
     <string name="success_deleted">Deleted successfully</string>
     <string name="error_generic">Something went wrong</string>
     <string name="login_invalid_credentials">Invalid email or password</string>
+    <string name="login_success">Logged in successfully</string>
     <string name="email_already_registered">This email is already registered</string>
+    <string name="id_already_registered">This ID number is already registered</string>
     <string name="delete_account_confirm">Are you sure you want to delete your account? This cannot be undone.</string>
     <string name="logout_confirm">Are you sure you want to log out?</string>
     <string name="no_appointments_for_patient">No appointments for this patient</string>
     <string name="time_conflict">There is already an appointment at this time</string>
+    <string name="appointment_past_error">Appointment cannot be in the past</string>
     <string name="error_location">Could not find address suggestions</string>
 
     <string name="settings">Settings</string>
@@ -93,6 +99,12 @@
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="theme_style_section">Color theme</string>
+    <string name="choose_theme_prompt">Pick a color theme for your app</string>
+    <string name="theme_blue">Blue</string>
+    <string name="theme_green">Green</string>
+    <string name="theme_purple">Purple</string>
+    <string name="theme_orange">Orange</string>
     <string name="language_section">Language</string>
     <string name="lang_system">System default</string>
     <string name="lang_english">English</string>
@@ -102,6 +114,20 @@
     <string name="default_duration">Default duration (minutes)</string>
     <string name="data_section">Data</string>
     <string name="clear_all_data">Clear all data</string>
+    <string name="developer_section">Developer Settings</string>
+    <string name="developer_mode">Developer Mode</string>
+    <string name="developer_mode_subtitle">Enables additional testing tools</string>
+    <string name="fill_mock_data">Fill with sample data</string>
+    <string name="fill_mock_data_message">This will add sample patients and appointments for your account for testing purposes. Continue?</string>
+    <string name="mock_data_added">Sample data added</string>
+    <string name="clear_sample_data">Clear sample data</string>
+    <string name="clear_sample_data_message">This will remove the sample patients and appointments that were added for your account. Continue?</string>
+    <string name="sample_data_removed">Sample data removed</string>
+    <string name="app_version">App version</string>
+    <string name="account_id">Account ID</string>
+    <string name="reset_settings">Reset app settings</string>
+    <string name="reset_settings_message">This will reset theme, language, sorting, default duration and biometric settings to their defaults. Your account and data stay intact. Continue?</string>
+    <string name="settings_reset">Settings reset to defaults</string>
     <string name="clear_data_confirm">This will delete all patients, appointments, and your account. This cannot be undone.</string>
     <string name="data_cleared">All data cleared</string>
     <string name="appointment_duration">Duration (min)</string>
@@ -181,9 +207,21 @@
     <string name="biometric_prompt_subtitle">Authenticate to access the app</string>
     <string name="use_password_fallback">Use password</string>
     <string name="biometric_not_available">Biometric authentication is not available on this device</string>
+    <string name="profile_photo">Profile photo</string>
+    <string name="change_profile_photo">Change photo</string>
+    <string name="remove_profile_photo">Remove photo</string>
+    <string name="profile_picture_updated">Profile picture updated</string>
+    <string name="profile_picture_removed">Profile picture removed</string>
+    <string name="disable_biometric_title">Disable biometric lock</string>
+    <string name="disable_biometric_subtitle">Authenticate to turn off the biometric lock</string>
+    <string name="enable_biometric_title">Enable biometric lock</string>
+    <string name="enable_biometric_subtitle">Authenticate to turn on the biometric lock</string>
     <string name="biometric_failed">Fingerprint not recognized. Try again.</string>
 
     <string name="nav_calendar">Calendar</string>
+    <string name="in_minutes">In %1$d min</string>
+    <string name="in_hours">In %1$dh</string>
+    <string name="in_hours_minutes">In %1$dh %2$dmin</string>
     <string name="open_calendar">Open Calendar</string>
     <string name="calendar_today">Today</string>
     <string name="view_day">Day</string>
