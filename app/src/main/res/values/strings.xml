@@ -34,6 +34,7 @@
     <string name="location_found">Address located</string>
     <string name="location_not_found">Could not locate address</string>
     <string name="patient_diagnosis">Diagnosis</string>
+    <string name="patient_notes">Notes</string>
     <string name="no_diagnosis_hint">No diagnosis yet — tap Edit to add</string>
     <string name="no_diagnosis_short">No diagnosis yet</string>
     <string name="search_patients">Search patients</string>

@@ -10,3 +10,4 @@ build/
 local.properties
 **/secrets.properties
 **/secrets.xml
+*.jks

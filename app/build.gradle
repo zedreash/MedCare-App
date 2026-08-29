@@ -4,10 +4,12 @@ plugins {
 
 def secretsFile = rootProject.file('secrets.properties')
 def mapsApiKey = ""
+def signingProps = new Properties()
 if (secretsFile.exists()) {
     def properties = new Properties()
     properties.load(secretsFile.newDataInputStream())
     mapsApiKey = properties['MAPS_API_KEY'] ?: ""
+    signingProps.load(secretsFile.newDataInputStream())
 }
 
 android {
@@ -24,8 +26,18 @@ android {
         manifestPlaceholders = [googleMapsApiKey: mapsApiKey]
     }
 
+    signingConfigs {
+        release {
+            storeFile file(signingProps['KEYSTORE_FILE'] ?: '../medcare-release.jks')
+            storePassword signingProps['KEYSTORE_PASSWORD'] ?: ''
+            keyAlias 'medcare'
+            keyPassword signingProps['KEY_PASSWORD'] ?: ''
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
