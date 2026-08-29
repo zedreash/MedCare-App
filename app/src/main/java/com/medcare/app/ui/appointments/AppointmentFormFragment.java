@@ -14,12 +14,14 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Filter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.medcare.app.R;
@@ -30,6 +32,7 @@ import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.utils.DateUtils;
 import com.medcare.app.utils.FieldHint;
 import com.medcare.app.utils.PreferencesManager;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -54,6 +57,15 @@ public class AppointmentFormFragment extends Fragment {
     private EditText timeInput;
     private EditText durationInput;
     private EditText notesInput;
+    private ChipGroup repeatOptions;
+    private View repeatCustomLayout;
+    private EditText repeatCustomInput;
+    private ChipGroup repeatCustomUnit;
+    private View repeatCountLayout;
+    private TextView repeatCountValue;
+    private com.google.android.material.slider.Slider repeatCountSlider;
+    private String repeatType;
+    private int repeatCount = 1;
     private TextView formTitle;
     private View deleteButton;
     private View rootView;
@@ -121,6 +133,13 @@ public class AppointmentFormFragment extends Fragment {
         timeInput = view.findViewById(R.id.time_input);
         durationInput = view.findViewById(R.id.duration_input);
         notesInput = view.findViewById(R.id.notes_input);
+        repeatOptions = view.findViewById(R.id.repeat_options);
+        repeatCustomLayout = view.findViewById(R.id.repeat_custom_layout);
+        repeatCustomInput = view.findViewById(R.id.repeat_custom_input);
+        repeatCustomUnit = view.findViewById(R.id.repeat_custom_unit);
+        repeatCountLayout = view.findViewById(R.id.repeat_count_layout);
+        repeatCountValue = view.findViewById(R.id.repeat_count_value);
+        repeatCountSlider = view.findViewById(R.id.repeat_count_slider);
         FieldHint.required(nameLayout, R.string.appointment_name);
         FieldHint.required(patientLayout, R.string.select_patient);
         FieldHint.required(dateLayout, R.string.appointment_date);
@@ -140,6 +159,35 @@ public class AppointmentFormFragment extends Fragment {
         timeInput.setOnClickListener(v -> showTimePicker());
         timeInput.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) showTimePicker();
+        });
+        repeatOptions.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds == null || checkedIds.isEmpty()) return;
+            int id = checkedIds.get(0);
+            if (id == R.id.repeat_custom_chip) {
+                repeatType = buildCustomRule();
+                repeatCustomLayout.setVisibility(View.VISIBLE);
+            } else {
+                repeatType = chipToRepeat(id);
+                repeatCustomLayout.setVisibility(View.GONE);
+            }
+            if (repeatType != null && repeatCount <= 1) {
+                repeatCount = 2;
+            }
+            updateRepeatRows();
+        });
+        repeatCustomInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                repeatType = buildCustomRule();
+            }
+        });
+        repeatCustomUnit.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds != null && !checkedIds.isEmpty()) {
+                repeatType = buildCustomRule();
+            }
+        });
+        repeatCountSlider.addOnChangeListener((slider, value, fromUser) -> {
+            repeatCount = (int) value;
+            repeatCountValue.setText(String.valueOf(repeatCount));
         });
     }
     private void setupErrorClearListeners() {
@@ -330,6 +378,12 @@ public class AppointmentFormFragment extends Fragment {
                         timeInput.setText(currentAppointment.getTime());
                         durationInput.setText(String.valueOf(currentAppointment.getDuration()));
                         notesInput.setText(currentAppointment.getNotes());
+                        String rule = currentAppointment.getRecurrenceRule();
+                        if (rule != null) {
+                            repeatType = rule;
+                            repeatCount = 2;
+                        }
+                        syncRepeatUiFromType();
                     }
                 });
             }
@@ -356,28 +410,101 @@ public class AppointmentFormFragment extends Fragment {
         appointmentRepository.getAppointmentsByDate(date, ownerId, new AppointmentRepository.Callback<List<Appointment>>() {
             @Override
             public void onResult(List<Appointment> existing) {
+                if (!isAdded()) return;
                 if (hasTimeConflict(existing, time, duration)) {
                     timeLayout.setError(getString(R.string.time_conflict));
                     Snackbar.make(rootView, R.string.time_conflict, Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                saveAppointment(nameValue, date, time, duration, notes);
+                int overflow = overflowMinutes(time, duration);
+                if (overflow > 0) {
+                    String nextDate = addDays(date, 1);
+                    appointmentRepository.getAppointmentsByDate(nextDate, ownerId, new AppointmentRepository.Callback<List<Appointment>>() {
+                        @Override
+                        public void onResult(List<Appointment> nextExisting) {
+                            if (!isAdded()) return;
+                            if (hasOverflowConflict(nextExisting, overflow)) {
+                                timeLayout.setError(getString(R.string.time_conflict));
+                                Snackbar.make(rootView, R.string.time_conflict, Snackbar.LENGTH_LONG).show();
+                                return;
+                            }
+                            saveAppointment(nameValue, date, time, duration, notes, repeatType, repeatCount);
+                        }
+                    });
+                } else {
+                    saveAppointment(nameValue, date, time, duration, notes, repeatType, repeatCount);
+                }
             }
         });
     }
-    private void saveAppointment(String nameValue, String date, String time, int duration, String notes) {
+
+    private int overflowMinutes(String time, int duration) {
+        long start = parseTimeToMinutes(time);
+        if (start < 0) return 0;
+        long end = start + duration;
+        return end > 1440 ? (int) (end - 1440) : 0;
+    }
+
+    private boolean hasOverflowConflict(List<Appointment> nextDay, int overflowMinutes) {
+        for (Appointment a : nextDay) {
+            long start = parseTimeToMinutes(a.getTime());
+            if (start < 0) continue;
+            long end = start + a.getDuration();
+            if (start < overflowMinutes && 0 < end) return true;
+        }
+        return false;
+    }
+
+    private String addDays(String date, int days) {
+        try {
+            String[] p = date.split("/");
+            Calendar c = Calendar.getInstance();
+            c.set(Integer.parseInt(p[2]), Integer.parseInt(p[1]) - 1, Integer.parseInt(p[0]));
+            c.add(Calendar.DAY_OF_MONTH, days);
+            return new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(c.getTime());
+        } catch (Exception e) {
+            return date;
+        }
+    }
+    private void saveAppointment(String nameValue, String date, String time, int duration, String notes,
+                                 String repeatType, int occurrences) {
         long ownerId = preferencesManager.getLoggedInUserId();
         if (appointmentId == -1) {
-            Appointment appointment = new Appointment(selectedPatientId, nameValue, date, time, duration, notes,
-                    DateUtils.getCurrentTimestamp());
-            appointment.setOwnerId(ownerId);
-            appointmentRepository.insert(appointment, new AppointmentRepository.Callback<Long>() {
-                @Override
-                public void onResult(Long result) {
-                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
-                    Navigation.findNavController(rootView).navigateUp();
+            boolean repeating = repeatType != null && occurrences > 1;
+            Long groupId = repeating ? System.currentTimeMillis() : null;
+            final int[] inserted = {0};
+            final int total = repeating ? occurrences : 1;
+            Calendar base = parseDateOnly(date);
+            SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            for (int i = 0; i < total; i++) {
+                Calendar c = (Calendar) base.clone();
+                if (i > 0) {
+                    applyRepeatOffset(c, repeatType, i);
                 }
-            });
+                String d = fmt.format(c.getTime());
+                Appointment appointment = new Appointment(
+                        selectedPatientId, nameValue, d, time, duration, notes,
+                        DateUtils.getCurrentTimestamp());
+                appointment.setOwnerId(ownerId);
+                if (repeating) {
+                    appointment.setRecurrenceGroupId(groupId);
+                    appointment.setRecurrenceRule(repeatType);
+                }
+                appointmentRepository.insert(appointment, new AppointmentRepository.Callback<Long>() {
+                    @Override
+                    public void onResult(Long result) {
+                        appointment.setId(result);
+                        scheduleFollowUp(appointment);
+                        inserted[0]++;
+                        if (inserted[0] == total) {
+                            if (isAdded()) {
+                                Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                                Navigation.findNavController(rootView).navigateUp();
+                            }
+                        }
+                    }
+                });
+            }
         } else {
             currentAppointment.setPatientId(selectedPatientId);
             currentAppointment.setName(nameValue);
@@ -388,12 +515,140 @@ public class AppointmentFormFragment extends Fragment {
             appointmentRepository.update(currentAppointment, new AppointmentRepository.Callback<Void>() {
                 @Override
                 public void onResult(Void result) {
-                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
-                    Navigation.findNavController(rootView).navigateUp();
+                    scheduleFollowUp(currentAppointment);
+                    if (isAdded()) {
+                        Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                        Navigation.findNavController(rootView).navigateUp();
+                    }
                 }
             });
         }
     }
+
+    private void scheduleFollowUp(com.medcare.app.data.entity.Appointment a) {
+        try {
+            long end = AppointmentRepository.toEpochMillis(a.getDate(), a.getTime());
+            if (end <= 0) return;
+            int dur = a.getDuration() > 0 ? a.getDuration() : 0;
+            com.medcare.app.notifications.FollowUpScheduler.scheduleAtEnd(
+                    requireContext(), a.getId(), end + dur * 60000L);
+            com.medcare.app.background.BackgroundScheduler.rescheduleAll(requireContext());
+        } catch (Exception ignored) {}
+    }
+    private Calendar parseDateOnly(String date) {
+        try {
+            String[] p = date.split("/");
+            Calendar c = Calendar.getInstance();
+            c.set(Integer.parseInt(p[2]), Integer.parseInt(p[1]) - 1, Integer.parseInt(p[0]));
+            return c;
+        } catch (Exception e) {
+            return Calendar.getInstance();
+        }
+    }
+    private String chipToRepeat(int chipId) {
+        if (chipId == R.id.repeat_daily_chip) return "daily";
+        if (chipId == R.id.repeat_weekly_chip) return "weekly";
+        if (chipId == R.id.repeat_monthly_chip) return "monthly";
+        if (chipId == R.id.repeat_quarterly_chip) return "quarterly";
+        if (chipId == R.id.repeat_yearly_chip) return "yearly";
+        if (chipId == R.id.repeat_custom_chip) return buildCustomRule();
+        return null;
+    }
+
+    private int repeatToChipRes(String rule) {
+        if (rule == null) return R.id.repeat_none_chip;
+        if ("daily".equals(rule)) return R.id.repeat_daily_chip;
+        if ("weekly".equals(rule)) return R.id.repeat_weekly_chip;
+        if ("monthly".equals(rule)) return R.id.repeat_monthly_chip;
+        if ("quarterly".equals(rule)) return R.id.repeat_quarterly_chip;
+        if ("yearly".equals(rule)) return R.id.repeat_yearly_chip;
+        return R.id.repeat_custom_chip;
+    }
+
+    private void syncRepeatUiFromType() {
+        int chipId = repeatToChipRes(repeatType);
+        repeatOptions.check(chipId);
+        if (chipId == R.id.repeat_custom_chip) {
+            prefillCustomRepeat(repeatType);
+            repeatCustomLayout.setVisibility(View.VISIBLE);
+        } else {
+            repeatCustomLayout.setVisibility(View.GONE);
+        }
+        updateRepeatRows();
+    }
+
+    private String buildCustomRule() {
+        int n = 1;
+        try {
+            n = Math.max(1, Integer.parseInt(repeatCustomInput.getText().toString().trim()));
+        } catch (NumberFormatException ignored) {}
+        if (n > 365) n = 365;
+        String unit = "weeks";
+        int unitId = repeatCustomUnit.getCheckedChipId();
+        if (unitId == R.id.repeat_unit_days) unit = "days";
+        else if (unitId == R.id.repeat_unit_months) unit = "months";
+        else if (unitId == R.id.repeat_unit_years) unit = "years";
+        return "every:" + n + ":" + unit;
+    }
+
+    private void prefillCustomRepeat(String rule) {
+        int n = 1;
+        String unit = "weeks";
+        if (rule != null && rule.startsWith("every:")) {
+            String[] parts = rule.split(":");
+            if (parts.length == 3) {
+                try {
+                    n = Integer.parseInt(parts[1]);
+                } catch (NumberFormatException ignored) {}
+                unit = parts[2];
+            }
+        }
+        repeatCustomInput.setText(String.valueOf(n));
+        int unitRes;
+        if ("days".equals(unit)) unitRes = R.id.repeat_unit_days;
+        else if ("months".equals(unit)) unitRes = R.id.repeat_unit_months;
+        else if ("years".equals(unit)) unitRes = R.id.repeat_unit_years;
+        else unitRes = R.id.repeat_unit_weeks;
+        repeatCustomUnit.check(unitRes);
+    }
+
+    private void updateRepeatRows() {
+        boolean repeating = repeatType != null;
+        repeatCountLayout.setVisibility(repeating ? View.VISIBLE : View.GONE);
+        repeatCountValue.setText(String.valueOf(repeatCount));
+        if (repeatCountSlider != null) {
+            repeatCountSlider.setValue(repeatCount);
+        }
+    }
+
+    private void applyRepeatOffset(Calendar c, String rule, int i) {
+        if (rule == null || i <= 0) return;
+        int step = 1;
+        String type = rule;
+        if (rule.startsWith("every:")) {
+            String[] parts = rule.split(":");
+            if (parts.length == 3) {
+                try {
+                    step = Math.max(1, Integer.parseInt(parts[1]));
+                } catch (NumberFormatException e) {
+                    step = 1;
+                }
+                type = parts[2];
+            }
+        }
+        switch (type) {
+            case "daily":
+            case "days": c.add(Calendar.DAY_OF_MONTH, step * i); break;
+            case "weekly":
+            case "weeks": c.add(Calendar.DAY_OF_MONTH, step * 7 * i); break;
+            case "monthly":
+            case "months": c.add(Calendar.MONTH, step * i); break;
+            case "quarterly": c.add(Calendar.MONTH, 3 * i); break;
+            case "yearly":
+            case "years": c.add(Calendar.YEAR, step * i); break;
+        }
+    }
+
     private boolean isDateTimeInPast(String date, String time) {
         try {
             String[] dateParts = date.split("/");
@@ -442,6 +697,8 @@ public class AppointmentFormFragment extends Fragment {
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_appointment_message)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
+                    com.medcare.app.notifications.FollowUpScheduler.cancelAtEnd(
+                            requireContext(), currentAppointment.getId());
                     appointmentRepository.delete(currentAppointment, new AppointmentRepository.Callback<Void>() {
                         @Override
                         public void onResult(Void result) {

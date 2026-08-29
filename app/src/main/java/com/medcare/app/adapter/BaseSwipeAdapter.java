@@ -33,6 +33,7 @@ public abstract class BaseSwipeAdapter<VH extends BaseSwipeAdapter.SwipeableView
         protected float startX;
         protected boolean isRevealed;
         protected int touchSlop;
+        private float revealSign;
         private BaseSwipeAdapter adapter;
 
         public SwipeableViewHolder(@NonNull View itemView) {
@@ -41,6 +42,8 @@ public abstract class BaseSwipeAdapter<VH extends BaseSwipeAdapter.SwipeableView
             deleteAction = itemView.findViewById(com.medcare.app.R.id.delete_action);
             deleteActionWidth = (int) (96 * itemView.getResources().getDisplayMetrics().density);
             touchSlop = ViewConfiguration.get(itemView.getContext()).getScaledTouchSlop();
+            revealSign = itemView.getResources().getConfiguration().getLayoutDirection()
+                    == android.view.View.LAYOUT_DIRECTION_RTL ? 1f : -1f;
 
             deleteAction.setOnClickListener(v -> {
                 int position = getAdapterPosition();
@@ -60,8 +63,13 @@ public abstract class BaseSwipeAdapter<VH extends BaseSwipeAdapter.SwipeableView
                         float dx = event.getRawX() - startX;
                         if (Math.abs(dx) > touchSlop) {
                             float maxReveal = deleteActionWidth;
-                            float offset = isRevealed ? -maxReveal : 0;
-                            float translation = Math.max(-maxReveal, Math.min(0, dx + offset));
+                            float offset = isRevealed ? revealSign * maxReveal : 0;
+                            float translation;
+                            if (revealSign < 0) {
+                                translation = Math.max(-maxReveal, Math.min(0, dx + offset));
+                            } else {
+                                translation = Math.min(maxReveal, Math.max(0, dx + offset));
+                            }
                             cardView.setTranslationX(translation);
                         }
                         return true;
@@ -76,7 +84,7 @@ public abstract class BaseSwipeAdapter<VH extends BaseSwipeAdapter.SwipeableView
         void bindSwipeState(BaseSwipeAdapter adapter, int position) {
             this.adapter = adapter;
             if (adapter.previouslyRevealed == position && deleteActionWidth > 0) {
-                cardView.setTranslationX(-deleteActionWidth);
+                cardView.setTranslationX(revealSign * deleteActionWidth);
                 isRevealed = true;
             } else {
                 cardView.setTranslationX(0);
@@ -98,14 +106,14 @@ public abstract class BaseSwipeAdapter<VH extends BaseSwipeAdapter.SwipeableView
                 }
             } else {
                 if (isRevealed) {
-                    if (totalDx > 20) {
+                    if (totalDx * revealSign > 20) {
                         snapCard(0, false);
                     } else {
-                        snapCard(-deleteActionWidth, true);
+                        snapCard(revealSign * deleteActionWidth, true);
                     }
                 } else {
-                    if (currentTranslation < -deleteActionWidth * 0.4f) {
-                        snapCard(-deleteActionWidth, true);
+                    if (currentTranslation * revealSign < -deleteActionWidth * 0.4f) {
+                        snapCard(revealSign * deleteActionWidth, true);
                         if (adapter != null && adapter.previouslyRevealed != -1 && adapter.previouslyRevealed != getAdapterPosition()) {
                             adapter.notifyItemChanged(adapter.previouslyRevealed);
                         }

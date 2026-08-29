@@ -3,9 +3,9 @@
     <dimen name="margin_small">8dp</dimen>
     <dimen name="margin_medium">16dp</dimen>
     <dimen name="margin_large">24dp</dimen>
-    <dimen name="corner_radius">12dp</dimen>
-    <dimen name="corner_radius_small">8dp</dimen>
-    <dimen name="elevation_card">4dp</dimen>
+    <dimen name="corner_radius">16dp</dimen>
+    <dimen name="corner_radius_small">12dp</dimen>
+    <dimen name="elevation_card">6dp</dimen>
     <dimen name="icon_size">24dp</dimen>
     <dimen name="calendar_hour_height">60dp</dimen>
 </resources>

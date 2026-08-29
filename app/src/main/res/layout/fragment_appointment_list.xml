@@ -74,6 +74,16 @@
             app:icon="@drawable/ic_calendar"
             app:iconTint="?attr/colorOnSurfaceVariant" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/filter_status_button"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@string/filter_by_status"
+            app:icon="@drawable/ic_filter"
+            app:iconTint="?attr/colorOnSurfaceVariant" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/search_bar"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -161,45 +171,53 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <ScrollView
         android:id="@+id/empty_state_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbars="none"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/filter_chip_container">
 
-        <ImageView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:src="@drawable/ic_calendar"
-            app:tint="?attr/colorOutline"
-            android:alpha="0.6"
-            android:importantForAccessibility="no" />
-
-        <TextView
-            android:id="@+id/empty_state_text"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:gravity="center"
-            android:text="@string/no_appointments"
-            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:orientation="vertical">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/empty_add_appointment_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/add_appointment"
-            app:icon="@drawable/ic_add" />
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:src="@drawable/ic_calendar"
+                app:tint="?attr/colorOutline"
+                android:alpha="0.6"
+                android:importantForAccessibility="no" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/empty_state_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="@string/no_appointments"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/empty_add_appointment_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/add_appointment"
+                app:icon="@drawable/ic_add" />
+
+        </LinearLayout>
+
+    </ScrollView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/appointment_recycler_view"

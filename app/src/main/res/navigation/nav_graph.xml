@@ -35,6 +35,26 @@
             app:destination="@id/dashboardFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_register_to_registrationSteps"
+            app:destination="@id/registrationStepsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registrationStepsFragment"
+        android:name="com.medcare.app.ui.auth.RegistrationStepsFragment"
+        android:label="@string/register"
+        tools:layout="@layout/fragment_registration_steps">
+        <action
+            android:id="@+id/action_registrationSteps_to_dashboard"
+            app:destination="@id/dashboardFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_registrationSteps_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
@@ -172,6 +192,9 @@
         <action
             android:id="@+id/action_dashboard_to_calendar"
             app:destination="@id/calendarFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_report"
+            app:destination="@id/reportFragment" />
     </fragment>
 
     <fragment
@@ -191,6 +214,12 @@
         tools:layout="@layout/fragment_biometric_lock" />
 
     <fragment
+        android:id="@+id/reportFragment"
+        android:name="com.medcare.app.ui.report.ReportFragment"
+        android:label="@string/reports"
+        tools:layout="@layout/fragment_report" />
+
+    <fragment
         android:id="@+id/settingsFragment"
         android:name="com.medcare.app.ui.settings.SettingsFragment"
         android:label="@string/settings"
@@ -200,6 +229,9 @@
             app:destination="@id/loginFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_settings_to_dashboard"
+            app:destination="@id/dashboardFragment" />
     </fragment>
 
 </navigation>

@@ -5,7 +5,6 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Smooth ECG pulse line -->
     <path
         android:pathData="M30,55 L41,55 L45,44 L50,59 L55,49 L60,55 L78,55"
         android:fillColor="#00000000"

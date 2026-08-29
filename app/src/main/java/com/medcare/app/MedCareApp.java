@@ -4,6 +4,10 @@ import android.app.Application;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import com.medcare.app.data.db.AppDatabase;
+import com.medcare.app.notifications.BackupWorker;
+import com.medcare.app.notifications.FollowUpScheduler;
+import com.medcare.app.notifications.ReminderScheduler;
 import com.medcare.app.utils.PreferencesManager;
 public class MedCareApp extends Application {
     private int startedActivityCount = 0;
@@ -11,6 +15,12 @@ public class MedCareApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        AppDatabase.ensureUsable(this);
+        ReminderScheduler.createChannel(this);
+        ReminderScheduler.ensureScheduled(this);
+        FollowUpScheduler.createChannel(this);
+        FollowUpScheduler.ensureScheduled(this);
+        BackupWorker.ensureScheduled(this);
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityStarted(Activity activity) {

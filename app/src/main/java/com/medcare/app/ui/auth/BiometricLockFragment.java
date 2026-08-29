@@ -59,7 +59,6 @@ public class BiometricLockFragment extends Fragment {
                 new androidx.activity.OnBackPressedCallback(true) {
                     @Override
                     public void handleOnBackPressed() {
-                        // keep the app locked: block back navigation
                     }
                 });
         showBiometricPrompt();
@@ -90,7 +89,12 @@ public class BiometricLockFragment extends Fragment {
                 .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG
                         | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
                 .build();
-        biometricPrompt.authenticate(promptInfo);
+        try {
+            biometricPrompt.authenticate(promptInfo);
+        } catch (Exception e) {
+            statusText.setText(R.string.biometric_unavailable);
+            passwordFallbackButton.setVisibility(View.VISIBLE);
+        }
     }
     private void checkPassword() {
         String password = passwordInput.getText().toString();

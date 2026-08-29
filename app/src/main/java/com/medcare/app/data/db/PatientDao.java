@@ -17,6 +17,8 @@ public interface PatientDao {
     void delete(Patient patient);
     @Query("SELECT * FROM patients WHERE owner_id = :ownerId ORDER BY created_at DESC")
     List<Patient> getAllPatients(long ownerId);
+    @Query("SELECT * FROM patients")
+    List<Patient> getAllPatientsAll();
     @Query("SELECT * FROM patients WHERE id = :id AND owner_id = :ownerId LIMIT 1")
     Patient getPatientById(long id, long ownerId);
     @Query("SELECT COUNT(*) FROM patients WHERE owner_id = :ownerId")

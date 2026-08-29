@@ -8,9 +8,17 @@ import com.medcare.app.data.db.AppDatabase;
 import com.medcare.app.data.db.AppointmentDao;
 import com.medcare.app.data.db.PatientDao;
 import com.medcare.app.data.entity.Appointment;
+import com.medcare.app.data.entity.LogEntry;
 import com.medcare.app.data.entity.Patient;
+import com.medcare.app.data.entity.PatientAllergy;
+import com.medcare.app.data.entity.PatientAttachment;
+import com.medcare.app.data.entity.PatientHistory;
+import com.medcare.app.data.entity.PatientMedication;
+import com.medcare.app.utils.AppointmentStatus;
+import com.medcare.app.utils.AuditLogger;
 import com.medcare.app.utils.PreferencesManager;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +43,11 @@ public class MockDataSeeder {
     private static final Map<String, List<String>> NOTES = new HashMap<>();
     private static final Map<String, List<String>> ADDRESSES = new HashMap<>();
     private static final Map<String, List<String>> PURPOSES = new HashMap<>();
+    private static final Map<String, List<String>> MEDICATIONS = new HashMap<>();
+    private static final Map<String, List<String>> DOSAGES = new HashMap<>();
+    private static final Map<String, List<String>> ALLERGIES = new HashMap<>();
+    private static final Map<String, List<String>> HISTORY = new HashMap<>();
+    private static final String[] BLOOD_TYPES = {"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"};
 
     static {
         NAMES.put("en", Arrays.asList(
@@ -113,6 +126,37 @@ public class MockDataSeeder {
         PURPOSES.put("he", Arrays.asList(
                 "מעקב", "בדיקה שגרתית", "בדיקת דם", "ייעוץ",
                 "חיסון", "פיזיותרפיה", "הפניה", "תוצאות מעבדה"));
+
+        MEDICATIONS.put("en", Arrays.asList(
+                "Metformin", "Lisinopril", "Amoxicillin", "Ventolin", "Paracetamol", "Omeprazole"));
+        MEDICATIONS.put("ar", Arrays.asList(
+                "ميتفورمين", "ليزينوبريل", "أموكسيسيلين", "فينتولين", "باراسيتامول", "أوميبرازول"));
+        MEDICATIONS.put("he", Arrays.asList(
+                "מטפורמין", "ליסינופריל", "אמוקסיצילין", "ונטולין", "אקמול", "אומפרזול"));
+
+        DOSAGES.put("en", Arrays.asList(
+                "500 mg daily", "10 mg once a day", "2 puffs as needed", "250 mg twice daily"));
+        DOSAGES.put("ar", Arrays.asList(
+                "500 ملغ يوميا", "10 ملغ مرة يوميا", "جرعتان عند الحاجة", "250 ملغ مرتين يوميا"));
+        DOSAGES.put("he", Arrays.asList(
+                "500 מ\"ג ליום", "10 מ\"ג פעם ביום", "2 שאיפות לפי הצורך", "250 מ\"ג פעמיים ביום"));
+
+        ALLERGIES.put("en", Arrays.asList(
+                "Penicillin", "Pollen", "Dust mites", "Nuts", "Lactose"));
+        ALLERGIES.put("ar", Arrays.asList(
+                "بنسلين", "حبوب اللقاح", "غبار", "مكسرات", "لاكتوز"));
+        ALLERGIES.put("he", Arrays.asList(
+                "פניצילין", "אבקנים", "קרדית אבק", "אגוזים", "לקטוז"));
+
+        HISTORY.put("en", Arrays.asList(
+                "Tonsillectomy (2015)", "Appendectomy (2018)", "Chronic sinusitis",
+                "Broken wrist (2021)", "COVID-19 (2022)"));
+        HISTORY.put("ar", Arrays.asList(
+                "استئصال اللوزتين (2015)", "استئصال الزائدة (2018)", "التهاب الجيوب الأنفية",
+                "كسر في الرسغ (2021)", "كوفيد-19 (2022)"));
+        HISTORY.put("he", Arrays.asList(
+                "כריתת שקדים (2015)", "כריתת תוספתן (2018)", "סינוסיטיס כרונית",
+                "שבר בפרק כף היד (2021)", "קורונה (2022)"));
     }
 
     private static final String[] TIME_SLOTS = {
@@ -138,8 +182,9 @@ public class MockDataSeeder {
         AppDatabase.getExecutor().execute(() -> {
             boolean success = false;
             try {
-                PatientDao patientDao = AppDatabase.getInstance(context).patientDao();
-                AppointmentDao appointmentDao = AppDatabase.getInstance(context).appointmentDao();
+                AppDatabase db = AppDatabase.getInstance(context);
+                PatientDao patientDao = db.patientDao();
+                AppointmentDao appointmentDao = db.appointmentDao();
                 PreferencesManager prefs = new PreferencesManager(context);
                 Random random = new Random();
                 long now = System.currentTimeMillis();
@@ -170,34 +215,100 @@ public class MockDataSeeder {
                     patient.setLatitude(lat);
                     patient.setLongitude(lng);
                     patient.setOwnerId(ownerId);
+                    patient.setBloodType(random.nextInt(10) < 7
+                            ? BLOOD_TYPES[random.nextInt(BLOOD_TYPES.length)] : null);
+                    patient.setHeightCm(random.nextInt(10) < 8
+                            ? Integer.valueOf(150 + random.nextInt(45)) : null);
+                    patient.setWeightKg(random.nextInt(10) < 8
+                            ? Double.valueOf(50 + random.nextInt(70)) : null);
                     long id = patientDao.insert(patient);
+                    AuditLogger.log(context, ownerId, LogEntry.ACTION_CREATE, "patient", id, fullName);
                     patientIds.add(id);
                     savedPatientIds.add(String.valueOf(id));
                 }
 
-                int target = patientIds.size() * 2 + random.nextInt(6) - 3;
-                if (target < patientIds.size()) target = patientIds.size();
+                List<String> meds = MEDICATIONS.get(lang);
+                List<String> dosages = DOSAGES.get(lang);
+                List<String> allergiesPool = ALLERGIES.get(lang);
+                List<String> historyPool = HISTORY.get(lang);
+                for (Long pid : patientIds) {
+                    if (random.nextInt(10) < 5) {
+                        int medCount = 1 + random.nextInt(3);
+                        for (int k = 0; k < medCount; k++) {
+                            String medName = meds.get(random.nextInt(meds.size()));
+                            long mid = db.patientMedicationDao().insert(new PatientMedication(
+                                    pid, medName,
+                                    dosages.get(random.nextInt(dosages.size())),
+                                    random.nextBoolean(), now));
+                            AuditLogger.log(context, ownerId, LogEntry.ACTION_CREATE, "medication", mid, medName);
+                        }
+                    }
+                    if (random.nextInt(10) < 3) {
+                        int allCount = 1 + random.nextInt(2);
+                        for (int k = 0; k < allCount; k++) {
+                            String allergyName = allergiesPool.get(random.nextInt(allergiesPool.size()));
+                            long aid = db.patientAllergyDao().insert(new PatientAllergy(
+                                    pid, allergyName,
+                                    random.nextInt(10) < 3 ? notesPool.get(random.nextInt(notesPool.size())) : "",
+                                    now));
+                            AuditLogger.log(context, ownerId, LogEntry.ACTION_CREATE, "allergy", aid, allergyName);
+                        }
+                    }
+                    if (random.nextInt(10) < 4) {
+                        int histCount = 1 + random.nextInt(2);
+                        for (int k = 0; k < histCount; k++) {
+                            String histTitle = historyPool.get(random.nextInt(historyPool.size()));
+                            long hid = db.patientHistoryDao().insert(new PatientHistory(
+                                    pid, histTitle,
+                                    random.nextInt(10) < 3 ? notesPool.get(random.nextInt(notesPool.size())) : "",
+                                    "", now));
+                            AuditLogger.log(context, ownerId, LogEntry.ACTION_CREATE, "history", hid, histTitle);
+                        }
+                    }
+                }
+                File attDir = new File(context.getFilesDir(), "attachments");
+                if (!attDir.exists()) attDir.mkdirs();
+                String[][] attachmentSamples = {
+                        {"blood_test_results.txt", "text/plain"},
+                        {"xray_report.txt", "text/plain"},
+                        {"prescription.pdf", "application/pdf"},
+                        {"referral_letter.pdf", "application/pdf"},
+                        {"vaccination_card.txt", "text/plain"},
+                        {"lab_referral.txt", "text/plain"}
+                };
+                for (int i = 0; i < attachmentSamples.length; i++) {
+                    long pid = patientIds.get(random.nextInt(patientIds.size()));
+                    File f = new File(attDir, "sample-" + (now % 1000000) + "-" + i + ".txt");
+                    try (java.io.FileOutputStream fos = new java.io.FileOutputStream(f)) {
+                        fos.write(("Sample attachment: " + attachmentSamples[i][0]).getBytes("UTF-8"));
+                    }
+                    long attId = db.patientAttachmentDao().insert(new PatientAttachment(
+                            pid, f.getAbsolutePath(), attachmentSamples[i][0], attachmentSamples[i][1],
+                            notesPool.get(random.nextInt(notesPool.size())), now));
+                    AuditLogger.log(context, ownerId, LogEntry.ACTION_CREATE, "attachment", attId, attachmentSamples[i][0]);
+                }
+
+                int pastTarget = patientIds.size() * 2;
+                int futureTarget = patientIds.size() * 2 + random.nextInt(6) - 3;
+                if (futureTarget < patientIds.size()) futureTarget = patientIds.size();
                 SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                 Set<String> savedAppointmentIds = new HashSet<>();
-                int placed = 0;
+                List<Appointment> createdAppointments = new ArrayList<>();
+                int pastPlaced = 0;
+                int futurePlaced = 0;
                 int cursor = random.nextInt(patientIds.size());
                 Calendar nowCal = Calendar.getInstance();
                 int nowMinutes = nowCal.get(Calendar.HOUR_OF_DAY) * 60 + nowCal.get(Calendar.MINUTE);
-                for (int offset = 0; offset < 365 && placed < target; offset++) {
+
+                for (int offset = -1; offset >= -60 && pastPlaced < pastTarget; offset--) {
                     Calendar d = Calendar.getInstance();
                     d.add(Calendar.DAY_OF_MONTH, offset);
-
-                    List<String> times;
-                    if (offset == 0) {
-                        times = todayTimes(nowMinutes, random);
-                    } else {
-                        double r = random.nextDouble();
-                        int dayCount = r < 0.35 ? 0 : r < 0.72 ? 1 : r < 0.90 ? 2 : r < 0.97 ? 3 : 4;
-                        times = pickTimes(dayCount, random);
-                    }
+                    double r = random.nextDouble();
+                    int dayCount = r < 0.35 ? 0 : r < 0.72 ? 1 : r < 0.90 ? 2 : r < 0.97 ? 3 : 4;
+                    List<String> times = pickTimes(dayCount, random);
                     int count = times.size();
-                    if (placed + count > target) {
-                        count = Math.max(0, target - placed);
+                    if (pastPlaced + count > pastTarget) {
+                        count = Math.max(0, pastTarget - pastPlaced);
                         if (times.size() > count) {
                             times = new ArrayList<>(times.subList(0, count));
                         }
@@ -213,9 +324,98 @@ public class MockDataSeeder {
                         Appointment appointment = new Appointment(
                                 pid, purpose, dateStr, times.get(k), 30, notes, now);
                         appointment.setOwnerId(ownerId);
-                        savedAppointmentIds.add(String.valueOf(appointmentDao.insert(appointment)));
-                        placed++;
+                        long aid = appointmentDao.insert(appointment);
+                        AuditLogger.log(context, ownerId, LogEntry.ACTION_CREATE, "appointment", aid, purpose);
+                        appointment.setId(aid);
+                        createdAppointments.add(appointment);
+                        savedAppointmentIds.add(String.valueOf(aid));
+                        pastPlaced++;
                     }
+                }
+
+                for (int offset = 0; offset < 365 && futurePlaced < futureTarget; offset++) {
+                    Calendar d = Calendar.getInstance();
+                    d.add(Calendar.DAY_OF_MONTH, offset);
+
+                    List<String> times;
+                    if (offset == 0) {
+                        times = todayTimes(nowMinutes, random);
+                    } else {
+                        double r = random.nextDouble();
+                        int dayCount = r < 0.35 ? 0 : r < 0.72 ? 1 : r < 0.90 ? 2 : r < 0.97 ? 3 : 4;
+                        times = pickTimes(dayCount, random);
+                    }
+                    int count = times.size();
+                    if (futurePlaced + count > futureTarget) {
+                        count = Math.max(0, futureTarget - futurePlaced);
+                        if (times.size() > count) {
+                            times = new ArrayList<>(times.subList(0, count));
+                        }
+                    }
+
+                    String dateStr = fmt.format(d.getTime());
+                    for (int k = 0; k < count; k++) {
+                        long pid = patientIds.get(cursor % patientIds.size());
+                        cursor++;
+                        String purpose = purposes.get(random.nextInt(purposes.size()));
+                        String notes = random.nextInt(10) < 4
+                                ? notesPool.get(random.nextInt(notesPool.size())) : "";
+                        Appointment appointment = new Appointment(
+                                pid, purpose, dateStr, times.get(k), 30, notes, now);
+                        appointment.setOwnerId(ownerId);
+                        long aid = appointmentDao.insert(appointment);
+                        AuditLogger.log(context, ownerId, LogEntry.ACTION_CREATE, "appointment", aid, purpose);
+                        appointment.setId(aid);
+                        createdAppointments.add(appointment);
+                        savedAppointmentIds.add(String.valueOf(aid));
+                        futurePlaced++;
+                    }
+                }
+
+                Calendar nowRef = Calendar.getInstance();
+                for (Appointment a : createdAppointments) {
+                    Calendar start = parseAppointmentDate(a.getDate(), a.getTime());
+                    if (start == null) {
+                        a.setStatus(AppointmentStatus.SCHEDULED);
+                    } else if (nowRef.after(start)) {
+                        double r = random.nextDouble();
+                        a.setStatus(r < 0.60 ? AppointmentStatus.COMPLETED
+                                : r < 0.75 ? AppointmentStatus.NO_SHOW
+                                : r < 0.90 ? AppointmentStatus.RESCHEDULED
+                                : AppointmentStatus.CANCELLED);
+                    } else if (random.nextInt(10) < 2) {
+                        a.setStatus(AppointmentStatus.CANCELLED);
+                    } else if (random.nextInt(10) < 2) {
+                        a.setStatus(AppointmentStatus.RESCHEDULED);
+                    } else {
+                        a.setStatus(AppointmentStatus.SCHEDULED);
+                    }
+                    appointmentDao.update(a);
+                }
+
+                int seriesAdded = 0;
+                for (Appointment a : createdAppointments) {
+                    if (seriesAdded >= 3) break;
+                    if (!AppointmentStatus.SCHEDULED.equals(a.getStatus())) continue;
+                    Calendar start = parseAppointmentDate(a.getDate(), a.getTime());
+                    if (start == null || !start.after(nowRef)) continue;
+                    long groupId = System.currentTimeMillis() + seriesAdded;
+                    a.setRecurrenceGroupId(groupId);
+                    a.setRecurrenceRule("weekly");
+                    appointmentDao.update(a);
+                    for (int w = 1; w <= 3; w++) {
+                        Appointment copy = new Appointment(
+                                a.getPatientId(), a.getName(), addDays(a.getDate(), w * 7),
+                                a.getTime(), a.getDuration(), a.getNotes(), a.getCreatedAt());
+                        copy.setOwnerId(ownerId);
+                        copy.setStatus(AppointmentStatus.SCHEDULED);
+                        copy.setRecurrenceGroupId(groupId);
+                        copy.setRecurrenceRule("weekly");
+                        long copyId = appointmentDao.insert(copy);
+                        AuditLogger.log(context, ownerId, LogEntry.ACTION_CREATE, "appointment", copyId, a.getName());
+                        savedAppointmentIds.add(String.valueOf(copyId));
+                    }
+                    seriesAdded++;
                 }
 
                 Set<String> existingPatients = new HashSet<>(prefs.getMockPatientIds());
@@ -242,12 +442,26 @@ public class MockDataSeeder {
                 PreferencesManager prefs = new PreferencesManager(context);
                 PatientDao patientDao = AppDatabase.getInstance(context).patientDao();
                 AppointmentDao appointmentDao = AppDatabase.getInstance(context).appointmentDao();
+                long ownerId = prefs.getLoggedInUserId();
 
                 for (String id : prefs.getMockAppointmentIds()) {
-                    appointmentDao.deleteById(Long.parseLong(id));
+                    long parsed = Long.parseLong(id);
+                    appointmentDao.deleteById(parsed);
+                    AuditLogger.log(context, ownerId, LogEntry.ACTION_DELETE, "appointment", parsed, "sample data");
                 }
                 for (String id : prefs.getMockPatientIds()) {
-                    patientDao.deleteById(Long.parseLong(id));
+                    long parsed = Long.parseLong(id);
+                    patientDao.deleteById(parsed);
+                    AuditLogger.log(context, ownerId, LogEntry.ACTION_DELETE, "patient", parsed, "sample data");
+                }
+                File attDir = new File(context.getFilesDir(), "attachments");
+                File[] attFiles = attDir.listFiles();
+                if (attFiles != null) {
+                    for (File f : attFiles) {
+                        if (f.getName().startsWith("sample-") && f.exists()) {
+                            f.delete();
+                        }
+                    }
                 }
                 prefs.setMockAppointmentIds(new HashSet<String>());
                 prefs.setMockPatientIds(new HashSet<String>());
@@ -307,6 +521,33 @@ public class MockDataSeeder {
     }
 
     private static String randomPhone(Random random) {
-        return String.format(Locale.US, "05%d%07d", 2 + random.nextInt(7), random.nextInt(10000000));
+        char prefix = "0234589".charAt(random.nextInt(7));
+        return String.format(Locale.US, "05%c%07d", prefix, random.nextInt(10000000));
+    }
+
+    private static Calendar parseAppointmentDate(String date, String time) {
+        try {
+            String[] dp = date.split("/");
+            String[] tp = time.split(":");
+            Calendar c = Calendar.getInstance();
+            c.set(Integer.parseInt(dp[2]), Integer.parseInt(dp[1]) - 1, Integer.parseInt(dp[0]),
+                    Integer.parseInt(tp[0]), Integer.parseInt(tp[1]), 0);
+            c.set(Calendar.MILLISECOND, 0);
+            return c;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String addDays(String dateStr, int days) {
+        try {
+            String[] dp = dateStr.split("/");
+            Calendar c = Calendar.getInstance();
+            c.set(Integer.parseInt(dp[2]), Integer.parseInt(dp[1]) - 1, Integer.parseInt(dp[0]));
+            c.add(Calendar.DAY_OF_MONTH, days);
+            return new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(c.getTime());
+        } catch (Exception e) {
+            return dateStr;
+        }
     }
 }

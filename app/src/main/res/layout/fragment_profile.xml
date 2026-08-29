@@ -186,15 +186,35 @@
                 android:inputType="date" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/clinic_layout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/clinic"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dob_layout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/clinic_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"
+                android:imeOptions="actionDone" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/save_button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/save"
+            app:icon="@drawable/ic_save"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/dob_layout" />
+            app:layout_constraintTop_toBottomOf="@id/clinic_layout" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/change_password_button"
@@ -202,29 +222,45 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/change_password"
+            app:icon="@drawable/ic_lock"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/save_button" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/logout_button"
-            style="@style/Widget.Material3.Button.TextButton"
+            android:id="@+id/transfer_button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/logout"
-            android:textColor="?attr/colorError"
+            android:text="@string/transfer_to_new_phone"
+            app:icon="@drawable/ic_transfer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/change_password_button" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/logout_button"
+            style="@style/Widget.MedCare.Button.Error"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/logout"
+            android:textColor="?attr/colorError"
+            app:icon="@drawable/ic_logout"
+            app:iconTint="?attr/colorError"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/transfer_button" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/delete_account_button"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.MedCare.Button.Error"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/delete"
             android:textColor="?attr/colorError"
+            app:icon="@drawable/ic_delete"
+            app:iconTint="?attr/colorError"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/logout_button" />

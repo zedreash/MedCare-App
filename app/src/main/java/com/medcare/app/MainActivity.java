@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -16,6 +18,9 @@ import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.color.MaterialColors;
+import com.medcare.app.background.BackgroundScheduler;
+import com.medcare.app.notifications.FollowUpScheduler;
+import com.medcare.app.utils.BackupManager;
 import com.medcare.app.utils.PreferencesManager;
 
 import java.util.Locale;
@@ -68,7 +73,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         PreferencesManager prefs = new PreferencesManager(this);
-        setTheme(themeStyleToRes(prefs.getThemeStyle()));
+        if (!prefs.isLoggedIn() && !"blue".equals(prefs.getThemeStyle())) {
+            prefs.setThemeStyle("blue");
+        }
+        String themeStyle = prefs.getThemeStyle();
+        String pendingStyle = prefs.getPendingThemeStyle();
+        if (pendingStyle != null && !pendingStyle.isEmpty()) {
+            themeStyle = pendingStyle;
+        }
+        setTheme(themeStyleToRes(themeStyle));
         switch (prefs.getThemeMode()) {
             case "light":
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -89,15 +102,34 @@ public class MainActivity extends AppCompatActivity {
         navController = navHostFragment.getNavController();
         customBottomNav = findViewById(R.id.custom_bottom_nav);
 
+        FollowUpScheduler.scheduleCheck(this);
+        long uid = preferencesManager.getLoggedInUserId();
+        if (uid != -1) {
+            FollowUpScheduler.backfill(this, uid);
+            catchUpBackupIfDue();
+            BackgroundScheduler.rescheduleAll(this);
+        }
+
         if (!preferencesManager.isLoggedIn()) {
             int currentDest = navController.getCurrentDestination() != null
                     ? navController.getCurrentDestination().getId() : -1;
-            if (currentDest != R.id.loginFragment && currentDest != R.id.registerFragment) {
+            if (currentDest != R.id.loginFragment && currentDest != R.id.registerFragment
+                    && currentDest != R.id.registrationStepsFragment) {
                 navController.navigate(R.id.loginFragment, null,
                         new NavOptions.Builder()
                                 .setPopUpTo(R.id.dashboardFragment, true)
                                 .build());
             }
+        }
+
+        String stalePending = preferencesManager.getPendingThemeStyle();
+        if (stalePending != null && !stalePending.isEmpty()
+                && navController.getCurrentDestination() != null
+                && navController.getCurrentDestination().getId() != R.id.registrationStepsFragment) {
+            preferencesManager.clearPendingThemeStyle();
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (!isFinishing() && !isDestroyed()) recreate();
+            });
         }
 
         setupCustomBottomNav();
@@ -120,6 +152,15 @@ public class MainActivity extends AppCompatActivity {
                 setTabSelected(matchedIndex);
             }
         });
+    }
+
+    private void catchUpBackupIfDue() {
+        if (!preferencesManager.isLoggedIn() || !preferencesManager.hasBackupPassword()) return;
+        long periodMs = BackupManager.periodMillis(preferencesManager.getBackupFrequency());
+        if (periodMs <= 0) return;
+        if (System.currentTimeMillis() - preferencesManager.getLastBackupTime() >= periodMs) {
+            BackupManager.backupNow(this, result -> {});
+        }
     }
 
     private void setupCustomBottomNav() {
@@ -208,7 +249,13 @@ public class MainActivity extends AppCompatActivity {
                 || currentDestId == R.id.registerFragment) return;
 
         long lastBackground = preferencesManager.getLastBackgroundTime();
-        if (lastBackground == 0) return;
+        if (lastBackground == 0) {
+            long lastUnlock = preferencesManager.getLastUnlockTime();
+            if (lastUnlock == 0 || System.currentTimeMillis() - lastUnlock > 60000) {
+                navController.navigate(R.id.biometricLockFragment);
+            }
+            return;
+        }
 
         long lastUnlock = preferencesManager.getLastUnlockTime();
         if (lastUnlock >= lastBackground) return;

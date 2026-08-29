@@ -1,21 +1,16 @@
 package com.medcare.app.ui.auth;
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.biometric.BiometricManager;
-import androidx.biometric.BiometricPrompt;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import com.google.android.material.snackbar.Snackbar;
@@ -23,13 +18,13 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.medcare.app.R;
 import com.medcare.app.data.entity.User;
 import com.medcare.app.data.repository.UserRepository;
+import com.medcare.app.utils.ClinicAutocomplete;
 import com.medcare.app.utils.FieldHint;
 import com.medcare.app.utils.PasswordUtils;
 import com.medcare.app.utils.PreferencesManager;
 import com.medcare.app.utils.ValidationUtils;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.concurrent.Executor;
 public class RegisterFragment extends Fragment {
     private UserRepository userRepository;
     private PreferencesManager preferencesManager;
@@ -40,6 +35,7 @@ public class RegisterFragment extends Fragment {
     private TextInputLayout dobLayout;
     private TextInputLayout passwordLayout;
     private TextInputLayout confirmPasswordLayout;
+    private TextInputLayout clinicLayout;
     private EditText tzInput;
     private EditText nameInput;
     private EditText emailInput;
@@ -47,8 +43,8 @@ public class RegisterFragment extends Fragment {
     private EditText dobInput;
     private EditText passwordInput;
     private EditText confirmPasswordInput;
-    private static boolean sThemeDialogPending = false;
-    private BiometricPrompt biometricPrompt;
+    private EditText clinicInput;
+    private ClinicAutocomplete clinicAutocomplete;
     private View rootView;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -64,13 +60,37 @@ public class RegisterFragment extends Fragment {
         initViews(view);
         setupDatePicker();
         setupErrorClearListeners();
-        if (sThemeDialogPending) {
-            sThemeDialogPending = false;
-            showThemeDialog();
-        }
         view.findViewById(R.id.register_button).setOnClickListener(v -> onRegisterClicked());
         view.findViewById(R.id.login_link).setOnClickListener(v ->
                 Navigation.findNavController(view).navigate(R.id.action_register_to_login));
+        view.findViewById(R.id.register_language_button).setOnClickListener(v -> showLanguageDialog());
+    }
+
+    private void showLanguageDialog() {
+        final String[] options = {
+                getString(R.string.lang_system),
+                getString(R.string.lang_english),
+                getString(R.string.lang_arabic),
+                getString(R.string.lang_hebrew)
+        };
+        final String[] values = {"system", "en", "ar", "he"};
+        String current = preferencesManager.getLanguage();
+        int checked = 0;
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].equals(current)) {
+                checked = i;
+                break;
+            }
+        }
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.language_section)
+                .setSingleChoiceItems(options, checked, (dialog, which) -> {
+                    preferencesManager.setLanguage(values[which]);
+                    dialog.dismiss();
+                    requireActivity().recreate();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
     private void initViews(View view) {
         tzLayout = view.findViewById(R.id.tz_layout);
@@ -87,6 +107,16 @@ public class RegisterFragment extends Fragment {
         dobInput = view.findViewById(R.id.dob_input);
         passwordInput = view.findViewById(R.id.password_input);
         confirmPasswordInput = view.findViewById(R.id.confirm_password_input);
+        clinicLayout = view.findViewById(R.id.clinic_layout);
+        clinicInput = view.findViewById(R.id.clinic_input);
+        clinicAutocomplete = new ClinicAutocomplete(this, clinicLayout, 500, new ClinicAutocomplete.Listener() {
+            @Override
+            public void onClinicPicked(ClinicAutocomplete.ClinicResult clinic) {}
+
+            @Override
+            public void onClinicBlur() {}
+        });
+        clinicAutocomplete.attach();
         FieldHint.required(tzLayout, R.string.id_number);
         FieldHint.required(nameLayout, R.string.full_name);
         FieldHint.required(emailLayout, R.string.email);
@@ -182,128 +212,46 @@ public class RegisterFragment extends Fragment {
                             return;
                         }
                         String hashedPassword = PasswordUtils.hash(password, email);
-                        User user = new User(tz, name, email, phone, dob, hashedPassword);
-                        userRepository.insert(user, new UserRepository.Callback<Long>() {
-                            @Override
-                            public void onResult(Long userId) {
-                                if (userId != -1) {
-                                    preferencesManager.setLoggedInUserId(userId);
-                                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
-                                    showThemeDialog();
-                                } else {
-                                    Snackbar.make(rootView, R.string.error_generic, Snackbar.LENGTH_LONG).show();
-                                }
-                            }
-                        });
+                        String clinicText = clinicInput.getText().toString().trim();
+                        ClinicAutocomplete.ClinicResult clinicSel =
+                                clinicAutocomplete.selectionForText(clinicText);
+                        Bundle args = new Bundle();
+                        args.putString("tz", tz);
+                        args.putString("name", name);
+                        args.putString("email", email);
+                        args.putString("phone", phone);
+                        args.putString("dob", dob);
+                        args.putString("hashedPassword", hashedPassword);
+                        args.putString("clinic", clinicText.isEmpty() ? null : clinicText);
+                        args.putString("clinicLat",
+                                clinicSel != null && clinicSel.lat != null
+                                        ? String.valueOf(clinicSel.lat) : null);
+                        args.putString("clinicLng",
+                                clinicSel != null && clinicSel.lng != null
+                                        ? String.valueOf(clinicSel.lng) : null);
+                        Navigation.findNavController(rootView)
+                                .navigate(R.id.action_register_to_registrationSteps, args);
                     }
                 });
             }
         });
     }
-    private void showThemeDialog() {
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_theme_picker, null);
-        updateThemeDialogSelection(dialogView, preferencesManager.getThemeStyle());
-        ImageView blue = dialogView.findViewById(R.id.dialog_ts_blue);
-        ImageView green = dialogView.findViewById(R.id.dialog_ts_green);
-        ImageView purple = dialogView.findViewById(R.id.dialog_ts_purple);
-        ImageView orange = dialogView.findViewById(R.id.dialog_ts_orange);
-        blue.setOnClickListener(v -> selectThemeLive(dialogView, "blue"));
-        green.setOnClickListener(v -> selectThemeLive(dialogView, "green"));
-        purple.setOnClickListener(v -> selectThemeLive(dialogView, "purple"));
-        orange.setOnClickListener(v -> selectThemeLive(dialogView, "orange"));
-        new android.app.AlertDialog.Builder(requireContext())
-                .setTitle(R.string.theme_style_section)
-                .setMessage(R.string.choose_theme_prompt)
-                .setView(dialogView)
-                .setPositiveButton(R.string.save, (dialog, which) -> promptBiometricSetup())
-                .setNegativeButton(R.string.later, (dialog, which) -> promptBiometricSetup())
-                .setOnCancelListener(dialog -> promptBiometricSetup())
-                .show();
-    }
-    private void selectThemeLive(View dialogView, String style) {
-        preferencesManager.setThemeStyle(style);
-        updateThemeDialogSelection(dialogView, style);
-        sThemeDialogPending = true;
-        requireActivity().recreate();
-    }
-    private void updateThemeDialogSelection(View dialogView, String style) {
-        applySwatchState(dialogView.findViewById(R.id.dialog_ts_blue), "blue".equals(style));
-        applySwatchState(dialogView.findViewById(R.id.dialog_ts_green), "green".equals(style));
-        applySwatchState(dialogView.findViewById(R.id.dialog_ts_purple), "purple".equals(style));
-        applySwatchState(dialogView.findViewById(R.id.dialog_ts_orange), "orange".equals(style));
-    }
-    private void applySwatchState(ImageView swatch, boolean selected) {
-        if (swatch == null) return;
-        swatch.setImageResource(selected ? R.drawable.ic_check : 0);
-    }
-    private void promptBiometricSetup() {
-        BiometricManager biometricManager = BiometricManager.from(requireContext());
-        if (biometricManager.canAuthenticate(
-                BiometricManager.Authenticators.BIOMETRIC_STRONG
-                | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-                == BiometricManager.BIOMETRIC_SUCCESS) {
-            new android.app.AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.biometric_lock)
-                    .setMessage(R.string.enable_biometric_prompt)
-                    .setPositiveButton(R.string.yes, (dialog, which) ->
-                            authenticateToEnableBiometrics())
-                    .setNegativeButton(R.string.later, (dialog, which) ->
-                            finishRegistration())
-                    .setOnCancelListener(dialog ->
-                            finishRegistration())
-                    .show();
-        } else {
-            finishRegistration();
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 500 && clinicAutocomplete != null) {
+            clinicAutocomplete.onLocationPermissionResult(grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED);
         }
-    }
-    private void finishRegistration() {
-        Navigation.findNavController(rootView).navigate(R.id.action_register_to_dashboard);
-    }
-    private void authenticateToEnableBiometrics() {
-        Executor executor = ContextCompat.getMainExecutor(requireContext());
-        biometricPrompt = new BiometricPrompt(this, executor,
-                new BiometricPrompt.AuthenticationCallback() {
-                    @Override
-                    public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
-                        preferencesManager.setBiometricEnabled(true);
-                        preferencesManager.setBiometricTimeout("immediate");
-                        finishRegistration();
-                    }
-
-                    @Override
-                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
-                        if (isAdded()) {
-                            finishRegistration();
-                        }
-                    }
-
-                    @Override
-                    public void onAuthenticationFailed() {
-                        if (isAdded()) {
-                            finishRegistration();
-                        }
-                    }
-                });
-        BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
-                .setTitle(getString(R.string.enable_biometric_title))
-                .setSubtitle(getString(R.string.enable_biometric_subtitle))
-                .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG
-                        | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-                .build();
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (!isAdded()) {
-                return;
-            }
-            biometricPrompt.authenticate(info);
-        }, 350);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (biometricPrompt != null) {
-            biometricPrompt.cancelAuthentication();
-            biometricPrompt = null;
+        if (clinicAutocomplete != null) {
+            clinicAutocomplete.clear();
         }
     }
     private boolean isAtLeast18(String dateStr) {

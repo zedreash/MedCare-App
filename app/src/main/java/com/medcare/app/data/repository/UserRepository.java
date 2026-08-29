@@ -4,13 +4,16 @@ import android.content.Context;
 
 import com.medcare.app.data.db.AppDatabase;
 import com.medcare.app.data.db.UserDao;
+import com.medcare.app.data.entity.LogEntry;
 import com.medcare.app.data.entity.User;
+import com.medcare.app.utils.AuditLogger;
 import com.medcare.app.utils.PasswordUtils;
 
 import java.util.List;
 
 public class UserRepository {
     private final UserDao userDao;
+    private final Context context;
 
     public interface Callback<T> {
         void onResult(T result);
@@ -19,6 +22,7 @@ public class UserRepository {
     public UserRepository(Context context) {
         AppDatabase db = AppDatabase.getInstance(context);
         this.userDao = db.userDao();
+        this.context = context.getApplicationContext();
     }
 
     public long insert(User user) {
@@ -28,6 +32,7 @@ public class UserRepository {
     public void insert(User user, Callback<Long> callback) {
         AppDatabase.getExecutor().execute(() -> {
             long id = userDao.insert(user);
+            AuditLogger.log(context, id, LogEntry.ACTION_CREATE, "user", id, user.getEmail());
             AppDatabase.runOnMainThread(() -> callback.onResult(id));
         });
     }
@@ -39,6 +44,7 @@ public class UserRepository {
     public void update(User user, Callback<Void> callback) {
         AppDatabase.getExecutor().execute(() -> {
             userDao.update(user);
+            AuditLogger.log(context, user.getId(), LogEntry.ACTION_UPDATE, "user", user.getId(), user.getEmail());
             AppDatabase.runOnMainThread(() -> callback.onResult(null));
         });
     }
@@ -50,6 +56,7 @@ public class UserRepository {
     public void delete(User user, Callback<Void> callback) {
         AppDatabase.getExecutor().execute(() -> {
             userDao.delete(user);
+            AuditLogger.log(context, user.getId(), LogEntry.ACTION_DELETE, "user", user.getId(), user.getEmail());
             AppDatabase.runOnMainThread(() -> callback.onResult(null));
         });
     }
@@ -87,6 +94,7 @@ public class UserRepository {
         AppDatabase.getExecutor().execute(() -> {
             User user = userDao.getUserByEmail(email);
             if (user != null && PasswordUtils.verify(password, email, user.getPassword())) {
+                AuditLogger.log(context, user.getId(), LogEntry.ACTION_LOGIN, "user", user.getId(), user.getEmail());
                 AppDatabase.runOnMainThread(() -> callback.onResult(user));
             } else {
                 AppDatabase.runOnMainThread(() -> callback.onResult(null));

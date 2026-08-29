@@ -26,4 +26,8 @@
     <color name="on_tertiary_container">#D2E3FC</color>
     <color name="switch_track_off">#494D55</color>
     <color name="switch_thumb_off">#B0B3B8</color>
+    <color name="error_tonal_bg">#1AF2B8B5</color>
+    <color name="error_tonal_ripple">#40F2B8B5</color>
+    <color name="primary_tonal_bg">#1A4DA3FF</color>
+    <color name="primary_tonal_ripple">#404DA3FF</color>
 </resources>

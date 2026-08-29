@@ -89,7 +89,7 @@
 
     </com.google.android.material.chip.ChipGroup>
 
-    <FrameLayout
+    <com.medcare.app.ui.calendar.SwipeFrameLayout
         android:id="@+id/calendar_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"

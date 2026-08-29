@@ -17,6 +17,8 @@ public interface AppointmentDao {
     void delete(Appointment appointment);
     @Query("SELECT * FROM appointments WHERE owner_id = :ownerId ORDER BY created_at DESC")
     List<Appointment> getAllAppointments(long ownerId);
+    @Query("SELECT * FROM appointments")
+    List<Appointment> getAllAppointmentsAll();
     @Query("SELECT * FROM appointments WHERE id = :id AND owner_id = :ownerId LIMIT 1")
     Appointment getAppointmentById(long id, long ownerId);
     @Query("SELECT * FROM appointments WHERE patient_id = :patientId AND owner_id = :ownerId ORDER BY created_at DESC")
@@ -29,6 +31,10 @@ public interface AppointmentDao {
     int getAppointmentCountByDate(String date, long ownerId);
     @Query("DELETE FROM appointments WHERE owner_id = :ownerId")
     void deleteAllByOwner(long ownerId);
+    @Query("SELECT * FROM appointments WHERE recurrence_group_id = :groupId ORDER BY date ASC, time ASC")
+    List<Appointment> getByRecurrenceGroup(Long groupId);
     @Query("DELETE FROM appointments WHERE id = :id")
     void deleteById(long id);
+    @Query("DELETE FROM appointments WHERE recurrence_group_id = :groupId")
+    void deleteByRecurrenceGroup(Long groupId);
 }

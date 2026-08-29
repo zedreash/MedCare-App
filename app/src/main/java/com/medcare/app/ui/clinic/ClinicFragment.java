@@ -1,8 +1,11 @@
 package com.medcare.app.ui.clinic;
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,6 +13,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -33,10 +37,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.snackbar.Snackbar;
 import com.medcare.app.R;
+import com.medcare.app.data.db.AppDatabase;
 import com.medcare.app.data.entity.Patient;
+import com.medcare.app.data.entity.User;
 import com.medcare.app.data.repository.PatientRepository;
+import com.medcare.app.data.repository.UserRepository;
 import com.medcare.app.utils.PreferencesManager;
 import java.util.List;
+import java.util.Locale;
 public class ClinicFragment extends Fragment implements OnMapReadyCallback {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
     private static final LatLng CLINIC_LOCATION = new LatLng(31.780906, 35.245916);
@@ -47,12 +55,18 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
     private PatientRepository patientRepository;
+    private UserRepository userRepository;
     private PreferencesManager preferencesManager;
     private View rootView;
     private Location userLocation;
     private boolean locationPermissionDenied = false;
     private LocationCallback locationCallback;
     private Marker clinicMarker;
+    private LatLng clinicLatLng;
+    private String clinicName;
+    private boolean clinicHintShown = false;
+    private TextView clinicNameText;
+    private TextView clinicAddressText;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -64,8 +78,11 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
         rootView = view;
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
         patientRepository = new PatientRepository(requireContext());
+        userRepository = new UserRepository(requireContext());
         preferencesManager = new PreferencesManager(requireContext());
         view.findViewById(R.id.directions_button).setOnClickListener(v -> openDirections());
+        clinicNameText = view.findViewById(R.id.clinic_name);
+        clinicAddressText = view.findViewById(R.id.clinic_address);
         checkLocationPermission();
     }
     private void checkLocationPermission() {
@@ -110,14 +127,72 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         googleMap.setLatLngBoundsForCameraTarget(ISRAEL_BOUNDS);
         googleMap.setMinZoomPreference(7f);
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(CLINIC_LOCATION, 17f));
-        if (!locationPermissionDenied &&
-                ContextCompat.checkSelfPermission(requireContext(),
-                        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            googleMap.setMyLocationEnabled(true);
-            getUserLocation();
+        loadClinicInfo();
+    }
+
+    private void loadClinicInfo() {
+        userRepository.getUserById(preferencesManager.getLoggedInUserId(), new UserRepository.Callback<User>() {
+            @Override
+            public void onResult(User user) {
+                if (!isAdded() || googleMap == null) return;
+                if (user != null) {
+                    clinicName = user.getClinic();
+                    if (user.getClinicLat() != null && user.getClinicLng() != null) {
+                        clinicLatLng = new LatLng(user.getClinicLat(), user.getClinicLng());
+                    } else if (clinicName != null) {
+                        double[] coords = com.medcare.app.utils.ClinicAutocomplete
+                                .popularCoordsFor(clinicName);
+                        if (coords != null) {
+                            clinicLatLng = new LatLng(coords[0], coords[1]);
+                        }
+                    }
+                }
+                LatLng center = clinicLatLng != null ? clinicLatLng : CLINIC_LOCATION;
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(center, 17f));
+                populateClinicInfo();
+                if (!locationPermissionDenied &&
+                        ContextCompat.checkSelfPermission(requireContext(),
+                                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    googleMap.setMyLocationEnabled(true);
+                    getUserLocation();
+                } else {
+                    showClinicOnly();
+                }
+            }
+        });
+    }
+
+    private void populateClinicInfo() {
+        if (clinicNameText == null || clinicAddressText == null) return;
+        boolean hasName = clinicName != null && !clinicName.isEmpty();
+        clinicNameText.setText(hasName ? clinicName : getString(R.string.clinic_location));
+        if (clinicLatLng != null) {
+            final LatLng ll = clinicLatLng;
+            final Context ctx = requireContext();
+            AppDatabase.getExecutor().execute(() -> {
+                String address = null;
+                try {
+                    Geocoder geocoder = new Geocoder(ctx, Locale.getDefault());
+                    List<Address> list = geocoder.getFromLocation(ll.latitude, ll.longitude, 1);
+                    if (list != null && !list.isEmpty() && list.get(0) != null
+                            && list.get(0).getAddressLine(0) != null) {
+                        address = list.get(0).getAddressLine(0);
+                    }
+                } catch (Exception ignored) {}
+                if (address == null || address.isEmpty()) {
+                    address = String.format(Locale.getDefault(),
+                            "%.4f, %.4f", ll.latitude, ll.longitude);
+                }
+                final String result = address;
+                AppDatabase.runOnMainThread(() -> {
+                    if (isAdded() && clinicAddressText != null) {
+                        clinicAddressText.setText(result);
+                    }
+                });
+            });
         } else {
-            showClinicOnly();
+            clinicAddressText.setText(hasName
+                    ? getString(R.string.clinic_location_missing) : "");
         }
     }
     private void getUserLocation() {
@@ -128,6 +203,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
         }
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(location -> {
+                    if (!isAdded()) return;
                     if (location != null) {
                         userLocation = location;
                         showBothLocations(location);
@@ -150,6 +226,7 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
+                if (!isAdded()) return;
                 Location location = locationResult.getLastLocation();
                 if (location != null) {
                     userLocation = location;
@@ -172,20 +249,32 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
                 .position(userLatLng)
                 .title(getString(R.string.your_location))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        clinicMarker = googleMap.addMarker(new MarkerOptions()
-                .position(CLINIC_LOCATION)
-                .title(getString(R.string.clinic_location))
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+        addClinicMarker();
         addPatientMarkers();
     }
     private void showClinicOnly() {
-        clinicMarker = googleMap.addMarker(new MarkerOptions()
-                .position(CLINIC_LOCATION)
-                .title(getString(R.string.clinic_location)));
+        addClinicMarker();
         addPatientMarkers();
         if (locationPermissionDenied) {
             Snackbar.make(rootView, R.string.location_permission_denied, Snackbar.LENGTH_LONG).show();
         }
+    }
+    private void addClinicMarker() {
+        if (clinicLatLng == null) {
+            if (!clinicHintShown) {
+                clinicHintShown = true;
+                if (clinicName != null && !clinicName.isEmpty()) {
+                    Snackbar.make(rootView, R.string.clinic_location_missing, Snackbar.LENGTH_LONG).show();
+                }
+            }
+            return;
+        }
+        String title = (clinicName != null && !clinicName.isEmpty())
+                ? clinicName : getString(R.string.clinic_location);
+        clinicMarker = googleMap.addMarker(new MarkerOptions()
+                .position(clinicLatLng)
+                .title(title)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
     }
     private void addPatientMarkers() {
         patientRepository.getAllPatients(preferencesManager.getLoggedInUserId(), new PatientRepository.Callback<List<Patient>>() {
@@ -253,7 +342,11 @@ public class ClinicFragment extends Fragment implements OnMapReadyCallback {
                 .show();
     }
     private void openDirections() {
-        openDirections(CLINIC_LOCATION.latitude, CLINIC_LOCATION.longitude);
+        if (clinicLatLng == null) {
+            Snackbar.make(rootView, R.string.clinic_location_missing, Snackbar.LENGTH_SHORT).show();
+            return;
+        }
+        openDirections(clinicLatLng.latitude, clinicLatLng.longitude);
     }
     private void openDirections(double destLat, double destLng) {
         String uri = "https://maps.google.com/maps?daddr="

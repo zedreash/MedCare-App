@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="database" path="medcare_database"/>
+        <exclude domain="database" path="medcare_database-wal"/>
+        <exclude domain="database" path="medcare_database-shm"/>
+        <exclude domain="sharedpref" path="medcare_prefs.xml"/>
+        <exclude domain="sharedpref" path="medcare_secure.xml"/>
+        <exclude domain="file" path="attachments"/>
+        <exclude domain="file" path="pdf"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="medcare_database"/>
+        <exclude domain="database" path="medcare_database-wal"/>
+        <exclude domain="database" path="medcare_database-shm"/>
+        <exclude domain="sharedpref" path="medcare_prefs.xml"/>
+        <exclude domain="sharedpref" path="medcare_secure.xml"/>
+        <exclude domain="file" path="attachments"/>
+        <exclude domain="file" path="pdf"/>
+    </device-transfer>
+</data-extraction-rules>

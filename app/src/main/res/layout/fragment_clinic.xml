@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/margin_medium"
         app:cardCornerRadius="@dimen/corner_radius"
-        app:cardElevation="@dimen/elevation_card"
+        app:cardElevation="2dp" app:strokeWidth="1dp" app:strokeColor="?attr/colorOutlineVariant"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -46,6 +46,7 @@
                     android:src="@drawable/ic_app_logo" />
 
                 <TextView
+                    android:id="@+id/clinic_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -69,7 +70,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="@string/get_directions"
-                style="@style/Widget.Material3.Button.TonalButton" />
+                style="@style/Widget.Material3.Button.TonalButton"
+                app:icon="@drawable/ic_locate" />
 
         </LinearLayout>
 

@@ -1,9 +1,11 @@
 package com.medcare.app.ui.profile;
 import android.app.Activity;
+import android.content.Intent;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -33,9 +35,12 @@ import com.medcare.app.data.repository.PatientRepository;
 import com.medcare.app.data.repository.UserRepository;
 import com.medcare.app.utils.PasswordUtils;
 import com.medcare.app.utils.AvatarUtils;
+import com.medcare.app.utils.ClinicAutocomplete;
+import com.medcare.app.utils.DataTransfer;
 import com.medcare.app.utils.FieldHint;
 import com.medcare.app.utils.PreferencesManager;
 import com.medcare.app.utils.ValidationUtils;
+import com.medcare.app.transfer.TransferManager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -46,6 +51,8 @@ public class ProfileFragment extends Fragment {
     private UserRepository userRepository;
     private PreferencesManager preferencesManager;
     private User currentUser;
+    private ClinicAutocomplete clinicAutocomplete;
+    private EditText clinicInput;
     private TextView profileAvatar;
     private ImageView profileAvatarImage;
     private ActivityResultLauncher<String> pickImageLauncher;
@@ -94,6 +101,69 @@ public class ProfileFragment extends Fragment {
         view.findViewById(R.id.settings_button).setOnClickListener(v ->
                 Navigation.findNavController(view)
                         .navigate(R.id.action_profile_to_settings));
+        view.findViewById(R.id.transfer_button).setOnClickListener(v -> onTransferSendClicked());
+    }
+
+    private void onTransferSendClicked() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.transfer_send_title)
+                .setMessage(R.string.transfer_send_instructions)
+                .setPositiveButton(R.string.confirm, (d, w) -> startTransferSend())
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void startTransferSend() {
+        TransferManager.startSending(this, new TransferManager.Listener() {
+            @Override
+            public void onStatus(String message) {
+                if (isAdded()) {
+                    Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onTransferDone(DataTransfer.ImportResult result) {
+                if (isAdded() && result != null && result.userId != -1) {
+                    Snackbar.make(rootView, R.string.transfer_sent, Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 502 && clinicAutocomplete != null) {
+            clinicAutocomplete.onLocationPermissionResult(grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED);
+        } else if (requestCode == 700) {
+            for (int r : grantResults) {
+                if (r != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+            }
+            startTransferSend();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == com.medcare.app.transfer.TransferManager.REQUEST_ENABLE_BT) {
+            com.medcare.app.transfer.TransferManager.onBluetoothEnableResult(this,
+                    resultCode == Activity.RESULT_OK);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (clinicAutocomplete != null) {
+            clinicAutocomplete.clear();
+        }
+        TransferManager.stop();
     }
     private void initViews(View view) {
         profileAvatar = view.findViewById(R.id.profile_avatar);
@@ -108,6 +178,18 @@ public class ProfileFragment extends Fragment {
         emailInput = view.findViewById(R.id.email_input);
         phoneInput = view.findViewById(R.id.phone_input);
         dobInput = view.findViewById(R.id.dob_input);
+        com.google.android.material.textfield.TextInputLayout clinicLayout =
+                view.findViewById(R.id.clinic_layout);
+        clinicInput = view.findViewById(R.id.clinic_input);
+        clinicAutocomplete = new ClinicAutocomplete(this, clinicLayout, 502,
+                new ClinicAutocomplete.Listener() {
+                    @Override
+                    public void onClinicPicked(ClinicAutocomplete.ClinicResult clinic) {}
+
+                    @Override
+                    public void onClinicBlur() {}
+                });
+        clinicAutocomplete.attach();
         FieldHint.required(nameLayout, R.string.full_name);
         FieldHint.required(emailLayout, R.string.email);
         FieldHint.required(phoneLayout, R.string.phone);
@@ -187,6 +269,10 @@ public class ProfileFragment extends Fragment {
                 emailInput.setText(currentUser.getEmail());
                 phoneInput.setText(currentUser.getPhone());
                 dobInput.setText(currentUser.getDateOfBirth());
+                if (clinicAutocomplete != null) {
+                    clinicAutocomplete.setPreselected(currentUser.getClinic(),
+                            currentUser.getClinicLat(), currentUser.getClinicLng());
+                }
                 updateAvatar();
                 loadProfilePhoto();
             }
@@ -235,7 +321,11 @@ public class ProfileFragment extends Fragment {
     }
     private void saveProfilePhoto(Uri uri) {
         try {
-            File dest = new File(requireContext().getFilesDir(), "profile_avatar.jpg");
+            long userId = preferencesManager.getLoggedInUserId();
+            File dest = PreferencesManager.avatarFileFor(requireContext(), userId);
+            if (dest.getParentFile() != null) {
+                dest.getParentFile().mkdirs();
+            }
             try (InputStream in = requireContext().getContentResolver().openInputStream(uri);
                  OutputStream out = new FileOutputStream(dest)) {
                 byte[] buffer = new byte[8192];
@@ -284,9 +374,13 @@ public class ProfileFragment extends Fragment {
         final String newEmail = emailInput.getText().toString().trim().toLowerCase();
         String phone = phoneInput.getText().toString().trim();
         String dob = dobInput.getText().toString().trim();
+        String clinic = clinicInput.getText().toString().trim();
+        ClinicAutocomplete.ClinicResult clinicSel = clinicAutocomplete.selectionForText(clinic);
+        Double clinicLat = (clinic.isEmpty() || clinicSel == null) ? null : clinicSel.lat;
+        Double clinicLng = (clinic.isEmpty() || clinicSel == null) ? null : clinicSel.lng;
         String oldEmail = currentUser.getEmail();
         if (oldEmail != null && oldEmail.equalsIgnoreCase(newEmail)) {
-            applyProfileUpdate(name, newEmail, phone, dob);
+            applyProfileUpdate(name, newEmail, phone, dob, clinic, clinicLat, clinicLng);
         } else {
             userRepository.getUserByEmail(newEmail, new UserRepository.Callback<User>() {
                 @Override
@@ -296,16 +390,20 @@ public class ProfileFragment extends Fragment {
                         emailLayout.setError(getString(R.string.email_already_registered));
                         return;
                     }
-                    promptEmailChangePassword(name, oldEmail, newEmail, phone, dob);
+                    promptEmailChangePassword(name, oldEmail, newEmail, phone, dob, clinic, clinicLat, clinicLng);
                 }
             });
         }
     }
-    private void applyProfileUpdate(String name, String email, String phone, String dob) {
+    private void applyProfileUpdate(String name, String email, String phone, String dob,
+                                    String clinic, Double clinicLat, Double clinicLng) {
         currentUser.setFullName(name);
         currentUser.setEmail(email);
         currentUser.setPhone(phone);
         currentUser.setDateOfBirth(dob);
+        currentUser.setClinic(clinic.isEmpty() ? null : clinic);
+        currentUser.setClinicLat(clinicLat);
+        currentUser.setClinicLng(clinicLng);
         updateAvatar();
         userRepository.update(currentUser, new UserRepository.Callback<Void>() {
             @Override
@@ -314,7 +412,9 @@ public class ProfileFragment extends Fragment {
             }
         });
     }
-    private void promptEmailChangePassword(String name, String oldEmail, String newEmail, String phone, String dob) {
+    private void promptEmailChangePassword(String name, String oldEmail, String newEmail,
+                                       String phone, String dob, String clinic,
+                                       Double clinicLat, Double clinicLng) {
         EditText passwordInput = new EditText(requireContext());
         passwordInput.setInputType(android.text.InputType.TYPE_CLASS_TEXT
                 | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -329,7 +429,7 @@ public class ProfileFragment extends Fragment {
                     String entered = passwordInput.getText().toString();
                     if (PasswordUtils.verify(entered, oldEmail, currentUser.getPassword())) {
                         currentUser.setPassword(PasswordUtils.hash(entered, newEmail));
-                        applyProfileUpdate(name, newEmail, phone, dob);
+                        applyProfileUpdate(name, newEmail, phone, dob, clinic, clinicLat, clinicLng);
                     } else {
                         Snackbar.make(rootView, R.string.password_incorrect, Snackbar.LENGTH_LONG).show();
                     }
@@ -469,6 +569,8 @@ public class ProfileFragment extends Fragment {
                     long ownerId = preferencesManager.getLoggedInUserId();
                     PatientRepository patientRepo = new PatientRepository(requireContext());
                     AppointmentRepository appointmentRepo = new AppointmentRepository(requireContext());
+                    patientRepo.deleteAttachmentFilesForOwner(ownerId);
+                    PreferencesManager.avatarFileFor(requireContext(), ownerId).delete();
                     appointmentRepo.deleteAllByOwner(ownerId, new AppointmentRepository.Callback<Void>() {
                         @Override
                         public void onResult(Void result) {
@@ -496,6 +598,7 @@ public class ProfileFragment extends Fragment {
                 .setTitle(R.string.logout)
                 .setMessage(R.string.logout_confirm)
                 .setPositiveButton(R.string.logout, (dialog, which) -> {
+                    com.medcare.app.background.BackgroundScheduler.cancel(requireContext());
                     preferencesManager.clearSession();
                     navigateToLogin();
                 })

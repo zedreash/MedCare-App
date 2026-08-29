@@ -31,6 +31,12 @@ public class Appointment {
     private long ownerId;
     @ColumnInfo(name = "created_at")
     private long createdAt;
+    @ColumnInfo(name = "status", defaultValue = "scheduled")
+    private String status = "scheduled";
+    @ColumnInfo(name = "recurrence_rule")
+    private String recurrenceRule;
+    @ColumnInfo(name = "recurrence_group_id")
+    private Long recurrenceGroupId;
     public Appointment(long patientId, String name, String date, String time, int duration, String notes, long createdAt) {
         this.patientId = patientId;
         this.name = name;
@@ -58,4 +64,10 @@ public class Appointment {
     public void setOwnerId(long ownerId) { this.ownerId = ownerId; }
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getRecurrenceRule() { return recurrenceRule; }
+    public void setRecurrenceRule(String recurrenceRule) { this.recurrenceRule = recurrenceRule; }
+    public Long getRecurrenceGroupId() { return recurrenceGroupId; }
+    public void setRecurrenceGroupId(Long recurrenceGroupId) { this.recurrenceGroupId = recurrenceGroupId; }
 }

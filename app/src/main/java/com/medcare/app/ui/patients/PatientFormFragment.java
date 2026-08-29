@@ -54,6 +54,10 @@ public class PatientFormFragment extends Fragment {
     private EditText phoneInput;
     private EditText diagnosisInput;
     private EditText addressInput;
+    private TextInputLayout bloodLayout;
+    private EditText bloodInput;
+    private EditText heightInput;
+    private EditText weightInput;
     private double pendingLat;
     private double pendingLng;
     private View rootView;
@@ -150,6 +154,14 @@ public class PatientFormFragment extends Fragment {
         phoneInput = view.findViewById(R.id.phone_input);
         diagnosisInput = view.findViewById(R.id.diagnosis_input);
         addressInput = view.findViewById(R.id.address_input);
+        bloodLayout = view.findViewById(R.id.blood_layout);
+        bloodInput = view.findViewById(R.id.blood_input);
+        heightInput = view.findViewById(R.id.height_input);
+        weightInput = view.findViewById(R.id.weight_input);
+        bloodInput.setOnClickListener(v -> showBloodTypeDialog());
+        bloodInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) showBloodTypeDialog();
+        });
         FieldHint.required(nameLayout, R.string.patient_name);
         FieldHint.required(phoneLayout, R.string.patient_phone);
     }
@@ -159,7 +171,8 @@ public class PatientFormFragment extends Fragment {
         popup = new ListPopupWindow(requireContext());
         popup.setAnchorView(addressLayout);
         popup.setAdapter(predictionAdapter);
-        popup.setModal(true);
+        popup.setModal(false);
+        popup.setInputMethodMode(android.widget.PopupWindow.INPUT_METHOD_NEEDED);
         popup.setOnItemClickListener((parent, view, position, id) -> {
             AutocompletePrediction prediction = predictions.get(position);
             selectPrediction(prediction);
@@ -266,8 +279,30 @@ public class PatientFormFragment extends Fragment {
                 ignoreTextChanges = false;
                 pendingLat = currentPatient.getLatitude();
                 pendingLng = currentPatient.getLongitude();
+                bloodInput.setText(currentPatient.getBloodType());
+                heightInput.setText(currentPatient.getHeightCm() != null
+                        ? String.valueOf(currentPatient.getHeightCm()) : "");
+                weightInput.setText(currentPatient.getWeightKg() != null
+                        ? String.valueOf(currentPatient.getWeightKg()) : "");
             }
         });
+    }
+    private void showBloodTypeDialog() {
+        final String[] types = {"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"};
+        int current = 0;
+        String existing = bloodInput.getText().toString().trim();
+        for (int i = 0; i < types.length; i++) {
+            if (types[i].equals(existing)) current = i;
+        }
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.select_blood_type)
+                .setSingleChoiceItems(types, current, (dialog, which) -> {
+                    bloodInput.setText(types[which]);
+                    bloodLayout.setError(null);
+                    dialog.dismiss();
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
     private void onSaveClicked() {
         if (!validateInputs()) {
@@ -282,11 +317,16 @@ public class PatientFormFragment extends Fragment {
             patient.setLatitude(pendingLat);
             patient.setLongitude(pendingLng);
             patient.setOwnerId(preferencesManager.getLoggedInUserId());
+            patient.setBloodType(bloodInput.getText().toString().trim());
+            patient.setHeightCm(parseHeight());
+            patient.setWeightKg(parseWeight());
             patientRepository.insert(patient, new PatientRepository.Callback<Long>() {
                 @Override
                 public void onResult(Long result) {
-                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
-                    Navigation.findNavController(rootView).navigateUp();
+                    if (isAdded()) {
+                        Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                        Navigation.findNavController(rootView).navigateUp();
+                    }
                 }
             });
         } else {
@@ -296,15 +336,38 @@ public class PatientFormFragment extends Fragment {
             currentPatient.setAddress(address);
             currentPatient.setLatitude(pendingLat);
             currentPatient.setLongitude(pendingLng);
+            currentPatient.setBloodType(bloodInput.getText().toString().trim());
+            currentPatient.setHeightCm(parseHeight());
+            currentPatient.setWeightKg(parseWeight());
             patientRepository.update(currentPatient, new PatientRepository.Callback<Void>() {
                 @Override
                 public void onResult(Void result) {
-                    Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
-                    Navigation.findNavController(rootView).navigateUp();
+                    if (isAdded()) {
+                        Snackbar.make(rootView, R.string.success_saved, Snackbar.LENGTH_SHORT).show();
+                        Navigation.findNavController(rootView).navigateUp();
+                    }
                 }
             });
         }
     }
+    private Integer parseHeight() {
+        try {
+            int v = Integer.parseInt(heightInput.getText().toString().trim());
+            return (v > 0 && v < 300) ? v : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Double parseWeight() {
+        try {
+            double v = Double.parseDouble(weightInput.getText().toString().trim());
+            return (v > 0 && v < 500) ? v : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private void onDeleteClicked() {
         if (currentPatient == null) return;
         new AlertDialog.Builder(requireContext())

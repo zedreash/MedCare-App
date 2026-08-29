@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,15 +25,18 @@ import com.medcare.app.data.entity.Appointment;
 import com.medcare.app.data.entity.Patient;
 import com.medcare.app.data.repository.AppointmentRepository;
 import com.medcare.app.data.repository.PatientRepository;
+import com.medcare.app.utils.AppointmentStatus;
 import com.medcare.app.utils.PreferencesManager;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 public class AppointmentListFragment extends Fragment {
     private static final int SORT_NEWEST = 0;
     private static final int SORT_OLDEST = 1;
@@ -50,12 +54,14 @@ public class AppointmentListFragment extends Fragment {
     private View emptyStateContainer;
     private EditText searchEditText;
     private MaterialButton filterDateButton;
+    private MaterialButton filterStatusButton;
     private LinearLayout filterChipContainer;
     private TextView filterChipText;
     private List<Appointment> allAppointments = new ArrayList<>();
     private Map<Long, String> patientNames = new HashMap<>();
     private int currentSortMode = SORT_NEWEST;
     private String selectedFilterDate;
+    private final Set<String> selectedFilterStatuses = new HashSet<>();
     private PreferencesManager preferencesManager;
     private View rootView;
     @Override
@@ -76,6 +82,7 @@ public class AppointmentListFragment extends Fragment {
         emptyStateContainer = view.findViewById(R.id.empty_state_container);
         searchEditText = view.findViewById(R.id.search_edit_text);
         filterDateButton = view.findViewById(R.id.filter_date_button);
+        filterStatusButton = view.findViewById(R.id.filter_status_button);
         filterChipContainer = view.findViewById(R.id.filter_chip_container);
         filterChipText = view.findViewById(R.id.filter_chip_text);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -117,7 +124,8 @@ public class AppointmentListFragment extends Fragment {
                     R.id.action_appointmentList_to_appointmentForm, args);
         });
         filterDateButton.setOnClickListener(v -> showDateFilterDialog());
-        view.findViewById(R.id.filter_chip_clear).setOnClickListener(v -> clearDateFilter());
+        filterStatusButton.setOnClickListener(v -> showStatusFilterDialog());
+        view.findViewById(R.id.filter_chip_clear).setOnClickListener(v -> clearFilters());
         updateFilterChip();
     }
     @Override
@@ -189,18 +197,94 @@ public class AppointmentListFragment extends Fragment {
         updateFilterChip();
         filterAppointments(searchEditText.getText().toString());
     }
+    private void clearFilters() {
+        selectedFilterDate = null;
+        selectedFilterStatuses.clear();
+        updateFilterChip();
+        filterAppointments(searchEditText.getText().toString());
+    }
+    private void showStatusFilterDialog() {
+        final String[] options = {
+                getString(R.string.status_all),
+                getString(R.string.status_scheduled),
+                getString(R.string.status_completed),
+                getString(R.string.status_rescheduled),
+                getString(R.string.status_no_show),
+                getString(R.string.status_cancelled)
+        };
+        final String[] values = {
+                null, AppointmentStatus.SCHEDULED, AppointmentStatus.COMPLETED,
+                AppointmentStatus.RESCHEDULED, AppointmentStatus.NO_SHOW, AppointmentStatus.CANCELLED
+        };
+        final boolean[] checked = new boolean[values.length];
+        checked[0] = selectedFilterStatuses.isEmpty();
+        for (int i = 1; i < values.length; i++) {
+            checked[i] = values[i] != null && selectedFilterStatuses.contains(values[i]);
+        }
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.filter_by_status)
+                .setMultiChoiceItems(options, checked, (dialog, which, isChecked) -> {
+                    ListView lv = ((android.app.AlertDialog) dialog).getListView();
+                    if (which == 0) {
+                        if (isChecked) {
+                            for (int i = 1; i < checked.length; i++) checked[i] = false;
+                            for (int i = 1; i < checked.length; i++) lv.setItemChecked(i, false);
+                        }
+                    } else if (isChecked) {
+                        checked[0] = false;
+                        lv.setItemChecked(0, false);
+                    }
+                })
+                .setPositiveButton(R.string.confirm, (dialog, which) -> {
+                    selectedFilterStatuses.clear();
+                    for (int i = 1; i < checked.length; i++) {
+                        if (checked[i]) selectedFilterStatuses.add(values[i]);
+                    }
+                    updateFilterChip();
+                    filterAppointments(searchEditText.getText().toString());
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+    private String statusLabelFor(String status) {
+        if (AppointmentStatus.SCHEDULED.equals(status)) return getString(R.string.status_scheduled);
+        if (AppointmentStatus.COMPLETED.equals(status)) return getString(R.string.status_completed);
+        if (AppointmentStatus.RESCHEDULED.equals(status)) return getString(R.string.status_rescheduled);
+        if (AppointmentStatus.NO_SHOW.equals(status)) return getString(R.string.status_no_show);
+        if (AppointmentStatus.CANCELLED.equals(status)) return getString(R.string.status_cancelled);
+        return status == null ? "" : status;
+    }
+    private String statusLabelsFor(Set<String> statuses) {
+        List<String> labels = new ArrayList<>();
+        for (String s : statuses) {
+            if (s != null) labels.add(statusLabelFor(s));
+        }
+        return String.join(", ", labels);
+    }
     private void updateFilterChip() {
-        if (selectedFilterDate != null) {
+        boolean hasDate = selectedFilterDate != null;
+        boolean hasStatus = !selectedFilterStatuses.isEmpty();
+        if (hasDate || hasStatus) {
             filterChipContainer.setVisibility(View.VISIBLE);
-            filterChipText.setText(selectedFilterDate);
+            StringBuilder sb = new StringBuilder();
+            if (hasDate) sb.append(selectedFilterDate);
+            if (hasDate && hasStatus) sb.append(" \u00B7 ");
+            if (hasStatus) sb.append(statusLabelsFor(selectedFilterStatuses));
+            filterChipText.setText(sb.toString());
             filterDateButton.setIconTint(ColorStateList.valueOf(
                     com.google.android.material.color.MaterialColors.getColor(
                     filterDateButton, com.google.android.material.R.attr.colorPrimary)));
+            filterStatusButton.setIconTint(ColorStateList.valueOf(
+                    com.google.android.material.color.MaterialColors.getColor(
+                    filterStatusButton, com.google.android.material.R.attr.colorPrimary)));
         } else {
             filterChipContainer.setVisibility(View.GONE);
             filterDateButton.setIconTint(ColorStateList.valueOf(
                     com.google.android.material.color.MaterialColors.getColor(
                     filterDateButton, com.google.android.material.R.attr.colorOnSurfaceVariant)));
+            filterStatusButton.setIconTint(ColorStateList.valueOf(
+                    com.google.android.material.color.MaterialColors.getColor(
+                    filterStatusButton, com.google.android.material.R.attr.colorOnSurfaceVariant)));
         }
     }
     private void showSortDialog() {
@@ -286,6 +370,9 @@ public class AppointmentListFragment extends Fragment {
             boolean matchesDate = selectedFilterDate == null
                     || (a.getDate() != null && a.getDate().equals(selectedFilterDate));
             if (!matchesDate) continue;
+            boolean matchesStatus = selectedFilterStatuses.isEmpty()
+                    || (a.getStatus() != null && selectedFilterStatuses.contains(a.getStatus()));
+            if (!matchesStatus) continue;
             if (query.isEmpty()) {
                 filtered.add(a);
             } else {
@@ -307,6 +394,8 @@ public class AppointmentListFragment extends Fragment {
                 emptyStateText.setText(R.string.no_appointments);
             } else if (selectedFilterDate != null) {
                 emptyStateText.setText(getString(R.string.no_appointments_filter, selectedFilterDate));
+            } else if (!selectedFilterStatuses.isEmpty()) {
+                emptyStateText.setText(R.string.no_appointments_status);
             } else {
                 emptyStateText.setText(R.string.no_search_results);
             }
@@ -326,6 +415,8 @@ public class AppointmentListFragment extends Fragment {
                 .setTitle(R.string.delete)
                 .setMessage(R.string.delete_appointment_message)
                 .setPositiveButton(R.string.delete, (dialog, which) -> {
+                    com.medcare.app.notifications.FollowUpScheduler.cancelAtEnd(
+                            requireContext(), appointment.getId());
                     appointmentRepository.delete(appointment, new AppointmentRepository.Callback<Void>() {
                         @Override
                         public void onResult(Void result) {
@@ -336,6 +427,14 @@ public class AppointmentListFragment extends Fragment {
                                         appointmentRepository.insert(appointment, new AppointmentRepository.Callback<Long>() {
                                             @Override
                                             public void onResult(Long result) {
+                                                appointment.setId(result);
+                                                long end = com.medcare.app.data.repository.AppointmentRepository.toEpochMillis(
+                                                        appointment.getDate(), appointment.getTime());
+                                                if (end > 0) {
+                                                    int dur = appointment.getDuration() > 0 ? appointment.getDuration() : 0;
+                                                    com.medcare.app.notifications.FollowUpScheduler.scheduleAtEnd(
+                                                            requireContext(), result, end + dur * 60000L);
+                                                }
                                                 loadAppointments();
                                             }
                                         });

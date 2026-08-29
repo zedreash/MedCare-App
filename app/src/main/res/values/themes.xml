@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Widget.MedCare.Button.Error" parent="Widget.Material3.Button.TonalButton">
+        <item name="backgroundTint">@color/error_tonal_bg</item>
+        <item name="android:textColor">@color/error</item>
+        <item name="iconTint">@color/error</item>
+        <item name="rippleColor">@color/error_tonal_ripple</item>
+    </style>
+
+    <style name="Widget.MedCare.Button.Primary" parent="Widget.Material3.Button.TonalButton">
+        <item name="backgroundTint">@color/primary_tonal_bg</item>
+        <item name="android:textColor">@color/primary</item>
+        <item name="iconTint">@color/primary</item>
+        <item name="rippleColor">@color/primary_tonal_ripple</item>
+    </style>
+
     <style name="Base.Theme.MedCare.Light" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorError">@color/error</item>
         <item name="colorOnError">@color/on_error</item>

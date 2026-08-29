@@ -35,10 +35,29 @@ public class ValidationUtils {
         for (char c : phone.toCharArray()) {
             if (Character.isDigit(c)) digits.append(c);
         }
-        String digitStr = digits.toString();
-        int len = digitStr.length();
-        if (len == 9 || len == 10) return true;
-        if (digitStr.startsWith("972") && (len == 11 || len == 12 || len == 13)) return true;
+        String d = digits.toString();
+        int len = d.length();
+        if (len == 9) {
+            return d.charAt(0) == '0'
+                    && (d.charAt(1) == '2' || d.charAt(1) == '3' || d.charAt(1) == '4'
+                    || d.charAt(1) == '8' || d.charAt(1) == '9');
+        }
+        if (len == 10) {
+            if (d.charAt(0) == '0' && d.charAt(1) == '5') {
+                return d.charAt(2) == '0' || d.charAt(2) == '2' || d.charAt(2) == '3'
+                        || d.charAt(2) == '4' || d.charAt(2) == '5'
+                        || d.charAt(2) == '8' || d.charAt(2) == '9';
+            }
+            if (d.charAt(0) == '0' && d.charAt(1) == '7') {
+                return true;
+            }
+            return false;
+        }
+        if (d.startsWith("972") && (len == 11 || len == 12)) {
+            return d.charAt(3) == '5' || d.charAt(3) == '7'
+                    || d.charAt(3) == '2' || d.charAt(3) == '3' || d.charAt(3) == '4'
+                    || d.charAt(3) == '8' || d.charAt(3) == '9';
+        }
         return false;
     }
     public static boolean isNotEmpty(String value) {

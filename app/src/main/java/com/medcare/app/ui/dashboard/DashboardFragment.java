@@ -109,6 +109,9 @@ public class DashboardFragment extends Fragment {
         view.findViewById(R.id.open_calendar_button).setOnClickListener(v ->
                 Navigation.findNavController(rootView)
                         .navigate(R.id.action_dashboard_to_calendar));
+        view.findViewById(R.id.reports_button).setOnClickListener(v ->
+                Navigation.findNavController(rootView)
+                        .navigate(R.id.action_dashboard_to_report));
     }
 
     @Override

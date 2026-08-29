@@ -18,6 +18,12 @@ public class User {
     private String dateOfBirth;
     @ColumnInfo(name = "password")
     private String password;
+    @ColumnInfo(name = "clinic")
+    private String clinic;
+    @ColumnInfo(name = "clinic_lat")
+    private Double clinicLat;
+    @ColumnInfo(name = "clinic_lng")
+    private Double clinicLng;
     public User(String tzNumber, String fullName, String email, String phone, String dateOfBirth, String password) {
         this.tzNumber = tzNumber;
         this.fullName = fullName;
@@ -40,4 +46,10 @@ public class User {
     public void setDateOfBirth(String dateOfBirth) { this.dateOfBirth = dateOfBirth; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    public String getClinic() { return clinic; }
+    public void setClinic(String clinic) { this.clinic = clinic; }
+    public Double getClinicLat() { return clinicLat; }
+    public void setClinicLat(Double clinicLat) { this.clinicLat = clinicLat; }
+    public Double getClinicLng() { return clinicLng; }
+    public void setClinicLng(Double clinicLng) { this.clinicLng = clinicLng; }
 }

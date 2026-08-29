@@ -24,6 +24,12 @@ public class Patient {
     private long ownerId;
     @ColumnInfo(name = "created_at")
     private long createdAt;
+    @ColumnInfo(name = "blood_type")
+    private String bloodType;
+    @ColumnInfo(name = "height_cm")
+    private Integer heightCm;
+    @ColumnInfo(name = "weight_kg")
+    private Double weightKg;
     public Patient(String fullName, String phone, String diagnosis, String notes, String address, long createdAt) {
         this.fullName = fullName;
         this.phone = phone;
@@ -52,4 +58,10 @@ public class Patient {
     public void setOwnerId(long ownerId) { this.ownerId = ownerId; }
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+    public String getBloodType() { return bloodType; }
+    public void setBloodType(String bloodType) { this.bloodType = bloodType; }
+    public Integer getHeightCm() { return heightCm; }
+    public void setHeightCm(Integer heightCm) { this.heightCm = heightCm; }
+    public Double getWeightKg() { return weightKg; }
+    public void setWeightKg(Double weightKg) { this.weightKg = weightKg; }
 }
