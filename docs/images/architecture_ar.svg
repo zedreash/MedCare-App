@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <rect width="800" height="500" fill="#FAFAFA" rx="12"/>
+  <text x="400" y="40" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#1A73E8" text-anchor="middle">هيكل التطبيق</text>
+
+  <!-- UI Layer -->
+  <rect x="30" y="70" width="740" height="80" rx="8" fill="#E3F2FD" stroke="#1A73E8" stroke-width="1.5"/>
+  <text x="400" y="100" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1A73E8" text-anchor="middle">طبقة العرض</text>
+  <text x="400" y="125" font-family="Arial, sans-serif" font-size="13" fill="#555" text-anchor="middle">Activities + Fragments + Navigation Component</text>
+
+  <!-- Repository Layer -->
+  <rect x="30" y="180" width="740" height="70" rx="8" fill="#E3F2FD" stroke="#2196F3" stroke-width="1.5"/>
+  <text x="400" y="210" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1565C0" text-anchor="middle">طبقة المستودعات</text>
+  <text x="400" y="233" font-family="Arial, sans-serif" font-size="13" fill="#555" text-anchor="middle">PatientRepository + AppointmentRepository + UserRepository</text>
+
+  <!-- DAO Layer -->
+  <rect x="30" y="280" width="740" height="60" rx="8" fill="#FFF3E0" stroke="#FF9800" stroke-width="1.5"/>
+  <text x="400" y="308" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#E65100" text-anchor="middle">طبقة الوصول للبيانات (DAO)</text>
+  <text x="400" y="328" font-family="Arial, sans-serif" font-size="12" fill="#555" text-anchor="middle">PatientDao + AppointmentDao + UserDao + LogDao + MetaDao</text>
+
+  <!-- Database Layer -->
+  <rect x="30" y="370" width="350" height="100" rx="8" fill="#FCE4EC" stroke="#E91E63" stroke-width="1.5"/>
+  <text x="205" y="405" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#AD1457" text-anchor="middle">قاعدة البيانات المشفرة</text>
+  <text x="205" y="430" font-family="Arial, sans-serif" font-size="13" fill="#555" text-anchor="middle">Room + SQLCipher</text>
+  <text x="205" y="450" font-family="Arial, sans-serif" font-size="12" fill="#888" text-anchor="middle">مشفرة بـ AES-256 على الجهاز</text>
+
+  <!-- Background Layer -->
+  <rect x="420" y="370" width="350" height="100" rx="8" fill="#F3E5F5" stroke="#9C27B0" stroke-width="1.5"/>
+  <text x="595" y="405" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#6A1B9A" text-anchor="middle">العمل في الخلفية</text>
+  <text x="595" y="430" font-family="Arial, sans-serif" font-size="13" fill="#555" text-anchor="middle">BackgroundScheduler + Exact Alarms</text>
+  <text x="595" y="450" font-family="Arial, sans-serif" font-size="12" fill="#888" text-anchor="middle">تذكيرات + نسخ احتياطي + متابعة</text>
+
+  <!-- Arrows -->
+  <line x1="400" y1="150" x2="400" y2="180" stroke="#999" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="400" y1="250" x2="400" y2="280" stroke="#999" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="400" y1="340" x2="205" y2="370" stroke="#999" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="400" y1="340" x2="595" y2="370" stroke="#999" stroke-width="2" marker-end="url(#arrow)"/>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#999"/>
+    </marker>
+  </defs>
+</svg>
