@@ -27,7 +27,7 @@
 
 An open-source Android app for managing clinics, patients, and appointments. Runs entirely on-device with no internet dependency or external servers.
 
-Most clinic management tools require a stable internet connection and cloud servers. That is not always available. Power outages, connectivity gaps, and infrastructure disruptions happen daily, especially in places like Palestine, rural clinics, and mobile health teams.
+Most clinic management tools require a stable internet connection and cloud servers. That is not always available. Power outages, connectivity gaps, and infrastructure disruptions happen daily, especially in places like holyland, rural clinics, and mobile health teams.
 
 MedCare was built for this reality. Everything runs locally on your Android device. Patient records, appointments, backups, and transfers all happen on your phone with no outside dependency. If the internet goes down or the clinic loses power, your data and workflow stay intact.
 
@@ -97,7 +97,7 @@ Clinic info with name and reverse-geocoded address. "Get Directions" button open
 
 Tap a patient marker to see a dialog with name, phone, address, diagnosis, and options to "View Patient" or "Get Directions".
 
-Curated popular clinic list with proximity-based suggestions (auto in Israel/Palestine region, curated list elsewhere). Editable clinic name and coordinates from the profile.
+Curated popular clinic list with proximity-based suggestions (auto in Israel region, curated list elsewhere). Editable clinic name and coordinates from the profile.
 
 ### Reports and Activity Logs
 
